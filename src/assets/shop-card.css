@@ -1,0 +1,645 @@
+@property --rc-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* ---------- โครงการ์ดพื้นฐาน (= Common) ---------- */
+.rc-card {
+  --bw: 2px;
+  --frame: #e7e5e4;
+  --bg: #fff;
+  --title: #292524;
+  --sub: #78716c;
+  --stage: #fafaf9;
+  --stage-bd: #f5f5f4;
+  --glow: rgba(120, 113, 108, .25);
+  --badge: linear-gradient(135deg, #3b82f6, #2563eb);
+  --star: #3b82f6;
+  --pcol: transparent;
+  --buy: #fbbf24;
+  --buy-bd: #d97706;
+  --buy-fg: #1c1917;
+  --poor-bg: #e7e5e4;
+  --poor-fg: #78716c;
+  --poor-bd: #d6d3d1;
+  --prev-bd: #e7e5e4;
+  --prev-fg: #57534e;
+  --rx: 0deg;
+  --ry: 0deg;
+  --mx: 50%;
+  --my: 50%;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 22px -10px var(--glow);
+  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform .2s ease-out, box-shadow .4s ease;
+  will-change: transform;
+}
+
+.rc-card:hover {
+  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(-4px);
+  box-shadow: 0 18px 36px -10px var(--glow);
+}
+
+.rc-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  padding: var(--bw);
+  background: var(--frame);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+.rc-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border-radius: inherit;
+  background: var(--bg);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.rc-stage {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--stage-bd);
+  background: var(--stage);
+  overflow: hidden;
+}
+
+.rc-stage img {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .25));
+  transition: scale .5s ease;
+}
+
+.rc-card:hover .rc-stage img {
+  scale: 1.1;
+}
+
+.rc-aura {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity .5s;
+}
+
+.rc-foil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.rc-badge {
+  position: absolute;
+  top: .75rem;
+  right: .75rem;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  padding: .35rem .85rem;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--badge);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 15px -2px var(--glow), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.rc-title {
+  color: var(--title);
+}
+
+.rc-stars {
+  font-size: 11px;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.rc-stars span {
+  color: var(--sub);
+  opacity: .3;
+}
+
+.rc-stars span.on {
+  color: var(--star);
+  opacity: 1;
+}
+
+/* อนุภาค */
+.rc-p {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  color: var(--pcol);
+}
+
+.rc-p i {
+  position: absolute;
+  left: var(--x);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px 2px currentColor;
+  opacity: 0;
+}
+
+/* ปุ่ม */
+.rc-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+}
+
+.rc-prev,
+.rc-buy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .375rem;
+  padding: .625rem 0;
+  border-radius: .75rem;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.rc-prev {
+  font-weight: 700;
+  border: 1px solid var(--prev-bd);
+  color: var(--prev-fg);
+  background: transparent;
+}
+
+.rc-prev:hover {
+  background: rgba(128, 128, 128, .14);
+}
+
+.rc-prev:active,
+.rc-buy:active {
+  transform: scale(.95);
+}
+
+.rc-buy {
+  font-weight: 900;
+  background: var(--buy);
+  color: var(--buy-fg);
+  border-bottom: 4px solid var(--buy-bd);
+}
+
+.rc-buy:hover {
+  filter: brightness(1.08);
+}
+
+.rc-buy.poor {
+  background: var(--poor-bg);
+  color: var(--poor-fg);
+  border-bottom: 4px solid var(--poor-bd);
+  opacity: .75;
+}
+
+/* ============================================================
+   EPIC — ม่วงคริสตัล + แสงกวาดตอน hover
+============================================================ */
+.rc-epic {
+  --frame: linear-gradient(135deg, #f0abfc, #a855f7 55%, #6366f1);
+  --bg: linear-gradient(180deg, #fdf4ff, #fff 55%);
+  --stage: radial-gradient(circle at 50% 35%, #f5d0fe, #fae8ff 55%, #fdf4ff);
+  --stage-bd: #f0abfc;
+  --glow: rgba(168, 85, 247, .5);
+  --badge: linear-gradient(135deg, #d946ef, #7c3aed);
+  --star: #c026d3;
+  --sub: #86198f;
+  --buy: linear-gradient(180deg, #e879f9, #a855f7);
+  --buy-bd: #7e22ce;
+  --buy-fg: #fff;
+  --prev-bd: #e9d5ff;
+  --prev-fg: #7e22ce;
+}
+
+.rc-epic .rc-foil {
+  opacity: 1;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .7) 50%, transparent 65%);
+  background-size: 250% 100%;
+  background-position: 150% 0;
+  transition: background-position .9s ease;
+}
+
+.rc-epic:hover .rc-foil {
+  background-position: -50% 0;
+}
+
+/* ============================================================
+   LEGENDARY — กรอบทองหมุน + ประกายลอย + เงาทองเต้นเป็นจังหวะ
+============================================================ */
+.rc-legendary {
+  --bw: 3px;
+  --frame: conic-gradient(from var(--rc-angle), #f59e0b, #fef08a, #f97316, #fde047, #f59e0b);
+  --bg: linear-gradient(165deg, #fffbeb, #fff7ed 50%, #fff);
+  --stage: radial-gradient(circle at 50% 40%, #fde68a, #fef3c7 50%, #fffbeb);
+  --stage-bd: #fcd34d;
+  --glow: rgba(245, 158, 11, .6);
+  --badge: linear-gradient(135deg, #fbbf24, #ea580c);
+  --star: #f59e0b;
+  --sub: #92400e;
+  --pcol: #f59e0b;
+  --buy: linear-gradient(180deg, #fcd34d, #f59e0b);
+  --buy-bd: #b45309;
+  --buy-fg: #1c1917;
+  --prev-bd: #fcd34d;
+  --prev-fg: #92400e;
+  animation: rc-glow 2.8s ease-in-out infinite;
+}
+
+.rc-legendary .rc-frame {
+  animation: rc-spin 4s linear infinite;
+}
+
+.rc-legendary .rc-aura {
+  opacity: 1;
+  background: radial-gradient(circle at 50% 55%, rgba(251, 191, 36, .55), transparent 65%);
+}
+
+.rc-legendary .rc-foil {
+  opacity: 1;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .8) 50%, transparent 62%);
+  background-size: 250% 100%;
+  animation: rc-sheen 3.6s ease-in-out infinite;
+}
+
+.rc-legendary .rc-p i {
+  bottom: -8px;
+  animation: rc-rise var(--d) var(--delay) linear infinite;
+}
+
+/* ============================================================
+   SECRET — การ์ดมืดสีเลือด + สแกนไลน์ + glitch + ถ่านไฟลอย
+============================================================ */
+.rc-secret {
+  --bw: 3px;
+  --frame: conic-gradient(from var(--rc-angle), #be123c, #fb7185, #450a0a, #f43f5e, #be123c);
+  --bg: radial-gradient(circle at 50% 0%, #4c0519 0%, #1f0a10 55%, #0a0507 100%);
+  --title: #ffe4e6;
+  --sub: #fda4af;
+  --stage: radial-gradient(circle at 50% 45%, #7f1d1d 0%, #2a0a12 60%, #12060a);
+  --stage-bd: rgba(244, 63, 94, .45);
+  --glow: rgba(244, 63, 94, .7);
+  --badge: linear-gradient(135deg, #e11d48, #7f1d1d);
+  --star: #fb7185;
+  --pcol: #fb7185;
+  --buy: linear-gradient(180deg, #fb7185, #e11d48);
+  --buy-bd: #9f1239;
+  --buy-fg: #fff;
+  --poor-bg: #3f1d26;
+  --poor-fg: #9f7a82;
+  --poor-bd: #2a1219;
+  --prev-bd: rgba(251, 113, 133, .4);
+  --prev-fg: #fecdd3;
+  animation: rc-glow 1.8s ease-in-out infinite;
+}
+
+.rc-secret .rc-frame {
+  animation: rc-spin 3s linear infinite;
+}
+
+.rc-secret .rc-aura {
+  opacity: 1;
+  background: radial-gradient(circle at 50% 100%, rgba(244, 63, 94, .5), transparent 60%);
+}
+
+.rc-secret .rc-foil {
+  opacity: 1;
+  background:
+    linear-gradient(180deg, transparent, rgba(244, 63, 94, .28), transparent) 0 -40% / 100% 35% no-repeat,
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .06) 0 1px, transparent 1px 3px);
+  animation: rc-scan 3s linear infinite;
+}
+
+.rc-secret .rc-stage img {
+  animation: rc-glitch 3.2s infinite;
+}
+
+.rc-secret .rc-p i {
+  bottom: -8px;
+  animation: rc-rise var(--d) var(--delay) linear infinite;
+}
+
+/* ============================================================
+   SPECIAL COLLECTION — Prismatic Holo Card
+   กรอบรุ้งเรืองแสง + ฟอยล์โฮโลตามเมาส์ + วงโคจรดาวหาง + ประกาย
+============================================================ */
+.rc-special {
+  --bw: 3px;
+  --frame: conic-gradient(
+    from var(--rc-angle),
+    #ff6ec7, #ffb86c, #fff48a, #7dffb2, #6ee7ff, #a78bfa, #ff6ec7
+  );
+  --bg:
+    radial-gradient(120% 80% at 50% 0%, rgba(167, 139, 250, 0.18), transparent 60%),
+    linear-gradient(170deg, #14101f, #0b0912 55%, #050408);
+  --title: #ffffff;
+  --sub: #b8b3cc;
+  --stage:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.08), transparent 55%),
+    linear-gradient(160deg, #1b1630, #0b0912);
+  --stage-bd: rgba(255, 255, 255, 0.14);
+  --glow: rgba(167, 139, 250, 0.45);
+  --badge: linear-gradient(90deg, #ff6ec7, #ffb86c, #fff48a, #7dffb2, #6ee7ff, #a78bfa, #ff6ec7);
+  --star: #fff48a;
+  --pcol: #fff48a;
+  --buy: linear-gradient(100deg, #ff6ec7, #a78bfa 50%, #6ee7ff);
+  --buy-bd: #5b3fb0;
+  --buy-fg: #0b0912;
+  --poor-bg: #221d33;
+  --poor-fg: #7d7796;
+  --poor-bd: #15111f;
+  --prev-bd: rgba(255, 255, 255, 0.25);
+  --prev-fg: #ffffff;
+  animation: rc-glow-special 4s ease-in-out infinite;
+}
+
+/* กรอบรุ้งหมุน + ขอบนอกเรืองหลายสี */
+.rc-special .rc-frame {
+  animation: rc-spin 5s linear infinite;
+  filter:
+    drop-shadow(0 0 6px rgba(255, 110, 199, 0.55))
+    drop-shadow(0 0 14px rgba(110, 231, 255, 0.35));
+}
+
+/* ป้าย Special: รุ้งไหลวน + วิบวับ */
+.rc-special .rc-badge {
+  background-size: 300% 100%;
+  color: #0b0912;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 12px rgba(255, 110, 199, 0.5);
+  animation: rc-hue 5s linear infinite;
+}
+
+/* ชื่อไอเทม: ตัวอักษรรุ้ง + เงาเรือง */
+.rc-special .rc-title {
+  background: linear-gradient(90deg, #ff6ec7, #ffb86c, #fff48a, #7dffb2, #6ee7ff, #a78bfa, #ff6ec7);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.45));
+  animation: rc-hue 6s linear infinite;
+  line-height: 1.4;
+  padding: 0.1em 0;
+}
+
+/* ออร่าด้านหลัง: ก้อนสีหมุนช้า ๆ ให้ดูมีมิติ */
+.rc-special .rc-aura {
+  opacity: 1;
+  background:
+    radial-gradient(40% 40% at 20% 25%, rgba(255, 110, 199, 0.28), transparent 70%),
+    radial-gradient(40% 40% at 80% 30%, rgba(110, 231, 255, 0.25), transparent 70%),
+    radial-gradient(45% 45% at 50% 85%, rgba(167, 139, 250, 0.30), transparent 70%);
+  filter: blur(14px);
+  animation: rc-aura-drift 8s ease-in-out infinite alternate;
+}
+
+/* ฟอยล์โฮโลแกรม: ไล่สีตามตำแหน่งเมาส์ + แสงกวาด */
+.rc-special .rc-foil {
+  opacity: 0.55;
+  mix-blend-mode: color-dodge;
+  background:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.9), transparent 35%),
+    repeating-linear-gradient(
+      115deg,
+      rgba(255, 110, 199, 0.55) 0%,
+      rgba(255, 244, 138, 0.45) 10%,
+      rgba(125, 255, 178, 0.45) 20%,
+      rgba(110, 231, 255, 0.55) 30%,
+      rgba(167, 139, 250, 0.55) 40%,
+      rgba(255, 110, 199, 0.55) 50%
+    );
+  background-size: 100% 100%, 250% 250%;
+  background-position: 0 0, var(--mx, 50%) var(--my, 50%);
+  animation: rc-sheen 4s ease-in-out infinite;
+  transition: background-position 0.15s ease-out;
+}
+
+/* วงโคจรที่ 1: ดาวหางหางยาววิ่งรอบเวที */
+.rc-special .rc-stage::before {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 62%, rgba(110, 231, 255, 0.2) 80%, #ffffff 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+  filter: drop-shadow(0 0 4px #6ee7ff);
+  animation: rc-orbit 6s linear infinite;
+  pointer-events: none;
+}
+
+/* วงโคจรที่ 2: วงประหมุนสวนทาง */
+.rc-special .rc-stage::after {
+  content: '';
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 244, 138, 0.35);
+  animation: rc-orbit 24s linear infinite reverse;
+  pointer-events: none;
+}
+
+/* ดาวระยิบ: ขยาย + หมุนเล็กน้อย */
+.rc-special .rc-p i {
+  top: var(--y);
+  background: radial-gradient(circle, #fff 0%, var(--star) 45%, transparent 70%);
+  box-shadow: 0 0 6px var(--star);
+  animation: rc-twinkle-special var(--d) var(--delay) ease-in-out infinite;
+}
+
+/* ปุ่มซื้อ: แสงกวาดผ่านปุ่ม */
+.rc-special .rc-buy {
+  background-size: 200% 100%;
+  box-shadow: 0 4px 14px rgba(167, 139, 250, 0.45);
+  transition: background-position 0.4s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.rc-special .rc-buy:hover {
+  background-position: 100% 0;
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(255, 110, 199, 0.55);
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes rc-spin {
+  to {
+    --rc-angle: 360deg;
+  }
+}
+
+@keyframes rc-sheen {
+  0% {
+    background-position: 150% 0;
+  }
+
+  55%,
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+@keyframes rc-holo {
+  to {
+    background-position: 0 0, 300% 300%;
+  }
+}
+
+@keyframes rc-scan {
+  to {
+    background-position: 0 140%, 0 0;
+  }
+}
+
+@keyframes rc-hue {
+  to {
+    background-position: 300% 0;
+  }
+}
+
+@keyframes rc-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rc-rise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-230px) scale(.4);
+    opacity: 0;
+  }
+}
+
+@keyframes rc-twinkle {
+
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(.3) rotate(0deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+}
+
+@keyframes rc-glow {
+  0%,
+  100% {
+    box-shadow: 0 8px 22px -10px var(--glow);
+  }
+
+  50% {
+    box-shadow: 0 0 34px 2px var(--glow);
+  }
+}
+
+@keyframes rc-glow-special {
+  0%, 100% {
+    box-shadow:
+      0 10px 30px -8px rgba(255, 110, 199, 0.5),
+      0 0 18px rgba(110, 231, 255, 0.3);
+  }
+  33% {
+    box-shadow:
+      0 10px 34px -6px rgba(255, 244, 138, 0.4),
+      0 0 24px rgba(125, 255, 178, 0.3);
+  }
+  66% {
+    box-shadow:
+      0 10px 36px -6px rgba(167, 139, 250, 0.6),
+      0 0 26px rgba(110, 231, 255, 0.4);
+  }
+}
+
+@keyframes rc-aura-drift {
+  from { transform: translate(-4%, -3%) scale(1); }
+  to   { transform: translate(4%, 3%) scale(1.12); }
+}
+
+@keyframes rc-twinkle-special {
+  0%, 100% { opacity: 0;   transform: scale(0.3) rotate(0deg); }
+  50%      { opacity: 1;   transform: scale(1.4) rotate(90deg); }
+}
+
+@keyframes rc-glitch {
+
+  0%,
+  92%,
+  100% {
+    transform: none;
+    filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .5));
+  }
+
+  93% {
+    transform: translate(-3px, 1px) skewX(4deg);
+    filter: drop-shadow(3px 0 #f43f5e) drop-shadow(-3px 0 #22d3ee);
+  }
+
+  95% {
+    transform: translate(3px, -1px) skewX(-4deg);
+    filter: drop-shadow(-3px 0 #f43f5e) drop-shadow(3px 0 #22d3ee);
+  }
+
+  97% {
+    transform: translate(-1px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .rc-card,
+  .rc-card *,
+  .rc-card::before,
+  .rc-card *::before,
+  .rc-card *::after {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// 1. Users & Profiles (ระบบผู้ใช้งาน)
+// ==========================================
+model User {
+  id            Int      @id @default(autoincrement())
+  studentId     String   @unique
+  name          String
+  password      String?
+  role          String   @default("นักศึกษา")
+  courseIds     String[] // เก็บวิชาเรียนเป็น Array ของรหัสวิชา
+  classroom     String
+  
+  // ข้อมูลโปรไฟล์
+  avatar        String?
+  nickname      String?  @default("-")
+  status        String   @default("online")
+  facebook      String?  @default("")
+  facebookUrl   String?  @default("")
+  ig            String?  @default("")
+  igUrl         String?  @default("")
+  phone         String?  @default("")
+  quote         String?  @default("ยังไม่ได้ระบุคำคมประจำใจ")
+  
+  // ระบบ Gamification (กระเป๋าตังค์และของสวมใส่)
+  coins         Int      @default(100)
+  equipment     Json?    // เก็บข้อมูลของสวมใส่ { frame: {...}, pet: {...}, theme: {...} }
+  equippedFrame String?  // สำหรับซัพพอร์ตระบบเก่า
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // ความสัมพันธ์ (Relations) ไปยังตารางต่างๆ
+  grades        Grade[]
+  attendances   Attendance[]
+  submissions   Submission[]
+  questProgress QuestProgress[]
+  inventory     InventoryItem[]
+  posts         Post[]
+  comments      PostComment[]
+  postLikes     PostLike[]
+
+  @@map("users")
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  studentId String
+  status    String   @default("pending") // pending, approved, rejected
+  createdAt DateTime @default(now())
+}
+
+// ==========================================
+// 2. Grades & Academic (ระบบการเรียนการสอนและคะแนน)
+// ==========================================
+model Grade {
+  id             Int      @id @default(autoincrement())
+  courseId       String
+  studentId      String
+  
+  responsibility Float    @default(10) // คะแนนความรับผิดชอบ
+  assignments    Json?    // เก็บ Object คะแนนใบงาน เช่น { "asm-1": 10, "asm-2": 9 }
+  midterm        Float    @default(0)  // คะแนนกลางภาค
+  final          Float    @default(0)  // คะแนนปลายภาค
+
+  student        User     @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+
+  @@unique([courseId, studentId]) // 1 วิชา มี 1 เรคคอร์ดคะแนนต่อนักศึกษา 1 คน
+}
+
+model CheckInSession {
+  id        Int       @id @default(autoincrement())
+  courseId  String
+  week      Int
+  isOpen    Boolean   @default(true)
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+
+  @@unique([courseId, week]) // 1 สัปดาห์มี 1 Session ต่อวิชา
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  courseId  String
+  week      Int
+  studentId String
+  status    String   // present (มาเรียน), late (สาย), leave (ลา), absent (ขาด)
+  checkedAt String?  // เก็บเป็น String เวลา เช่น "08:30 น."
+  note      String?  // หมายเหตุ
+
+  student   User     @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+
+  @@unique([courseId, week, studentId]) // ป้องกันเช็คชื่อซ้ำซ้อนใน 1 สัปดาห์
+}
+
+model Submission {
+  id           Int      @id @default(autoincrement())
+  courseId     String
+  assignmentId String
+  studentId    String
+  link         String   // ลิงก์งานที่ส่ง
+  note         String?  // โน้ตย่อถึงครู
+  submittedAt  String?  // เวลาที่ส่ง
+
+  student      User     @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+
+  @@unique([courseId, assignmentId, studentId])
+}
+
+// ==========================================
+// 3. Quests & Missions (ระบบภารกิจ)
+// ==========================================
+model Quest {
+  id             String   @id // ใช้ quest_1, quest_2 ได้
+  title          String
+  description    String?
+  rewards        Json     // เก็บ Array ของรางวัล [{ type: 'coin', amount: 50 }]
+  maxCompletions Int      @default(1)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  progress       QuestProgress[]
+}
+
+model QuestProgress {
+  id          Int      @id @default(autoincrement())
+  studentId   String
+  questId     String
+  completions Int      @default(0) // ทำไปแล้วกี่ครั้ง
+  updatedAt   DateTime @updatedAt
+
+  student     User     @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  quest       Quest    @relation(fields: [questId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questId])
+}
+
+// ==========================================
+// 4. Shop, Gacha & Inventory (ระบบร้านค้าและคลังไอเทม)
+// ==========================================
+model MysteryBox {
+  id            String   @id // box-aetheria-companions
+  name          String
+  price         Int
+  image         String?
+  description   String?
+  category      String?
+  reqRank       String?
+  purchaseLimit Int      @default(0)
+  badge         String?
+  items         Json     // Array ของไอเทมทั้งหมดในกล่องรวมถึง % ออก (Rate)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model DirectShopItem {
+  id          String   @id
+  name        String
+  price       Int
+  image       String?
+  description String?
+  category    String?
+  itemType    String?
+  rarity      String?
+  createdAt   DateTime @default(now())
+}
+
+model InventoryItem {
+  id             Int      @id @default(autoincrement())
+  studentId      String
+  itemId         String
+  itemData       Json     // เก็บ Snapshot ข้อมูลของไอเทมชิ้นนั้น
+  boxName        String?  // ได้มาจากกล่องอะไร (หรือ direct)
+  boxId          String?
+  count          Int      @default(1) // มีกี่ชิ้น
+  obtainedAt     DateTime @default(now())
+  lastObtainedAt DateTime @default(now())
+
+  student        User     @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+
+  @@unique([studentId, itemId]) // ไอเทม 1 ชนิด ให้นับเป็น Count ซ้อนกันไปเรื่อยๆ
+}
+
+// ==========================================
+// 5. Webboard (ระบบกระดานสนทนา)
+// ==========================================
+model Post {
+  id            String   @id @default(uuid())
+  authorId      String
+  content       String   @db.Text
+  likesCount    Int      @default(0)
+  commentsCount Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  author        User     @relation(fields: [authorId], references: [studentId], onDelete: Cascade)
+  comments      PostComment[]
+  likes         PostLike[]
+}
+
+model PostComment {
+  id        String   @id @default(uuid())
+  postId    String
+  authorId  String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [studentId], onDelete: Cascade)
+}
+
+model PostLike {
+  postId    String
+  studentId String
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  student   User     @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+
+  @@id([postId, studentId])
+}
+
+// ==========================================
+// 8. Announcement (ระบบประกาศแจ้งเตือน)
+// ==========================================
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  image     String   // URL ของรูปภาพประกาศ
+  url       String?  // ลิงก์ปลายทางเมื่อคลิกรูปภาพ (ถ้ามี)
+  isActive  Boolean  @default(true) // เปิด/ปิด การแสดงผล
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

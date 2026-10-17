@@ -1,0 +1,25 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Sarabun', sans-serif;
+}
+
+@layer base {
+  html, body {
+    @apply antialiased text-gray-800 bg-green-50 h-full w-full m-0 p-0;
+  }
+  #app {
+    @apply h-full w-full;
+  }
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
