@@ -13,7 +13,7 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   minio:
-    image: quay.io/minio/minio:latest
+    image: docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z
     container_name: database_classroom_storage
     restart: always
     ports:
