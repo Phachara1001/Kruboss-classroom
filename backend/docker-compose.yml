@@ -13,7 +13,7 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   minio:
-    image: bitnami/minio:latest
+    image: minio/minio:latest
     container_name: database_classroom_storage
     restart: always
     ports:
@@ -22,9 +22,9 @@ services:
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin123
-      - MINIO_DEFAULT_BUCKETS=assets
+    command: server /data --console-address ":9001"
     volumes:
-      - minio_data:/bitnami/minio/data
+      - minio_data:/data
 
 volumes:
   pg_data:
