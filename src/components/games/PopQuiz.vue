@@ -1,52 +1,67 @@
 <script setup>
-import { ref, reactive, computed, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import {
-  Flame, Trophy, Star, Timer, Volume2, VolumeX, RotateCcw, Lightbulb,
-  CheckCircle2, XCircle, Sparkles, BookOpen, Info, ChevronRight
+  Flame, Trophy, Star, Timer, Volume2, VolumeX, Lightbulb,
+  CheckCircle2, XCircle, Sparkles, BookOpen, ChevronRight, ChevronLeft,
+  Send, Lock, AlertCircle, FileQuestion, ArrowRight
 } from '@lucide/vue'
+import { authUser } from '@/data/authStore'
+import { gameScoresStore, getStudentGameScore, saveGameScore } from '@/data/gameScoresStore'
 
 const props = defineProps({
-  // [{ question, options: [{ id, text, isCorrect }], explanation }]
-  questions: { type: Array, required: true }
+  title: { type: String, default: 'แบบทดสอบหลังเรียน (Post-test)' },
+  subtitle: { type: String, default: 'แบบทดสอบ 4 ตัวเลือก วัดความรู้ความเข้าใจหลังเรียน ทำได้เพียงครั้งเดียวเท่านั้น' },
+  // [{ id, question, options: [{ id, text, isCorrect }], explanation }]
+  questions: { type: Array, required: true },
+  gameId: { type: String, default: 'quiz' },
+  courseId: { type: String, default: '' },
+  week: { type: Number, default: 1 }
 })
+
 const emit = defineEmits(['complete'])
 
 const letters = ['A', 'B', 'C', 'D', 'E', 'F']
-const MAX_HINTS = 2
 
 /* ---------- state ---------- */
 const current = ref(0)
-const selected = ref(null)
-const phase = ref('answering')           // 'answering' | 'checked'
-const answers = reactive({})             // idx -> { optionId, correct, hint }
-const hintUsedOn = reactive({})          // idx -> true
-const eliminated = ref([])               // option id ที่ถูกตัดออกในข้อปัจจุบัน
-const hintsLeft = ref(MAX_HINTS)
-const xp = ref(0)
-const lastGain = ref(0)
-const streak = ref(0)
-const bestStreak = ref(0)
+const selectedAnswers = reactive({})     // idx -> optionId
 const isFinished = ref(false)
-const showOnlyMissed = ref(false)
+const isAlreadyPlayed = ref(false)
 const confetti = ref([])
 const soundOn = ref(true)
+const isSubmitting = ref(false)
+const examScore = ref(0)
 
 const q = computed(() => props.questions[current.value])
 const total = computed(() => props.questions.length)
+const answeredCount = computed(() => Object.keys(selectedAnswers).length)
 const isLast = computed(() => current.value === total.value - 1)
-const score = computed(() => Object.values(answers).filter(a => a.correct).length)
-const percent = computed(() => (total.value ? Math.round((score.value / total.value) * 100) : 0))
-const stars = computed(() => (percent.value >= 90 ? 3 : percent.value >= 60 ? 2 : 1))
+
+const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
+
+// ตรวจสอบคะแนนเดิม
+const checkExistingScore = () => {
+  if (!currentStudentId.value || !props.courseId || !props.week || !props.gameId) return
+  const record = getStudentGameScore(props.courseId, props.week, currentStudentId.value, props.gameId)
+  if (record) {
+    isAlreadyPlayed.value = true
+    isFinished.value = true
+    examScore.value = record.score
+  }
+}
+
+onMounted(() => {
+  checkExistingScore()
+})
+
+const percent = computed(() => (total.value ? Math.round((examScore.value / total.value) * 100) : 0))
+const stars = computed(() => (percent.value >= 80 ? 3 : percent.value >= 50 ? 2 : 1))
+
 const finishMessage = computed(() =>
-  stars.value === 3 ? 'สุดยอด! เข้าใจเนื้อหาดีมาก' : stars.value === 2 ? 'เก่งมาก! อีกนิดเดียวก็เต็ม' : 'ผ่านแล้ว! ทบทวนอีกหน่อยแล้วลองใหม่นะ'
+  stars.value === 3 ? 'ยอดเยี่ยมมาก! คุณเข้าใจเนื้อหาอย่างลึกซึ้ง' : stars.value === 2 ? 'เก่งมาก! ทำคะแนนได้ดี' : 'ทำแบบทดสอบเสร็จสิ้น หมั่นทบทวนเนื้อหานะ'
 )
+
 const correctOptionOf = (question) => question.options.find(o => o.isCorrect)
-const reviewList = computed(() =>
-  props.questions
-    .map((question, idx) => ({ question, idx, ans: answers[idx] }))
-    .filter(r => !showOnlyMissed.value || (r.ans && !r.ans.correct))
-)
-const missedCount = computed(() => Object.values(answers).filter(a => !a.correct).length)
 
 /* ---------- timer ---------- */
 const seconds = ref(0)
@@ -79,104 +94,109 @@ const tone = (freqs, dur = 0.12) => {
       o.start(t)
       o.stop(t + dur + 0.02)
     })
-  } catch { /* ข้ามถ้าไม่รองรับเสียง */ }
+  } catch { /* ข้าม */ }
 }
 
 /* ---------- actions ---------- */
-const select = (id) => {
-  if (phase.value !== 'answering' || eliminated.value.includes(id)) return
+const selectOption = (optId) => {
+  if (isFinished.value) return
   startTimer()
-  selected.value = id
+  selectedAnswers[current.value] = optId
+  tone([520], 0.06)
 }
 
-const useHint = () => {
-  if (phase.value !== 'answering' || hintsLeft.value <= 0 || hintUsedOn[current.value]) return
-  startTimer()
-  const wrongs = q.value.options.filter(o => !o.isCorrect)
-  const removeCount = Math.min(2, wrongs.length - 1) // เหลือตัวหลอกอย่างน้อย 1 ตัว
-  if (removeCount <= 0) return
-  const picked = [...wrongs].sort(() => Math.random() - 0.5).slice(0, removeCount).map(o => o.id)
-  eliminated.value = picked
-  if (picked.includes(selected.value)) selected.value = null
-  hintsLeft.value--
-  hintUsedOn[current.value] = true
-  tone([520, 440])
-}
-
-const check = () => {
-  if (phase.value !== 'answering' || selected.value === null) return
-  const opt = q.value.options.find(o => o.id === selected.value)
-  const correct = !!opt?.isCorrect
-  const hint = !!hintUsedOn[current.value]
-  answers[current.value] = { optionId: selected.value, correct, hint }
-
-  if (correct) {
-    streak.value++
-    bestStreak.value = Math.max(bestStreak.value, streak.value)
-    lastGain.value = (hint ? 60 : 100) + (streak.value > 1 ? (streak.value - 1) * 10 : 0)
-    xp.value += lastGain.value
-    tone([660, 880])
-  } else {
-    streak.value = 0
-    lastGain.value = 0
-    tone([300, 220])
+const goToQuestion = (idx) => {
+  if (idx >= 0 && idx < total.value) {
+    current.value = idx
   }
-  phase.value = 'checked'
 }
 
-const next = () => {
-  if (phase.value !== 'checked') return
-  if (isLast.value) return finish()
-  current.value++
-  selected.value = null
-  eliminated.value = []
-  phase.value = 'answering'
+const prevQuestion = () => {
+  if (current.value > 0) current.value--
 }
 
-const finish = () => {
+const nextQuestion = () => {
+  if (current.value < total.value - 1) current.value++
+}
+
+// ส่งแบบทดสอบและบันทึกคะแนน
+const submitQuiz = async () => {
+  if (isFinished.value || isSubmitting.value) return
+
+  const unanswered = []
+  for (let i = 0; i < total.value; i++) {
+    if (!selectedAnswers[i]) unanswered.push(i + 1)
+  }
+
+  if (unanswered.length > 0) {
+    const confirm = window.confirm(`คุณยังไม่ได้ตอบคำถามข้อ: ${unanswered.join(', ')} (เหลืออีก ${unanswered.length} ข้อ)\nต้องการยืนยันส่งแบบทดสอบและบันทึกคะแนนตอนนี้หรือไม่?`)
+    if (!confirm) return
+  }
+
+  isSubmitting.value = true
+  stopTimer()
+
+  // ตรวจคำตอบทุกข้อ
+  let correctCount = 0
+  props.questions.forEach((question, idx) => {
+    const chosenOptId = selectedAnswers[idx]
+    const correctOpt = correctOptionOf(question)
+    if (chosenOptId && correctOpt && chosenOptId === correctOpt.id) {
+      correctCount++
+    }
+  })
+
+  examScore.value = correctCount
+
+  // บันทึกคะแนนเข้าระบบ (ครั้งเดียวเท่านั้น)
+  if (currentStudentId.value && props.courseId && props.week) {
+    await saveGameScore(
+      props.courseId,
+      props.week,
+      currentStudentId.value,
+      props.gameId,
+      correctCount,
+      total.value
+    )
+  }
+
   isFinished.value = true
-  stopTimer()
-  if (stars.value >= 2) {
-    confetti.value = Array.from({ length: 48 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 0.8,
-      dur: 2.4 + Math.random() * 1.8,
-      color: ['#34d399', '#2dd4bf', '#fbbf24', '#38bdf8', '#f472b6'][i % 5],
-      size: 6 + Math.random() * 6
-    }))
-  }
-  setTimeout(() => tone(stars.value >= 2 ? [523, 659, 784, 1046] : [440, 523], 0.14), 250)
-  emit('complete', { score: score.value, total: total.value, xp: xp.value, stars: stars.value, accuracy: percent.value, time: seconds.value })
+  isSubmitting.value = false
+
+  confetti.value = Array.from({ length: 48 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 0.8,
+    dur: 2.4 + Math.random() * 1.8,
+    color: ['#34d399', '#2dd4bf', '#fbbf24', '#38bdf8', '#f472b6'][i % 5],
+    size: 6 + Math.random() * 6
+  }))
+  setTimeout(() => tone(stars.value >= 2 ? [523, 659, 784, 1046] : [440, 523], 0.14), 200)
+
+  emit('complete', {
+    score: correctCount,
+    total: total.value,
+    accuracy: percent.value,
+    time: seconds.value
+  })
 }
 
-const resetQuiz = () => {
-  current.value = 0; selected.value = null; phase.value = 'answering'
-  Object.keys(answers).forEach(k => delete answers[k])
-  Object.keys(hintUsedOn).forEach(k => delete hintUsedOn[k])
-  eliminated.value = []; hintsLeft.value = MAX_HINTS
-  xp.value = 0; lastGain.value = 0; streak.value = 0; bestStreak.value = 0
-  seconds.value = 0; isFinished.value = false; showOnlyMissed.value = false; confetti.value = []
-  stopTimer()
-}
-
-// คีย์ลัด: 1-6 / A-F เลือกตัวเลือก, Enter ตรวจ/ถัดไป (เมื่อโฟกัสที่การ์ด)
+// คีย์ลัด: A-D หรือ 1-4 เลือกตัวเลือก
 const onKey = (e) => {
   if (isFinished.value) return
   const k = e.key.toLowerCase()
   let idx = -1
-  if (/^[1-6]$/.test(k)) idx = Number(k) - 1
-  else if (/^[a-f]$/.test(k)) idx = k.charCodeAt(0) - 97
-  if (idx >= 0 && q.value.options[idx]) { select(q.value.options[idx].id); return }
-  if (e.key === 'Enter' && e.target === e.currentTarget) {
-    phase.value === 'answering' ? check() : next()
+  if (/^[1-4]$/.test(k)) idx = Number(k) - 1
+  else if (/^[a-d]$/.test(k)) idx = k.charCodeAt(0) - 97
+  if (idx >= 0 && q.value.options[idx]) {
+    selectOption(q.value.options[idx].id)
   }
 }
 </script>
 
 <template>
   <section tabindex="0" @keydown="onKey"
-    class="quiz relative flex min-h-[520px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-green-950 via-emerald-900 to-teal-950 p-5 text-white shadow-2xl outline-none md:p-10">
+    class="quiz relative flex min-h-[540px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-teal-950 via-emerald-950 to-slate-950 p-5 text-white shadow-2xl outline-none md:p-10">
     <div class="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-emerald-400/20 blur-3xl"></div>
     <div class="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-teal-400/20 blur-3xl"></div>
 
@@ -186,20 +206,21 @@ const onKey = (e) => {
         :style="{ left: c.left + '%', animationDelay: c.delay + 's', animationDuration: c.dur + 's', background: c.color, width: c.size + 'px', height: c.size * 1.6 + 'px' }"></span>
     </div>
 
-    <!-- ================= กำลังทำข้อสอบ ================= -->
-    <div v-if="!isFinished" class="relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col">
+    <!-- Header -->
+    <div class="relative z-10 mx-auto flex w-full max-w-4xl flex-col">
       <header class="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div
-          class="inline-flex w-fit items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-200">
-          <Sparkles class="h-3.5 w-3.5" /> แบบทดสอบ
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <div class="stat">
-            <Trophy class="h-4 w-4 text-amber-300" /><b class="tabular-nums">{{ xp }}</b><span>XP</span>
+        <div>
+          <div
+            class="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-200">
+            <Sparkles class="h-3.5 w-3.5" /> {{ title }} • กิจกรรมสุดท้าย
           </div>
-          <div :class="['stat', streak >= 3 ? 'stat-hot' : '']">
-            <Flame :class="['h-4 w-4', streak >= 3 ? 'text-orange-300' : 'text-slate-400']" />
-            <b class="tabular-nums">x{{ streak }}</b><span>คอมโบ</span>
+          <p class="text-xs text-slate-300 mt-1">{{ subtitle }}</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <div v-if="isFinished" class="stat bg-emerald-500/20 border-emerald-400/40 text-emerald-200">
+            <CheckCircle2 class="h-4 w-4 text-emerald-300" />
+            <span class="font-bold">คะแนน: {{ examScore }} / {{ total }}</span>
           </div>
           <div class="stat">
             <Timer class="h-4 w-4 text-sky-300" /><b class="tabular-nums">{{ timeText }}</b>
@@ -212,187 +233,201 @@ const onKey = (e) => {
         </div>
       </header>
 
-      <!-- Segmented progress -->
-      <div class="mb-2 flex gap-1.5">
-        <div v-for="(_, i) in questions" :key="i" :class="[
-          'h-2.5 flex-1 rounded-full transition-all duration-500',
-          answers[i] ? (answers[i].correct ? 'bg-emerald-400' : 'bg-rose-400')
-            : i === current ? 'seg-now bg-white/80' : 'bg-white/10'
-        ]"></div>
+      <!-- Alert if already played previously -->
+      <div v-if="isAlreadyPlayed" class="mb-6 rounded-2xl border border-amber-400/40 bg-amber-500/10 p-5 backdrop-blur">
+        <div class="flex items-center gap-3">
+          <Lock class="w-6 h-6 text-amber-300 shrink-0" />
+          <div>
+            <h4 class="font-bold text-amber-200 text-lg">คุณได้ส่งแบบทดสอบหลังเรียนนี้แล้ว</h4>
+            <p class="text-amber-100/80 text-sm mt-0.5">
+              คะแนนที่บันทึกได้คือ <span class="font-bold text-white text-base">{{ examScore }} / {{ total }}</span> คะแนน (ตามกติกาทำได้เพียงครั้งเดียว ไม่สามารถแก้ไขได้)
+            </p>
+          </div>
+        </div>
       </div>
-      <p class="mb-7 text-right text-sm font-semibold text-emerald-200">ข้อที่ {{ current + 1 }} / {{ total }}</p>
 
-      <!-- Question -->
-      <div :key="current" class="q-in flex-1">
-        <h3 class="mb-8 text-2xl font-black leading-snug drop-shadow-md md:text-4xl">{{ q.question }}</h3>
+      <!-- ================= หน้าผลคะแนนและเฉลยละเอียด ================= -->
+      <div v-if="isFinished" class="space-y-6">
+        <div class="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur md:p-8 text-center">
+          <div class="mb-3 flex justify-center gap-2">
+            <Star v-for="n in 3" :key="n"
+              :class="['h-12 w-12 md:h-14 md:w-14', n <= stars ? 'fill-amber-300 text-amber-300 drop-shadow-[0_0_12px_rgba(252,211,77,0.7)]' : 'text-white/20']" />
+          </div>
+          <h4 class="text-2xl font-black md:text-3xl">{{ finishMessage }}</h4>
+          <p class="text-slate-300 text-sm mt-1">บันทึกคะแนนเข้าสู่ระบบเรียบร้อยแล้ว</p>
 
-        <div class="space-y-3">
-          <button v-for="(option, oi) in q.options" :key="option.id" @click="select(option.id)"
-            :disabled="phase === 'checked' || eliminated.includes(option.id)" :class="[
-              'group flex w-full items-center gap-4 rounded-2xl border-2 px-5 py-4 text-left text-base font-medium transition-all duration-200 md:text-xl',
-              /* ก่อนตรวจ */
-              phase === 'answering' && eliminated.includes(option.id)
-                ? 'cursor-not-allowed border-white/5 bg-white/[0.02] text-white/25 line-through' : '',
-              phase === 'answering' && !eliminated.includes(option.id)
-                ? (selected === option.id
-                  ? 'scale-[1.02] border-emerald-300 bg-emerald-500/25 shadow-[0_0_24px_rgba(52,211,153,0.35)]'
-                  : 'border-white/10 bg-white/5 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/10')
-                : '',
-              /* หลังตรวจ */
-              phase === 'checked' && option.isCorrect ? 'anim-pop border-emerald-400 bg-emerald-500/25 text-emerald-50' : '',
-              phase === 'checked' && !option.isCorrect && selected === option.id ? 'anim-shake border-rose-400 bg-rose-500/25 text-rose-50' : '',
-              phase === 'checked' && !option.isCorrect && selected !== option.id ? 'border-transparent bg-white/5 opacity-40' : ''
-            ]">
-            <span :class="[
-              'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-base font-black transition-colors',
-              phase === 'checked' && option.isCorrect ? 'border-emerald-300 bg-emerald-400 text-emerald-950'
-                : phase === 'checked' && selected === option.id ? 'border-rose-300 bg-rose-400 text-rose-950'
-                  : selected === option.id && phase === 'answering' ? 'border-emerald-300 bg-emerald-300 text-emerald-950'
-                    : 'border-white/25 bg-black/20 text-white/80'
-            ]">{{ letters[oi] }}</span>
-            <span class="flex-1">{{ option.text }}</span>
-            <CheckCircle2 v-if="phase === 'checked' && option.isCorrect" class="h-6 w-6 shrink-0 text-emerald-300" />
-            <XCircle v-else-if="phase === 'checked' && selected === option.id" class="h-6 w-6 shrink-0 text-rose-300" />
-          </button>
+          <div class="grid grid-cols-2 gap-3 md:grid-cols-3 max-w-lg mx-auto my-6">
+            <div class="result-card bg-emerald-500/20 border-emerald-400/30">
+              <span class="text-emerald-200">คะแนนที่ได้</span>
+              <b class="text-2xl text-emerald-300">{{ examScore }} / {{ total }}</b>
+            </div>
+            <div class="result-card">
+              <span>ความแม่นยำ</span>
+              <b>{{ percent }}%</b>
+            </div>
+            <div class="result-card">
+              <span>เวลาที่ใช้</span>
+              <b>{{ timeText }}</b>
+            </div>
+          </div>
         </div>
 
-        <!-- Feedback -->
-        <Transition name="fb">
-          <div v-if="phase === 'checked'" class="mt-6">
-            <div :class="[
-              'rounded-2xl border p-5',
-              answers[current]?.correct ? 'border-emerald-400/40 bg-emerald-950/60' : 'border-rose-400/40 bg-rose-950/50'
-            ]">
-              <p class="flex flex-wrap items-center gap-2 text-lg font-extrabold">
-                <template v-if="answers[current]?.correct">
-                  <CheckCircle2 class="h-6 w-6 text-emerald-300" /> ถูกต้อง!
-                  <span class="rounded-full bg-amber-300/20 px-3 py-0.5 text-sm font-bold text-amber-200">+{{ lastGain
-                    }} XP</span>
-                  <span v-if="streak >= 3"
-                    class="rounded-full bg-orange-400/20 px-3 py-0.5 text-sm font-bold text-orange-200">คอมโบ x{{ streak
-                    }} 🔥</span>
-                </template>
-                <template v-else>
-                  <Lightbulb class="h-6 w-6 text-amber-300" /> ยังไม่ถูก ไม่เป็นไร มาดูเหตุผลกัน
-                </template>
-              </p>
-              <p v-if="!answers[current]?.correct" class="mt-2 text-sm text-rose-100">
-                คำตอบที่ถูกคือ: <b>{{ correctOptionOf(q)?.text }}</b>
-              </p>
-              <div v-if="q.explanation" class="mt-4 flex items-start gap-3 rounded-xl bg-black/25 p-4">
-                <Info class="mt-0.5 h-5 w-5 shrink-0 text-sky-300" />
+        <!-- รายการเฉลยข้อสอบทั้งหมด -->
+        <div class="rounded-2xl border border-white/10 bg-black/30 p-5 md:p-7 space-y-5">
+          <h5 class="flex items-center gap-2 text-xl font-bold text-emerald-300">
+            <BookOpen class="h-6 w-6" /> เฉลยและคำอธิบายแบบทดสอบหลังเรียน ({{ total }} ข้อ)
+          </h5>
+
+          <div class="space-y-4">
+            <div v-for="(question, qIdx) in questions" :key="question.id || qIdx"
+              :class="[
+                'p-5 rounded-2xl border transition-colors',
+                selectedAnswers[qIdx] === correctOptionOf(question)?.id
+                  ? 'border-emerald-500/40 bg-emerald-950/30'
+                  : 'border-rose-500/40 bg-rose-950/25'
+              ]">
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <h6 class="font-bold text-base md:text-lg text-white">
+                  ข้อที่ {{ qIdx + 1 }}. {{ question.question }}
+                </h6>
+                <span :class="[
+                  'px-3 py-1 rounded-full text-xs font-black shrink-0 flex items-center gap-1',
+                  selectedAnswers[qIdx] === correctOptionOf(question)?.id
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
+                    : 'bg-rose-500/20 text-rose-300 border border-rose-400/30'
+                ]">
+                  <CheckCircle2 v-if="selectedAnswers[qIdx] === correctOptionOf(question)?.id" class="w-3.5 h-3.5" />
+                  <XCircle v-else class="w-3.5 h-3.5" />
+                  <span>{{ selectedAnswers[qIdx] === correctOptionOf(question)?.id ? 'ถูกต้อง (+1)' : 'ไม่ถูกต้อง (0)' }}</span>
+                </span>
+              </div>
+
+              <!-- Options review -->
+              <div class="space-y-2 mb-3">
+                <div v-for="(opt, optIdx) in question.options" :key="opt.id"
+                  :class="[
+                    'flex items-center gap-3 p-3 rounded-xl text-sm font-medium border',
+                    opt.isCorrect
+                      ? 'bg-emerald-500/25 border-emerald-400 text-emerald-100'
+                      : selectedAnswers[qIdx] === opt.id
+                        ? 'bg-rose-500/25 border-rose-400 text-rose-100 line-through'
+                        : 'bg-white/5 border-white/5 text-slate-400'
+                  ]">
+                  <span class="w-6 h-6 rounded-lg bg-black/30 flex items-center justify-center font-bold text-xs shrink-0">
+                    {{ letters[optIdx] }}
+                  </span>
+                  <span class="flex-1">{{ opt.text }}</span>
+                  <span v-if="opt.isCorrect" class="text-xs text-emerald-300 font-bold shrink-0">✓ คำตอบที่ถูกต้อง</span>
+                  <span v-else-if="selectedAnswers[qIdx] === opt.id" class="text-xs text-rose-300 font-bold shrink-0">✗ คำตอบที่คุณเลือก</span>
+                </div>
+              </div>
+
+              <!-- Explanation -->
+              <div v-if="question.explanation" class="p-3.5 rounded-xl bg-black/40 border border-white/10 text-xs text-slate-300 flex items-start gap-2.5">
+                <Lightbulb class="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
                 <div>
-                  <p class="mb-1 text-xs font-bold uppercase tracking-wider text-sky-300">คำอธิบาย</p>
-                  <p class="text-sky-50">{{ q.explanation }}</p>
+                  <strong class="text-amber-200">คำอธิบาย:</strong> {{ question.explanation }}
                 </div>
               </div>
             </div>
           </div>
-        </Transition>
-      </div>
-
-      <!-- Actions -->
-      <footer class="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5">
-        <button @click="useHint"
-          :disabled="phase !== 'answering' || hintsLeft <= 0 || hintUsedOn[current] || q.options.filter(o => !o.isCorrect).length < 2"
-          class="inline-flex items-center gap-2 rounded-xl border border-amber-300/40 bg-amber-300/10 px-4 py-2.5 text-sm font-bold text-amber-200 transition hover:bg-amber-300/20 disabled:cursor-not-allowed disabled:opacity-35">
-          <Lightbulb class="h-4 w-4" /> ตัดตัวเลือก 50:50
-          <span class="rounded-full bg-black/30 px-2 py-0.5 text-xs">เหลือ {{ hintsLeft }}</span>
-        </button>
-
-        <button v-if="phase === 'answering'" @click="check" :disabled="selected === null" :class="[
-          'inline-flex items-center gap-2 rounded-xl px-8 py-3 text-lg font-extrabold shadow-lg transition',
-          selected !== null
-            ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-emerald-950 hover:scale-105 active:scale-95'
-            : 'cursor-not-allowed bg-white/10 text-white/40'
-        ]">
-          <CheckCircle2 class="h-5 w-5" /> ตรวจคำตอบ
-        </button>
-        <button v-else @click="next"
-          class="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3 text-lg font-extrabold text-emerald-900 shadow-lg transition hover:scale-105 active:scale-95">
-          {{ isLast ? 'ดูผลสรุป' : 'ข้อถัดไป' }}
-          <ChevronRight class="h-5 w-5" />
-        </button>
-      </footer>
-    </div>
-
-    <!-- ================= ผลสรุป ================= -->
-    <div v-else class="result relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col">
-      <div class="mb-8 text-center">
-        <div class="mb-3 flex justify-center gap-2">
-          <Star v-for="n in 3" :key="n"
-            :class="['star h-12 w-12 md:h-14 md:w-14', n <= stars ? 'fill-amber-300 text-amber-300 drop-shadow-[0_0_12px_rgba(252,211,77,0.7)]' : 'text-white/20']"
-            :style="{ animationDelay: n * 0.25 + 's' }" />
         </div>
-        <h3 class="text-3xl font-black md:text-4xl">{{ finishMessage }}</h3>
-        <p class="mt-1 text-emerald-200">
-          ตอบถูก <b class="text-white">{{ score }}</b> จาก {{ total }} ข้อ
-        </p>
-      </div>
 
-      <div class="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <div class="result-card"><span>คะแนน</span><b>{{ score }}/{{ total }}</b></div>
-        <div class="result-card"><span>คะแนน XP</span><b>{{ xp }}</b></div>
-        <div class="result-card"><span>คอมโบสูงสุด</span><b>x{{ bestStreak }}</b></div>
-        <div class="result-card"><span>เวลา</span><b>{{ timeText }}</b></div>
-      </div>
-
-      <div class="mb-4 flex items-center justify-between">
-        <h4 class="flex items-center gap-2 text-lg font-bold text-emerald-200">
-          <BookOpen class="h-5 w-5" /> ทบทวนรายข้อ
-        </h4>
-        <label class="flex cursor-pointer items-center gap-2 text-sm font-semibold text-slate-200">
-          <input type="checkbox" v-model="showOnlyMissed" class="h-4 w-4 accent-emerald-400" />
-          เฉพาะข้อที่พลาด ({{ missedCount }})
-        </label>
-      </div>
-
-      <div class="custom-scrollbar max-h-[520px] flex-1 space-y-5 overflow-y-auto pr-2">
-        <p v-if="reviewList.length === 0" class="rounded-2xl bg-black/20 p-6 text-center text-emerald-300">
-          ไม่มีข้อที่พลาดเลย! เยี่ยมมาก 🎉
-        </p>
-        <div v-for="r in reviewList" :key="r.idx"
-          class="rounded-2xl border border-white/10 bg-black/20 p-5 backdrop-blur-sm md:p-6">
-          <h5 class="mb-4 flex gap-3 text-lg font-bold">
-            <span :class="['shrink-0', r.ans?.correct ? 'text-emerald-400' : 'text-rose-400']">{{ r.idx + 1 }}.</span>
-            <span>{{ r.question.question }}</span>
-          </h5>
-          <div class="space-y-2">
-            <div v-for="(option, oi) in r.question.options" :key="option.id" :class="[
-              'flex items-start gap-3 rounded-xl border p-3',
-              option.isCorrect ? 'border-emerald-500/50 bg-emerald-900/40'
-                : r.ans?.optionId === option.id ? 'border-rose-500/50 bg-rose-900/40'
-                  : 'border-transparent bg-white/5 opacity-50'
-            ]">
-              <CheckCircle2 v-if="option.isCorrect" class="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
-              <XCircle v-else-if="r.ans?.optionId === option.id" class="mt-0.5 h-5 w-5 shrink-0 text-rose-400" />
-              <span v-else class="mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 border-white/20"></span>
-              <div>
-                <p class="font-medium">{{ letters[oi] }}. {{ option.text }}</p>
-                <p v-if="r.ans?.optionId === option.id && !option.isCorrect"
-                  class="mt-0.5 text-xs font-bold text-rose-300">
-                  คำตอบของคุณ</p>
-                <p v-if="option.isCorrect" class="mt-0.5 text-xs font-bold text-emerald-300">คำตอบที่ถูกต้อง</p>
-              </div>
-            </div>
-          </div>
-          <div v-if="r.question.explanation"
-            class="mt-4 flex items-start gap-3 rounded-xl border border-sky-500/20 bg-sky-900/20 p-4">
-            <Info class="mt-0.5 h-5 w-5 shrink-0 text-sky-400" />
-            <div>
-              <p class="mb-1 text-xs font-bold uppercase tracking-wider text-sky-300">คำอธิบาย</p>
-              <p class="text-sky-100">{{ r.question.explanation }}</p>
-            </div>
-          </div>
+        <div class="flex justify-center items-center gap-2 text-slate-400 text-sm py-4">
+          <Lock class="w-4 h-4 text-slate-400" />
+          <span>บันทึกคะแนนเรียบร้อยแล้ว ไม่สามารถทำซ้ำได้</span>
         </div>
       </div>
 
-      <div class="mt-8 flex flex-wrap justify-center gap-4 border-t border-white/10 pt-6">
-        <button @click="resetQuiz"
-          class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-400 px-8 py-3.5 text-lg font-extrabold text-emerald-950 shadow-lg transition hover:scale-105 active:scale-95">
-          <RotateCcw class="h-5 w-5" /> ทำใหม่อีกครั้ง
-        </button>
-        <slot name="actions"></slot>
+      <!-- ================= กำลังทำแบบทดสอบ ================= -->
+      <div v-if="!isFinished" class="space-y-6">
+        <!-- แถบเลือกข้อแบบปุ่มตัวเลข (Question Palette) -->
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">
+              ข้อสอบทั้งหมด ({{ total }} ข้อ 4 ตัวเลือก)
+            </span>
+            <span class="text-xs font-semibold text-emerald-300">
+              ตอบแล้ว {{ answeredCount }} / {{ total }} ข้อ
+            </span>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button v-for="(question, qIdx) in questions" :key="qIdx"
+              @click="goToQuestion(qIdx)"
+              :class="[
+                'w-9 h-9 rounded-xl font-bold text-sm transition-all flex items-center justify-center',
+                qIdx === current
+                  ? 'ring-2 ring-emerald-300 bg-emerald-500 text-slate-950 scale-105 shadow-md'
+                  : selectedAnswers[qIdx]
+                    ? 'bg-emerald-500/25 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/35'
+                    : 'bg-white/5 border border-white/10 text-slate-400 hover:bg-white/15 hover:text-white'
+              ]">
+              {{ qIdx + 1 }}
+            </button>
+          </div>
+        </div>
+
+        <!-- กล่องคำถาม -->
+        <div class="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur md:p-8">
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30">
+              ข้อที่ {{ current + 1 }} จาก {{ total }}
+            </span>
+            <span v-if="selectedAnswers[current]" class="text-xs text-emerald-300 font-semibold flex items-center gap-1">
+              <CheckCircle2 class="w-3.5 h-3.5" /> เลือกคำตอบแล้ว
+            </span>
+            <span v-else class="text-xs text-amber-300/80 font-medium">
+              ยังไม่ได้เลือกคำตอบ
+            </span>
+          </div>
+
+          <h3 class="mb-6 text-xl md:text-2xl font-bold leading-relaxed text-white">
+            {{ q.question }}
+          </h3>
+
+          <!-- ตัวเลือก 4 ชอยส์ (A, B, C, D) -->
+          <div class="space-y-3 mb-8">
+            <button v-for="(option, oi) in q.options" :key="option.id"
+              @click="selectOption(option.id)"
+              :class="[
+                'group flex w-full items-center gap-4 rounded-2xl border-2 px-5 py-4 text-left text-sm md:text-base font-medium transition-all duration-200',
+                selectedAnswers[current] === option.id
+                  ? 'border-emerald-400 bg-emerald-500/25 text-white shadow-[0_0_20px_rgba(52,211,153,0.3)] scale-[1.01]'
+                  : 'border-white/10 bg-white/5 text-slate-200 hover:border-white/30 hover:bg-white/10'
+              ]">
+              <span :class="[
+                'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-sm font-black transition-colors',
+                selectedAnswers[current] === option.id
+                  ? 'border-emerald-300 bg-emerald-300 text-emerald-950 font-black'
+                  : 'border-white/20 bg-black/30 text-white'
+              ]">{{ letters[oi] }}</span>
+              <span class="flex-1 leading-relaxed">{{ option.text }}</span>
+              <div v-if="selectedAnswers[current] === option.id" class="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></div>
+            </button>
+          </div>
+
+          <!-- Bottom Nav / Submit -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/10">
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <button @click="prevQuestion" :disabled="current === 0"
+                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-sm font-bold text-slate-300 disabled:opacity-30 disabled:pointer-events-none transition-colors">
+                <ChevronLeft class="w-4 h-4" /> ก่อนหน้า
+              </button>
+              <button @click="nextQuestion" :disabled="current === total - 1"
+                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-sm font-bold text-slate-300 disabled:opacity-30 disabled:pointer-events-none transition-colors">
+                ถัดไป <ChevronRight class="w-4 h-4" />
+              </button>
+            </div>
+
+            <!-- Submit Button -->
+            <button @click="submitQuiz" :disabled="isSubmitting"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 px-7 py-3 text-sm md:text-base font-black text-slate-950 shadow-lg shadow-emerald-500/30 transition hover:scale-105 active:scale-95 disabled:opacity-50">
+              <Send class="h-4 w-4" />
+              <span>{{ isSubmitting ? 'กำลังบันทึกคะแนน...' : 'ส่งแบบทดสอบและบันทึกคะแนน' }}</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -411,182 +446,34 @@ const onKey = (e) => {
   color: #e2e8f0;
 }
 
-.stat span {
-  color: #94a3b8;
-  font-size: 0.75rem;
-}
-
-.stat-hot {
-  background: rgba(251, 146, 60, 0.2);
-  border-color: rgba(251, 146, 60, 0.5);
-  animation: pop 0.4s ease;
-}
-
-.seg-now {
-  animation: pulse 1.4s ease-in-out infinite;
-}
-
 .result-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: center;
   padding: 1rem;
-  border-radius: 0.9rem;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .result-card span {
   font-size: 0.75rem;
   color: #94a3b8;
+  margin-bottom: 0.25rem;
 }
-
 .result-card b {
-  font-size: 1.75rem;
-  font-weight: 900;
-}
-
-.q-in {
-  animation: slideUp 0.4s ease-out;
-}
-
-.result {
-  animation: slideUp 0.5s ease-out;
-}
-
-.star {
-  animation: starIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-.anim-pop {
-  animation: pop 0.45s ease;
-}
-
-.anim-shake {
-  animation: shake 0.45s ease;
+  font-size: 1.25rem;
 }
 
 .confetti {
   position: absolute;
   top: -20px;
   border-radius: 2px;
-  opacity: 0;
-  animation-name: fall;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-}
-
-.fb-enter-active {
-  transition: all 0.35s ease;
-}
-
-.fb-enter-from {
-  opacity: 0;
-  transform: translateY(12px);
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-@keyframes pop {
-  0% {
-    transform: scale(1);
-  }
-
-  40% {
-    transform: scale(1.03);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes shake {
-
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  20% {
-    transform: translateX(-8px);
-  }
-
-  40% {
-    transform: translateX(8px);
-  }
-
-  60% {
-    transform: translateX(-5px);
-  }
-
-  80% {
-    transform: translateX(5px);
-  }
-}
-
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.45;
-  }
-}
-
-@keyframes starIn {
-  from {
-    opacity: 0;
-    transform: scale(0) rotate(-90deg);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1) rotate(0);
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  animation: fall linear forwards;
 }
 
 @keyframes fall {
-  0% {
-    opacity: 1;
-    transform: translateY(0) rotate(0);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(560px) rotate(540deg);
-  }
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
 }
 </style>

@@ -1,13 +1,24 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { PieChart, Info, Play, CheckCircle, XCircle, FileText, Upload, Database, Layers, Shield, Users, Server, FileQuestion, ArrowRight, Target, Award, Book, Lightbulb, Gamepad2, ListOrdered, ChevronRight, Star, Shuffle, MousePointer2, Code, Settings, Cloud, RefreshCw, GitBranch, GitCommit, GitMerge, Clock } from '@lucide/vue'
+import {
+  PieChart, Info, Play, CheckCircle, XCircle, FileText, Upload, Database,
+  Layers, Shield, Users, Server, FileQuestion, ArrowRight, Target, Award,
+  Book, Lightbulb, Gamepad2, ListOrdered, ChevronRight, Star, Shuffle,
+  MousePointer2, Code, Settings, Cloud, RefreshCw, GitBranch, GitCommit,
+  GitMerge, Clock, Trophy, Lock, FileSpreadsheet
+} from '@lucide/vue'
 
 import DragDropGame from '@/components/games/DragDropGame.vue'
 import MatchingGame from '@/components/games/MatchingGame.vue'
 import PopQuiz from '@/components/games/PopQuiz.vue'
+import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
+
+import { authUser } from '@/data/authStore'
+import { isStudent } from '@/data/studentsStore'
+import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 // Current Course & Week context
 const currentCourseId = '21901-2012'
@@ -25,49 +36,154 @@ const grading = [
   { name: 'สอบปลายภาค (Final)', score: 20, color: 'bg-cyan-700' }
 ]
 
-// Mini-game State
+// Modal & Game Config
+const showTeacherModal = ref(false)
+const weekGames = [
+  { id: 'game-1', name: 'มินิเกม 1 (แยกประเภทแบบเก่า vs DevOps)', maxScore: 6, isQuiz: false },
+  { id: 'game-2', name: 'มินิเกม 2 (โยงคำศัพท์ Git & DevOps)', maxScore: 5, isQuiz: false },
+  { id: 'quiz', name: 'แบบทดสอบหลังเรียน (Post-test 10 ข้อ)', maxScore: 10, isQuiz: true }
+]
+
+onMounted(() => {
+  fetchGameScores(currentCourseId, currentWeek)
+})
+
+const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
+const isTeacher = computed(() => !isStudent(authUser.value))
+
+const studentWeekScores = computed(() => {
+  if (!currentStudentId.value) return {}
+  const key = `${currentCourseId}_${currentWeek}_${currentStudentId.value}`
+  return gameScoresStore.value[key]?.scores || {}
+})
+
+const studentNorm = computed(() => {
+  return calculateNormalizedScore(studentWeekScores.value, weekGames)
+})
+
+// แบบทดสอบหลังเรียน (Post-test) 4 ตัวเลือก 10 ข้อ
 const quizQuestions = [
   {
     id: 1,
-    question: "ข้อใดคือความหมายที่ถูกต้องที่สุดของคำว่า 'DevOps'?",
+    question: "ข้อใดคือความหมายและเป้าหมายที่แท้จริงของคำว่า 'DevOps'?",
     options: [
-      { id: 'a', text: "เครื่องมือที่ใช้ในการเขียนโค้ดภาษาใหม่", isCorrect: false },
-      { id: 'b', text: "การรวมกันระหว่าง Development (การพัฒนา) และ Operations (การดูแลระบบ) เป็นวัฒนธรรมการทำงานร่วมกัน", isCorrect: true },
-      { id: 'c', text: "โปรแกรมสำหรับตรวจสอบไวรัสในระบบ", isCorrect: false }
+      { id: 'a', text: "เครื่องมือเขียนโปรแกรมคอมไพเลอร์ภาษาใหม่", isCorrect: false },
+      { id: 'b', text: "วัฒนธรรมและการทำงานร่วมกันอย่างใกล้ชิดระหว่างทีม Dev และ ทีม Ops เพื่อส่งมอบซอฟต์แวร์ได้อย่างรวดเร็วและมีเสถียรภาพ", isCorrect: true },
+      { id: 'c', text: "โปรแกรมสำหรับสแกนและกำจัดไวรัสในเซิร์ฟเวอร์", isCorrect: false },
+      { id: 'd', text: "แผนกจัดซื้ออุปกรณ์ฮาร์ดแวร์ประจำองค์กร", isCorrect: false }
     ],
-    explanation: "DevOps ไม่ใช่แค่เครื่องมือ แต่เป็น 'วัฒนธรรม' และ 'แนวปฏิบัติ' ที่นำทีม Dev และ Ops มาทำงานร่วมกันอย่างใกล้ชิด เพื่อให้ส่งมอบซอฟต์แวร์ได้รวดเร็วและมีเสถียรภาพ"
+    explanation: "DevOps ไม่ใช่แค่โปรแกรม แต่เป็น 'วัฒนธรรม' และ 'แนวปฏิบัติ' ที่ผสานทีม Development และ Operations เข้าด้วยกันเพื่อความรวดเร็วและคุณภาพ"
   },
   {
     id: 2,
-    question: "ปัญหาคลาสสิก 'Works on my machine' (รันบนเครื่องฉันได้ แต่เครื่องคนอื่นพัง) มักเกิดจากอะไร?",
+    question: "ปัญหาคลาสสิก 'Works on my machine' (รันบนเครื่องฉันได้ แต่เครื่องคนอื่นพัง) มักเกิดจากสาเหตุใดมากที่สุด?",
     options: [
-      { id: 'a', text: "สเปกคอมพิวเตอร์ต่างกัน", isCorrect: false },
-      { id: 'b', text: "สภาพแวดล้อมและเวอร์ชันของโปรแกรมไม่ตรงกัน", isCorrect: true },
-      { id: 'c', text: "เขียนโค้ดผิดพลาดตั้งแต่แรก", isCorrect: false }
+      { id: 'a', text: "ความเร็วเครือข่ายอินเทอร์เน็ตของแต่ละคนไม่เท่ากัน", isCorrect: false },
+      { id: 'b', text: "สภาพแวดล้อม (Environment) เวอร์ชันของโปรแกรม และไลบรารีไม่ตรงกันระหว่างเครื่องนักพัฒนาและเซิร์ฟเวอร์", isCorrect: true },
+      { id: 'c', text: "ขนาดหน้าจอคอมพิวเตอร์มีความกว้างต่างกัน", isCorrect: false },
+      { id: 'd', text: "ยี่ห้อของเมนบอร์ดและคีย์บอร์ดไม่เหมือนกัน", isCorrect: false }
     ],
-    explanation: "ปัญหาเกิดจาก Environment ที่แตกต่างกันระหว่างเครื่องนักพัฒนาและเซิร์ฟเวอร์จริง ซึ่งในยุค DevOps จะแก้ปัญหานี้ด้วยการใช้ Container เช่น Docker"
+    explanation: "ความแตกต่างของ OS, runtime version, หรือ library dependencies ระหว่างเครื่องทำให้เกิดปัญหานี้ ซึ่ง DevOps จะแก้ด้วย Container เช่น Docker"
   },
   {
     id: 3,
-    question: "ระบบ Version Control (เช่น Git) มีประโยชน์อย่างไรในการทำงานเป็นทีม?",
+    question: "ระบบควบคุมเวอร์ชัน (Version Control System เช่น Git) มีประโยชน์หลักอย่างไรในการทำงานเป็นทีม?",
     options: [
-      { id: 'a', text: "ใช้ติดตามประวัติการแก้ไข และรวมโค้ดของหลายๆ คนเข้าด้วยกันอย่างเป็นระบบ", isCorrect: true },
-      { id: 'b', text: "ใช้แปลภาษาโค้ดจากภาษาหนึ่งไปอีกภาษาหนึ่ง", isCorrect: false },
-      { id: 'c', text: "ใช้บีบอัดไฟล์ให้เล็กลงเพื่อให้ส่งอีเมลได้", isCorrect: false }
+      { id: 'a', text: "ติดตามประวัติการแก้ไข รวมโค้ดของทุกคนเข้าด้วยกันอย่างเป็นระบบ และสามารถย้อนกลับเวอร์ชันเดิมได้ตลอดเวลา", isCorrect: true },
+      { id: 'b', text: "แปลงโค้ดภาษา Python ให้กลายเป็นภาษา Java อัตโนมัติ", isCorrect: false },
+      { id: 'c', text: "ป้องกันไม่ให้ใครเปิดดูโค้ดของตนเองได้", isCorrect: false },
+      { id: 'd', text: "ทำหน้าที่เป็นระบบปฏิบัติการแทน Windows หรือ Linux", isCorrect: false }
     ],
-    explanation: "Git ช่วยบันทึก (Commit) ว่าใครทำอะไร เมื่อไหร่ และสามารถแยกสายการทำงาน (Branch) ออกไปทำพร้อมกัน ก่อนจะนำมารวมกัน (Merge) ในภายหลังได้"
+    explanation: "Git ช่วยบันทึกประวัติการเปลี่ยนแปลง (Commit) และสนับสนุนการทำงานร่วมกันแบบหลายกิ่ง (Branching) ได้อย่างมีประสิทธิภาพ"
+  },
+  {
+    id: 4,
+    question: "ในระบบ Git คำสั่งหรือการทำ 'Commit' มีความหมายตรงกับข้อใด?",
+    options: [
+      { id: 'a', text: "การลบไฟล์และโฟลเดอร์ที่ไม่ต้องการออกจากฮาร์ดดิสก์", isCorrect: false },
+      { id: 'b', text: "การเปิดหน้าต่างแก้ไขโค้ดขึ้นมาใหม่", isCorrect: false },
+      { id: 'c', text: "การบันทึกภาพถ่ายสถานะและการเปลี่ยนแปลงของไฟล์โค้ด ณ จุดนั้น พร้อมข้อความอธิบายความเปลี่ยนแปลง", isCorrect: true },
+      { id: 'd', text: "การรีสตาร์ทเครื่องคอมพิวเตอร์เพื่อล้างหน่วยความจำ", isCorrect: false }
+    ],
+    explanation: "Commit เปรียบเสมือนจุดเช็คพอยต์ (Snapshot) ที่บันทึกสถานะของงานพร้อมเหตุผลประกอบ เพื่อให้ตรวจสอบและย้อนกลับได้"
+  },
+  {
+    id: 5,
+    question: "การแตกสายการทำงาน (Branch) ใน Git มีจุดประสงค์เพื่ออะไร?",
+    options: [
+      { id: 'a', text: "แยกสายงานออกไปพัฒนาฟีเจอร์ใหม่โดยไม่ส่งผลกระทบต่อโค้ดหลักที่ใช้งานอยู่", isCorrect: true },
+      { id: 'b', text: "เพิ่มความเร็วในการคำนวณของซีพียู", isCorrect: false },
+      { id: 'c', text: "บีบอัดไฟล์ให้มีขนาดเล็กลงเพื่อส่งอีเมล", isCorrect: false },
+      { id: 'd', text: "ปิดไม่ให้นักพัฒนาคนอื่นเข้าถึงอินเทอร์เน็ตได้", isCorrect: false }
+    ],
+    explanation: "Branch ช่วยให้นักพัฒนาแยกไปทดลองหรือสร้างฟีเจอร์ใหม่ได้อย่างอิสระ เมื่อทดสอบเสร็จจึงค่อยนำมารวม (Merge) กลับเข้าสายงานหลัก"
+  },
+  {
+    id: 6,
+    question: "ระบบ Continuous Integration (CI) มีหน้าที่สำคัญอย่างไรในวงจร DevOps?",
+    options: [
+      { id: 'a', text: "นำโค้ดของทุกคนมารวมกันที่ส่วนกลางสม่ำเสมอ พร้อม Build และรัน Automated Tests ทันทีเพื่อตรวจหาบั๊กโดยเร็ว", isCorrect: true },
+      { id: 'b', text: "ยกเลิกการทดสอบโค้ดทั้งหมดเพื่อปล่อยโปรแกรมให้เร็วที่สุด", isCorrect: false },
+      { id: 'c', text: "จ้างพนักงานพิมพ์เอกสารรายงานข้อผิดพลาดส่งทางไปรษณีย์", isCorrect: false },
+      { id: 'd', text: "ลบประวัติการเขียนโค้ดทิ้งทั้งหมดเพื่อความปลอดภัย", isCorrect: false }
+    ],
+    explanation: "CI ช่วยผสานโค้ดอย่างสม่ำเสมอและทดสอบแบบอัตโนมัติ ทำให้พบปัญหาทันที ไม่ต้องรอจนถึงวันส่งมอบงาน"
+  },
+  {
+    id: 7,
+    question: "Continuous Delivery / Deployment (CD) หมายถึงกระบวนการใด?",
+    options: [
+      { id: 'a', text: "การส่งมอบแผ่นซีดีโปรแกรมให้กับลูกค้าทางพัสดุ", isCorrect: false },
+      { id: 'b', text: "กระบวนการนำซอฟต์แวร์ที่ผ่านการทดสอบแล้วไปติดตั้งลงสภาพแวดล้อมจริง (Production) แบบอัตโนมัติหรือคลิกเดียว", isCorrect: true },
+      { id: 'c', text: "การสั่งซื้อเครื่องเซิร์ฟเวอร์ใหม่ทุกสัปดาห์", isCorrect: false },
+      { id: 'd', text: "การเขียนโค้ดต่อเนื่องติดต่อกัน 48 ชั่วโมงโดยไม่หยุดพัก", isCorrect: false }
+    ],
+    explanation: "CD ทำหน้าที่นำซอฟต์แวร์ที่ผ่าน CI แล้วขึ้นสู่เซิร์ฟเวอร์จริงได้อย่างราบรื่น ลดข้อผิดพลาดจากการติดตั้งด้วยมือ (Manual Error)"
+  },
+  {
+    id: 8,
+    question: "ข้อใดเรียงลำดับขั้นตอนใน DevOps Infinity Loop 8 ขั้นตอนได้อย่างถูกต้อง?",
+    options: [
+      { id: 'a', text: "Plan → Code → Build → Test → Release → Deploy → Operate → Monitor", isCorrect: true },
+      { id: 'b', text: "Deploy → Monitor → Plan → Release → Test → Build → Operate → Code", isCorrect: false },
+      { id: 'c', text: "Code → Deploy → Test → Plan → Monitor → Operate → Release → Build", isCorrect: false },
+      { id: 'd', text: "Monitor → Operate → Plan → Code → Deploy → Build → Test → Release", isCorrect: false }
+    ],
+    explanation: "วงจรเริ่มจากฝั่ง Dev (Plan, Code, Build, Test) ต่อเนื่องไปยังฝั่ง Ops (Release, Deploy, Operate, Monitor) เป็นวงรอบต่อเนื่องไม่สิ้นสุด"
+  },
+  {
+    id: 9,
+    question: "เทคโนโลยี Container เช่น 'Docker' เข้ามาช่วยแก้ปัญหาสำคัญข้อใดในยุค DevOps?",
+    options: [
+      { id: 'a', text: "ช่วยแพ็กแอปพลิเคชันพร้อม dependencies ทั้งหมดให้ทำงานได้เหมือนกันทุกที่ หมดปัญหาโค้ดรันได้แค่บางเครื่อง", isCorrect: true },
+      { id: 'b', text: "เพิ่มขนาดความจุของฮาร์ดดิสก์ทางกายภาพให้เพิ่มขึ้น", isCorrect: false },
+      { id: 'c', text: "ป้องกันไฟฟ้าดับในห้องควบคุมคอมพิวเตอร์", isCorrect: false },
+      { id: 'd', text: "ช่วยแปลโค้ดภาษาอังกฤษเป็นภาษาไทยได้ทันที", isCorrect: false }
+    ],
+    explanation: "Container จำลองสภาพแวดล้อมที่จำเป็นสำหรับแอป ทำให้มั่นใจได้ว่าโค้ดที่รันบนเครื่อง Dev จะทำงานบนเซิร์ฟเวอร์จริงได้เหมือนกัน 100%"
+  },
+  {
+    id: 10,
+    question: "วัฒนธรรมการทำงานแบบ DevOps ส่งเสริมพฤติกรรมใดมากที่สุด?",
+    options: [
+      { id: 'a', text: "การโยนความผิดให้ทีมอื่นเมื่อเซิร์ฟเวอร์ล่ม (Blaming Culture)", isCorrect: false },
+      { id: 'b', text: "การทำงานแบบแยกส่วน ปิดกั้นข้อมูลระหว่างแผนก (Silo)", isCorrect: false },
+      { id: 'c', text: "ความรับผิดชอบร่วมกันตลอดทั้งวงจร (Shared Responsibility) และสื่อสารอย่างโปร่งใส", isCorrect: true },
+      { id: 'd', text: "ปล่อยให้ทีม Ops แก้ปัญหาโค้ดทั้งหมดเพียงลำพังหลังปล่อยฟีเจอร์", isCorrect: false }
+    ],
+    explanation: "หัวใจของ DevOps คือ Shared Responsibility ทั้งสองฝ่ายเป็นเจ้าของความสำเร็จและปัญหาของระบบร่วมกัน"
   }
 ]
 
 const activeGame = ref('sort') // 'sort', 'order', 'quiz'
 
-// Game 1: Drag & Drop
+// Game 1: Drag & Drop (6 items, max 6)
 const dragItemsData = [
   { id: 1, text: 'ทำงานแยกแผนกกัน (Silo)', type: 'traditional' },
   { id: 2, text: 'ทำงานร่วมกันอย่างใกล้ชิด', type: 'devops' },
   { id: 3, text: 'Deploy ด้วยมือแบบ Manual', type: 'traditional' },
   { id: 4, text: 'มีระบบอัตโนมัติ (CI/CD)', type: 'devops' },
-  { id: 5, text: 'ผลักภาระให้ทีมอื่น', type: 'traditional' },
+  { id: 5, text: 'ผลักภาระให้ทีมอื่นเมื่อมีปัญหา', type: 'traditional' },
   { id: 6, text: 'รับผิดชอบร่วมกันทั้งวงจร', type: 'devops' }
 ]
 const dragZonesData = [
@@ -91,16 +207,20 @@ const dragZonesData = [
   }
 ]
 
-// Game 2: Matching
+// Game 2: Matching (5 pairs, max 5)
 const matchLeftTerms = [
   { id: 'l1', text: 'Repository', match: 'r2' },
   { id: 'l2', text: 'Commit', match: 'r3' },
-  { id: 'l3', text: 'Branch', match: 'r1' }
+  { id: 'l3', text: 'Branch', match: 'r1' },
+  { id: 'l4', text: 'Merge', match: 'r4' },
+  { id: 'l5', text: 'Clone', match: 'r5' }
 ]
 const matchRightDefs = [
-  { id: 'r1', text: 'การแตกสายการทำงานออกไปชั่วคราวเพื่อทำฟีเจอร์ใหม่' },
-  { id: 'r2', text: 'พื้นที่สำหรับจัดเก็บไฟล์โค้ดและประวัติการทำงาน' },
-  { id: 'r3', text: 'การบันทึกประวัติการเปลี่ยนแปลงของไฟล์พร้อมข้อความอธิบาย' }
+  { id: 'r1', text: 'การแตกสายการทำงานออกไปชั่วคราวเพื่อทำฟีเจอร์ใหม่โดยไม่กระทบงานหลัก' },
+  { id: 'r2', text: 'พื้นที่สำหรับจัดเก็บไฟล์โค้ดและประวัติการทำงานของโปรเจกต์' },
+  { id: 'r3', text: 'การบันทึกภาพถ่ายสถานะและการเปลี่ยนแปลงของไฟล์พร้อมข้อความอธิบาย' },
+  { id: 'r4', text: 'การนำโค้ดที่พัฒนาเสร็จแล้วจากสายงานย่อยมารวมเข้ากับสายงานหลัก' },
+  { id: 'r5', text: 'การคัดลอกโปรเจกต์ทั้งหมดจากเซิร์ฟเวอร์ส่วนกลางลงมายังเครื่องตนเอง' }
 ]
 </script>
 
@@ -501,53 +621,176 @@ const matchRightDefs = [
 
 
     <!-- Interactive Game Center -->
-    <section>
-      <div class="flex items-center justify-between mb-6">
+    <section class="space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           <div class="p-3 bg-indigo-100 rounded-xl text-indigo-600 shadow-sm">
             <Gamepad2 class="w-6 h-6" />
           </div>
-          <h2 class="text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ</h2>
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน</h2>
+            <p class="text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน</p>
+          </div>
+        </div>
+
+        <!-- Teacher Scoreboard Button -->
+        <button @click="showTeacherModal = true"
+          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-900 to-indigo-800 hover:from-indigo-800 hover:to-indigo-700 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-indigo-700 shrink-0">
+          <FileSpreadsheet class="w-4 h-4 text-amber-400" />
+          <span>ดูตารางคะแนนมินิเกม (สำหรับคุณครู)</span>
+        </button>
+      </div>
+
+      <!-- Student Score Summary Banner -->
+      <div class="rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+          <div>
+            <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่ 1</span>
+            <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
+              <span>สถานะ:</span>
+              <span v-if="studentNorm.isAllCompleted" class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                ✓ ทำครบทุกกิจกรรมแล้ว (3/3)
+              </span>
+              <span v-else-if="studentNorm.completedCount > 0" class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                ⏳ กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
+              </span>
+              <span v-else class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
+                ยังไม่ได้เริ่มทำ
+              </span>
+            </div>
+          </div>
+
+          <!-- Total Normalized Score (Scaled to 10) -->
+          <div class="flex items-center gap-3 bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-2.5 rounded-xl border border-indigo-100">
+            <Trophy class="w-7 h-7 text-amber-500 shrink-0" />
+            <div>
+              <span class="text-xs text-indigo-900 font-semibold block">คะแนนรวมทั้งหมด (หารเฉลี่ยเต็ม 10)</span>
+              <div class="text-xl font-black text-indigo-950 leading-tight">
+                <span>{{ studentNorm.normalized }}</span>
+                <span class="text-xs font-bold text-gray-400"> / 10.0 คะแนน</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Activity Status Badges -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-xs font-medium">
+          <!-- Game 1 -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['game-1'] ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">1. แยกประเภท (Drag & Drop)</span>
+              <span class="text-[11px] text-gray-500">เต็ม 6 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['game-1'] ? `${studentWeekScores['game-1'].score} / 6` : 'ยังไม่ได้เล่น' }}
+            </span>
+          </div>
+
+          <!-- Game 2 -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['game-2'] ? 'bg-blue-50/70 border-blue-200 text-blue-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">2. โยงคำศัพท์ (Matching)</span>
+              <span class="text-[11px] text-gray-500">เต็ม 5 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['game-2'] ? `${studentWeekScores['game-2'].score} / 5` : 'ยังไม่ได้เล่น' }}
+            </span>
+          </div>
+
+          <!-- Post-test -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['quiz'] ? 'bg-cyan-50/70 border-cyan-200 text-cyan-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">3. แบบทดสอบหลังเรียน 10 ข้อ</span>
+              <span class="text-[11px] text-gray-500">เต็ม 10 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['quiz'] ? `${studentWeekScores['quiz'].score} / 10` : 'ยังไม่ได้ทำ' }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Game Tabs -->
-      <div class="flex flex-wrap gap-4 mb-8">
-        <button @click="activeGame = 'sort'" :class="[activeGame === 'sort' ? 'bg-indigo-600 text-white shadow-lg scale-105' : 'bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200', 'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2']">
-          <MousePointer2 class="w-5 h-5" /> แยกประเภท (Drag & Drop)
+      <!-- Game Tabs (ลำดับกิจกรรม: มินิเกม -> สุดท้ายคือแบบทดสอบหลังเรียน) -->
+      <div class="flex flex-wrap gap-3">
+        <button @click="activeGame = 'sort'" :class="[
+          activeGame === 'sort' ? 'bg-indigo-600 text-white shadow-lg scale-105' : 'bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm'
+        ]">
+          <MousePointer2 class="w-4 h-4" />
+          <span>มินิเกมที่ 1: แยกประเภท</span>
+          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
-        <button @click="activeGame = 'order'" :class="[activeGame === 'order' ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white text-blue-700 hover:bg-blue-50 border border-blue-200', 'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2']">
-          <ListOrdered class="w-5 h-5" /> โยงความสัมพันธ์ (Match)
+
+        <button @click="activeGame = 'order'" :class="[
+          activeGame === 'order' ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white text-blue-700 hover:bg-blue-50 border border-blue-200',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm'
+        ]">
+          <ListOrdered class="w-4 h-4" />
+          <span>มินิเกมที่ 2: โยงคำศัพท์</span>
+          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
-        <button @click="activeGame = 'quiz'" :class="[activeGame === 'quiz' ? 'bg-cyan-600 text-white shadow-lg scale-105' : 'bg-white text-cyan-700 hover:bg-cyan-50 border border-cyan-200', 'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2']">
-          <FileQuestion class="w-5 h-5" /> Pop Quiz สุดท้าย
+
+        <button @click="activeGame = 'quiz'" :class="[
+          activeGame === 'quiz' ? 'bg-emerald-600 text-white shadow-lg scale-105' : 'bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-300',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm'
+        ]">
+          <FileQuestion class="w-4 h-4" />
+          <span>🎯 แบบทดสอบหลังเรียน (4 ชอยส์ 10 ข้อ)</span>
+          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
       </div>
 
-      <!-- Game 1 -->
+      <!-- Game 1: Drag & Drop (examMode: true) -->
       <DragDropGame v-if="activeGame === 'sort'" 
-        title="วัฒนธรรมองค์กร: แบบเก่า vs แบบ DevOps"
-        subtitle="ลากลักษณะการทำงานไปใส่กล่องที่ถูกต้อง"
+        title="มินิเกมที่ 1: วัฒนธรรมองค์กร แบบเก่า vs DevOps"
+        subtitle="ลากลักษณะการทำงานไปใส่กล่องที่ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
+        gameId="game-1"
+        :courseId="currentCourseId"
+        :week="currentWeek"
         :initialItems="dragItemsData"
         :zones="dragZonesData"
       />
 
-      <!-- Game 2 -->
+      <!-- Game 2: Matching (examMode: true) -->
       <MatchingGame v-if="activeGame === 'order'"
-        title="เครื่องมือและคำศัพท์ที่ควรรู้จัก"
-        subtitle="จับคู่คำศัพท์กับการทำงาน"
+        title="มินิเกมที่ 2: เครื่องมือและคำศัพท์ Git & DevOps"
+        subtitle="จับคู่คำศัพท์กับการทำงาน ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
+        gameId="game-2"
+        :courseId="currentCourseId"
+        :week="currentWeek"
         :initialLeftTerms="matchLeftTerms"
         :initialRightDefs="matchRightDefs"
       />
 
-      <!-- Game 3 -->
-      <PopQuiz v-if="activeGame === 'quiz'" :questions="quizQuestions">
-        <template #actions>
-          <RouterLink to="/courses" class="px-8 py-4 bg-indigo-500 border-2 border-indigo-400 text-white font-bold rounded-xl hover:bg-indigo-400 transition-all shadow-[0_0_20px_rgba(99,102,241,0.4)] flex items-center gap-2">
-            กลับสู่หน้ารายวิชา
-          </RouterLink>
-        </template>
-      </PopQuiz>
+      <!-- Game 3: Final Post-test (4 choices, 10 questions) -->
+      <PopQuiz v-if="activeGame === 'quiz'" 
+        title="แบบทดสอบหลังเรียน (Post-test): บทนำสู่ DevOps"
+        subtitle="แบบทดสอบ 4 ตัวเลือก 10 ข้อ วัดผลความรู้หลังเรียน ตอบให้ครบแล้วกดส่งคำตอบ (ทำได้ครั้งเดียวเท่านั้น)"
+        gameId="quiz"
+        :courseId="currentCourseId"
+        :week="currentWeek"
+        :questions="quizQuestions"
+      />
+
+      <!-- Teacher Scoreboard Modal -->
+      <TeacherScoreboardModal
+        :show="showTeacherModal"
+        :courseId="currentCourseId"
+        courseName="การพัฒนาระบบร่วมกันด้วยแพลตฟอร์ม"
+        :week="currentWeek"
+        weekTitle="สัปดาห์ที่ 1: บทนำสู่ DevOps"
+        :games="weekGames"
+        @close="showTeacherModal = false"
+      />
     </section>
 
     <!-- Assignment Section -->

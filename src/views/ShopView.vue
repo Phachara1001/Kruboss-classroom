@@ -625,8 +625,9 @@ const resetTilt = (e) => {
                 <div v-for="item in (box.items || []).slice(0, 5)" :key="item.id"
                   class="w-9 h-9 rounded-xl bg-white/5 border p-1 flex items-center justify-center shrink-0 relative group/item"
                   :class="rarityConfig[item.rarity]?.border || 'border-white/20'"
-                  :title="`${item.name} (${item.rarity} - ${item.rate}%)`">
-                  <img :src="item.image" class="w-full h-full object-contain" />
+                  :title="item.rarity === 'Secret' ? '??? (Secret - ความลับที่รอการค้นพบ)' : `${item.name} (${item.rarity} - ${item.rate}%)`">
+                  <img :src="item.image" class="w-full h-full object-contain transition-all"
+                    :class="item.rarity === 'Secret' ? 'brightness-0 drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]' : ''" />
                   <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full"
                     :style="{ backgroundColor: rarityConfig[item.rarity]?.particleColor || '#fff' }"></span>
                 </div>

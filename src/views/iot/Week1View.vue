@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Laptop, ExternalLink, CheckCircle, Globe, ShieldCheck, Code2, Cpu,
@@ -7,18 +7,49 @@ import {
   AlertTriangle, Zap, ToggleRight, SlidersHorizontal, LayoutGrid, Terminal,
   Info, PieChart, Book, FileText, Target, Award, Layers, Sliders, Radio,
   RefreshCw, Gamepad2, MousePointer2, ListOrdered, FileQuestion, ChevronRight,
-  Activity, Sun, Thermometer, Volume2, ArrowDownToLine, ArrowUpFromLine
+  Activity, Sun, Thermometer, Volume2, ArrowDownToLine, ArrowUpFromLine,
+  Trophy, Lock, FileSpreadsheet
 } from '@lucide/vue'
 
 import DragDropGame from '@/components/games/DragDropGame.vue'
 import MatchingGame from '@/components/games/MatchingGame.vue'
 import PopQuiz from '@/components/games/PopQuiz.vue'
+import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
+
+import { authUser } from '@/data/authStore'
+import { isStudent } from '@/data/studentsStore'
+import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 // Course Context
 const currentCourseId = '21901-2007'
 const currentWeek = 1
+const showTeacherModal = ref(false)
+
+// Week Games Config
+const weekGames = [
+  { id: 'game-1', name: 'มินิเกม 1 (จำแนกพินบนบอร์ด Arduino)', maxScore: 6, isQuiz: false },
+  { id: 'game-2', name: 'มินิเกม 2 (คำศัพท์และหน้าที่สำคัญของระบบสมองกล)', maxScore: 5, isQuiz: false },
+  { id: 'quiz', name: 'แบบทดสอบหลังเรียน (Post-test 10 ข้อ)', maxScore: 10, isQuiz: true }
+]
+
+onMounted(() => {
+  fetchGameScores(currentCourseId, currentWeek)
+})
+
+const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
+const isTeacher = computed(() => !isStudent(authUser.value))
+
+const studentWeekScores = computed(() => {
+  if (!currentStudentId.value) return {}
+  const key = `${currentCourseId}_${currentWeek}_${currentStudentId.value}`
+  return gameScoresStore.value[key]?.scores || {}
+})
+
+const studentNorm = computed(() => {
+  return calculateNormalizedScore(studentWeekScores.value, weekGames)
+})
 
 const router = useRouter()
 
@@ -442,50 +473,132 @@ const dragZonesData = [
 
 // Game 2: Matching
 const matchLeftTerms = [
-  { id: 'l1', text: '1. Microcontroller', match: 'r1' },
-  { id: 'l2', text: '2. USB Port', match: 'r2' },
-  { id: 'l3', text: '3. USB to Serial Chip', match: 'r3' },
-  { id: 'l4', text: '5. Analog Pins (A0-A5)', match: 'r4' }
+  { id: 'l1', text: '1. Microcontroller (ATmega328P)', match: 'r1' },
+  { id: 'l2', text: '2. USB Type-B Port', match: 'r2' },
+  { id: 'l3', text: '3. Voltage Regulator', match: 'r3' },
+  { id: 'l4', text: '4. Analog Pins (A0-A5)', match: 'r4' },
+  { id: 'l5', text: '5. PWM Pins (~3, ~5, ~6, ~9, ~10, ~11)', match: 'r5' }
 ]
 
 const matchRightDefs = [
-  { id: 'r1', text: 'ชิป ATmega328P ทำหน้าที่เป็นสมองสั่งการและประมวลผลคำสั่งหลัก' },
-  { id: 'r2', text: 'ช่องสำหรับเสียบสายอัปโหลดโค้ด จ่ายไฟ 5V และเชื่อมต่อ Serial กับคอมฯ' },
-  { id: 'r3', text: 'ชิปแปลงสัญญาณระหว่างโปรโตคอล USB กับสัญญาณ Serial UART' },
-  { id: 'r4', text: 'ช่องรับสัญญาณแรงดันแอนะล็อก 0-5V แปลงเป็นตัวเลข 0 ถึง 1023' }
+  { id: 'r1', text: 'ชิปสมองกลหลัก ทำหน้าที่ประมวลผลและควบคุมคำสั่งทั้งหมด' },
+  { id: 'r2', text: 'ช่องเชื่อมต่อคอมพิวเตอร์สำหรับอัปโหลดโค้ด จ่ายไฟ 5V และสื่อสาร Serial' },
+  { id: 'r3', text: 'ตัวควบคุมและลดแรงดันไฟฟ้าจากแหล่งจ่ายภายนอก (7-12V) ให้เหลือ 5V คงที่' },
+  { id: 'r4', text: 'พินอ่านค่าแรงดันต่อเนื่อง 0-5V แปลงเป็นตัวเลข 0 ถึง 1023 (10 บิต)' },
+  { id: 'r5', text: 'พินดิจิทัลพิเศษที่ส่งสัญญาณความถี่ Duty Cycle จำลองแรงดันหรี่ไฟหรือเร่งมอเตอร์ได้' }
 ]
 
-// Game 3: Pop Quiz
+// Game 3: แบบทดสอบหลังเรียน (Post-test 10 ข้อ 4 ตัวเลือก)
 const quizQuestions = [
   {
     id: 1,
-    question: 'ระบบสมองกลฝังตัว (Embedded System) แตกต่างจากคอมพิวเตอร์ทั่วไป (PC) อย่างไร?',
+    question: 'บอร์ด Arduino Uno R3 ใช้ชิปไมโครคอนโทรลเลอร์ (Microcontroller) รุ่นใดเป็นสมองประมวลผลหลัก?',
     options: [
-      { id: 'a', text: 'คอมพิวเตอร์ทั่วไปราคาถูกกว่าสมองกลฝังตัว', isCorrect: false },
-      { id: 'b', text: 'สมองกลฝังตัวถูกออกแบบมาเพื่อทำงานเฉพาะทางอย่างใดอย่างหนึ่ง มีขนาดเล็กและกินไฟต่ำ', isCorrect: true },
-      { id: 'c', text: 'สมองกลฝังตัวไม่สามารถเขียนโปรแกรมควบคุมได้', isCorrect: false }
+      { id: 'a', text: 'ATmega328P', isCorrect: true },
+      { id: 'b', text: 'Intel Core i5', isCorrect: false },
+      { id: 'c', text: 'ESP32-S3', isCorrect: false },
+      { id: 'd', text: 'STM32F401', isCorrect: false }
     ],
-    explanation: 'สมองกลฝังตัว (Embedded System) คือคอมพิวเตอร์เฉพาะทางที่ฝังอยู่ในอุปกรณ์ เช่น รีโมต, ไมโครเวฟ, แอร์ เพื่อทำหน้าที่เฉพาะ ไม่ได้เป็นคอมพิวเตอร์อเนกประสงค์เหมือน PC'
+    explanation: 'บอร์ด Arduino Uno R3 ใช้ไมโครคอนโทรลเลอร์เบอร์ ATmega328P สถาปัตยกรรม 8-bit AVR ของบริษัท Microchip (เดิม Atmel)'
   },
   {
     id: 2,
-    question: 'พินแอนะล็อก A0-A5 บนบอร์ด Arduino Uno R3 อ่านค่าแรงดัน 0-5V แล้วแปลงเป็นตัวเลขช่วงใด?',
+    question: 'พินแอนะล็อก A0 - A5 บนบอร์ด Arduino Uno R3 มีวงจร ADC ความละเอียดเท่าใด และแปลงแรงดัน 0-5V ออกมาเป็นตัวเลขช่วงใด?',
     options: [
-      { id: 'a', text: '0 ถึง 100', isCorrect: false },
-      { id: 'b', text: '0 หรือ 1 เท่านั้น', isCorrect: false },
-      { id: 'c', text: '0 ถึง 1023 (ความละเอียด 10 บิต)', isCorrect: true }
+      { id: 'a', text: '8 บิต (0 ถึง 255)', isCorrect: false },
+      { id: 'b', text: '10 บิต (0 ถึง 1023)', isCorrect: true },
+      { id: 'c', text: '12 บิต (0 ถึง 4095)', isCorrect: false },
+      { id: 'd', text: '16 บิต (0 ถึง 65535)', isCorrect: false }
     ],
-    explanation: 'บอร์ด Arduino Uno มีตัวแปลง ADC ขนาด 10 บิต (2^10 = 1024 ค่า) จึงแปลงแรงดันไฟฟ้า 0-5 โวลต์ออกมาเป็นตัวเลข 0 ถึง 1023'
+    explanation: 'Arduino Uno R3 มีตัวแปลงสัญญาณ ADC ขนาด 10 บิต (2^10 = 1024 ค่า) จึงแปลงแรงดันไฟฟ้า 0-5 โวลต์ออกมาเป็นตัวเลข 0 ถึง 1023'
   },
   {
     id: 3,
-    question: 'ภาษาหลักที่ใช้ในการเขียนโปรแกรมควบคุมบอร์ด Arduino คือภาษาอะไร?',
+    question: 'พินดิจิทัลที่มีสัญลักษณ์ตัวหนอน (~) เช่น ขา 3, 5, 6, 9, 10, 11 มีความสามารถพิเศษใด?',
     options: [
-      { id: 'a', text: 'ภาษา Arduino ซึ่งมีรากฐานมาจากภาษา C / C++', isCorrect: true },
-      { id: 'b', text: 'ภาษา HTML และ CSS', isCorrect: false },
-      { id: 'c', text: 'ภาษา SQL', isCorrect: false }
+      { id: 'a', text: 'รองรับเฉพาะกระแสไฟสลับ 220V เท่านั้น', isCorrect: false },
+      { id: 'b', text: 'ปล่อยสัญญาณ PWM (Pulse Width Modulation) จำลองแรงดันแอนะล็อก เช่น หรี่ไฟหรือคุมความเร็วมอเตอร์ได้', isCorrect: true },
+      { id: 'c', text: 'ป้องกันไฟฟ้าสถิตและตัดไฟอัตโนมัติ', isCorrect: false },
+      { id: 'd', text: 'ใช้ต่อตรงเข้ากับสายอินเทอร์เน็ต LAN', isCorrect: false }
     ],
-    explanation: 'ภาษาที่ใช้ในการพัฒนา Arduino คือภาษา C/C++ ที่ถูกปรับแต่งให้มีฟังก์ชันอำนวยความสะดวก เช่น pinMode(), digitalWrite(), analogRead()'
+    explanation: 'พิน PWM ส่งสัญญาณคลื่นสี่เหลี่ยมความถี่สูงสลับ Duty Cycle (0-255) ด้วยคำสั่ง analogWrite() ช่วยจำลองระดับแรงดันแอนะล็อก'
+  },
+  {
+    id: 4,
+    question: 'ข้อใดอธิบายความแตกต่างระหว่างฟังก์ชัน void setup() และ void loop() ในโค้ด Arduino ได้ถูกต้องที่สุด?',
+    options: [
+      { id: 'a', text: 'setup() ทำงานวนซ้ำเรื่อยๆ ส่วน loop() ทำงานเพียงครั้งเดียว', isCorrect: false },
+      { id: 'b', text: 'setup() ทำงานเพียงครั้งเดียวตอนเปิดเครื่องเพื่อกำหนดค่าเริ่มต้น ส่วน loop() ทำงานวนซ้ำต่อเนื่องไม่รู้จบ', isCorrect: true },
+      { id: 'c', text: 'ทั้งสองฟังก์ชันทำงานพร้อมกันแบบมัลติทาสก์ตลอดเวลา', isCorrect: false },
+      { id: 'd', text: 'setup() ใช้เขียนเฉพาะภาษาบล็อก ส่วน loop() ใช้เขียน C++', isCorrect: false }
+    ],
+    explanation: 'void setup() จะรันครั้งเดียวเมื่อบอร์ดเริ่มทำงาน เพื่อตั้งค่าโหมดพิน เช่น pinMode() ส่วน void loop() จะรันวนซ้ำไปเรื่อยๆ จนกว่าจะตัดไฟ'
+  },
+  {
+    id: 5,
+    question: 'เหตุใดการต่อหลอดไฟ LED เข้ากับพินดิจิทัลของ Arduino จึงต้องต่อตัวต้านทาน (Resistor เช่น 220 โอห์ม) อนุกรมร่วมด้วยเสมอ?',
+    options: [
+      { id: 'a', text: 'เพื่อเพิ่มความสว่างของหลอดไฟ LED ให้มากเป็นสองเท่า', isCorrect: false },
+      { id: 'b', text: 'เพื่อจำกัดกระแสไฟฟ้า (Current Limiting) ไม่ให้ไหลผ่าน LED มากเกินไปจนหลอดขาดหรือพินบอร์ดไหม้', isCorrect: true },
+      { id: 'c', text: 'เพื่อแปลงกระแสไฟสลับให้เป็นกระแสตรง', isCorrect: false },
+      { id: 'd', text: 'เพื่อเก็บประจุไฟฟ้าไว้สำรองยามไฟตก', isCorrect: false }
+    ],
+    explanation: 'LED มีความต้านทานภายในต่ำมาก หากต่อตรงกับไฟ 5V กระแสจะพุ่งสูงเกินพิกัดพิน (ปกติไม่เกิน 20-40 mA) จึงต้องมีตัวต้านทานอนุกรมไว้จำกัดกระแส'
+  },
+  {
+    id: 6,
+    question: 'หากต้องการอ่านค่าความเข้มแสงจากเซนเซอร์ LDR (Photoresistor) ผ่านขา A0 ของ Arduino ต้องใช้คำสั่งใดในโค้ด C++?',
+    options: [
+      { id: 'a', text: 'digitalRead(A0);', isCorrect: false },
+      { id: 'b', text: 'analogRead(A0);', isCorrect: true },
+      { id: 'c', text: 'analogWrite(A0, HIGH);', isCorrect: false },
+      { id: 'd', text: 'serialRead(A0);', isCorrect: false }
+    ],
+    explanation: 'การอ่านค่าแอนะล็อกที่มีการเปลี่ยนแปลงระดับแรงดันต่อเนื่อง (0-5V) จากพิน A0-A5 ต้องใช้ฟังก์ชัน analogRead()'
+  },
+  {
+    id: 7,
+    question: 'จุดเด่นสำคัญที่สุดของการทดลองวงจรบนซอฟต์แวร์จำลอง Autodesk Tinkercad Circuits คือข้อใด?',
+    options: [
+      { id: 'a', text: 'ใช้งานฟรีผ่านเว็บ ปลอดภัย 100% ล้มเหลวและทดลองได้เต็มที่โดยไม่มีอุปกรณ์เสียหายจริง', isCorrect: true },
+      { id: 'b', text: 'ใช้งานได้เฉพาะตอนเชื่อมต่อบอร์ดจริงผ่านสาย USB เท่านั้น', isCorrect: false },
+      { id: 'c', text: 'ต้องซื้อลิขสิทธิ์รายเดือนราคาแพง', isCorrect: false },
+      { id: 'd', text: 'ไม่รองรับการเขียนโค้ดภาษา C++', isCorrect: false }
+    ],
+    explanation: 'Tinkercad Circuits จำลองการทำงานของ Arduino, เซนเซอร์, และวงจรอิเล็กทรอนิกส์บนเว็บเบราว์เซอร์ ช่วยให้ทดลองได้โดยไม่ต้องกลัววงจรช็อตหรืออุปกรณ์ไหม้'
+  },
+  {
+    id: 8,
+    question: 'พินดิจิทัลหมายเลข 13 บนบอร์ด Arduino Uno R3 มีคุณลักษณะเฉพาะที่โดดเด่นอย่างไร?',
+    options: [
+      { id: 'a', text: 'เป็นพินเดียวที่ไม่สามารถจ่ายไฟ 5V ได้', isCorrect: false },
+      { id: 'b', text: 'มีไฟ Built-in LED สีส้มต่ออยู่บนตัวบอร์ด สามารถสั่งทดสอบไฟกระพริบได้ทันทีโดยไม่ต้องต่อหลอดภายนอก', isCorrect: true },
+      { id: 'c', text: 'ใช้สำหรับรีเซ็ตบอร์ดเท่านั้น ห้ามสั่งงานผ่านโปรแกรม', isCorrect: false },
+      { id: 'd', text: 'รองรับกระแสไฟฟ้าได้สูงถึง 10 แอมป์', isCorrect: false }
+    ],
+    explanation: 'พิน 13 ต่อเข้ากับ LED ดวงจิ๋ว (L) บนบอร์ด ทำให้ผู้เริ่มต้นทดลองสั่ง digitalWrite(13, HIGH) สังเกตไฟติดดับได้ทันที'
+  },
+  {
+    id: 9,
+    question: 'อุปกรณ์ข้อใดต่อไปนี้จัดอยู่ในกลุ่ม "อุปกรณ์รับสัญญาณเข้าแบบแอนะล็อก" (Analog Input)?',
+    options: [
+      { id: 'a', text: 'สวิตช์ปุ่มกด (Pushbutton)', isCorrect: false },
+      { id: 'b', text: 'ตัวต้านทานปรับค่าได้ (Potentiometer / วอลลุ่ม)', isCorrect: true },
+      { id: 'c', text: 'หลอดไฟ LED', isCorrect: false },
+      { id: 'd', text: 'บัซเซอร์ส่งเสียง (Buzzer)', isCorrect: false }
+    ],
+    explanation: 'ตัวต้านทานปรับค่าได้ (Potentiometer) จ่ายแรงดันไฟฟ้าแปรผัน 0-5V ต่อเนื่องตามองศาการหมุน จัดเป็น Analog Input ส่วน Pushbutton เป็น Digital Input'
+  },
+  {
+    id: 10,
+    question: 'หากต้องการให้บอร์ด Arduino หน่วงเวลาหยุดรอเป็นเวลา 2 วินาที ก่อนจะทำคำสั่งถัดไป ต้องเขียนคำสั่งอย่างไร?',
+    options: [
+      { id: 'a', text: 'delay(2);', isCorrect: false },
+      { id: 'b', text: 'delay(200);', isCorrect: false },
+      { id: 'c', text: 'delay(2000);', isCorrect: true },
+      { id: 'd', text: 'wait(20);', isCorrect: false }
+    ],
+    explanation: 'ฟังก์ชัน delay(ms) รับค่าหน่วยเป็นมิลลิวินาที (Milliseconds) ดังนั้น 2 วินาที = 2,000 มิลลิวินาที -> delay(2000);'
   }
 ]
 </script>
@@ -1262,58 +1375,168 @@ const quizQuestions = [
     </section>
 
     <!-- Interactive Game Center -->
-    <section>
-      <div class="flex items-center justify-between mb-6">
+    <section class="space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-          <div class="p-3 bg-purple-100 rounded-xl text-purple-600 shadow-sm">
+          <div class="p-3 bg-amber-100 rounded-xl text-amber-600 shadow-sm">
             <Gamepad2 class="w-6 h-6" />
           </div>
-          <h2 class="text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ</h2>
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน</h2>
+            <p class="text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน</p>
+          </div>
+        </div>
+
+        <!-- Teacher Scoreboard Button -->
+        <button @click="showTeacherModal = true"
+          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-900 to-orange-900 hover:from-amber-800 hover:to-orange-800 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-amber-700 shrink-0">
+          <FileSpreadsheet class="w-4 h-4 text-amber-400" />
+          <span>ดูตารางคะแนนมินิเกม (สำหรับคุณครู)</span>
+        </button>
+      </div>
+
+      <!-- Student Score Summary Banner -->
+      <div class="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+          <div>
+            <span class="text-xs font-bold text-amber-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่ 1</span>
+            <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
+              <span>สถานะ:</span>
+              <span v-if="studentNorm.isAllCompleted" class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                ✓ ทำครบทุกกิจกรรมแล้ว (3/3)
+              </span>
+              <span v-else-if="studentNorm.completedCount > 0" class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                ⏳ กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
+              </span>
+              <span v-else class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
+                ยังไม่ได้เริ่มทำ
+              </span>
+            </div>
+          </div>
+
+          <!-- Total Normalized Score (Scaled to 10) -->
+          <div class="flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-2.5 rounded-xl border border-amber-100">
+            <Trophy class="w-7 h-7 text-amber-500 shrink-0" />
+            <div>
+              <span class="text-xs text-amber-900 font-semibold block">คะแนนรวมทั้งหมด (หารเฉลี่ยเต็ม 10)</span>
+              <div class="text-xl font-black text-amber-950 leading-tight">
+                <span>{{ studentNorm.normalized }}</span>
+                <span class="text-xs font-bold text-gray-400"> / 10.0 คะแนน</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Activity Status Badges -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-xs font-medium">
+          <!-- Game 1 -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['game-1'] ? 'bg-amber-50/70 border-amber-200 text-amber-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">1. จำแนกพิน Arduino Uno</span>
+              <span class="text-[11px] text-gray-500">เต็ม 6 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['game-1'] ? `${studentWeekScores['game-1'].score} / 6` : 'ยังไม่ได้เล่น' }}
+            </span>
+          </div>
+
+          <!-- Game 2 -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['game-2'] ? 'bg-blue-50/70 border-blue-200 text-blue-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">2. จับคู่คำศัพท์สมองกลฝังตัว</span>
+              <span class="text-[11px] text-gray-500">เต็ม 5 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['game-2'] ? `${studentWeekScores['game-2'].score} / 5` : 'ยังไม่ได้เล่น' }}
+            </span>
+          </div>
+
+          <!-- Post-test -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['quiz'] ? 'bg-orange-50/70 border-orange-200 text-orange-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">3. แบบทดสอบหลังเรียน 10 ข้อ</span>
+              <span class="text-[11px] text-gray-500">เต็ม 10 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['quiz'] ? `${studentWeekScores['quiz'].score} / 10` : 'ยังไม่ได้ทำ' }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Game Tabs -->
-      <div class="flex flex-wrap gap-4 mb-8">
+      <!-- Game Tabs (มินิเกม -> มินิเกม -> สุดท้ายคือแบบทดสอบหลังเรียน) -->
+      <div class="flex flex-wrap gap-3">
         <button @click="activeGame = 'sort'" :class="[
-          activeGame === 'sort'
-            ? 'bg-purple-600 text-white shadow-lg scale-105'
-            : 'bg-white text-purple-700 hover:bg-purple-50 border border-purple-200',
-          'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 cursor-pointer'
+          activeGame === 'sort' ? 'bg-amber-600 text-white shadow-lg scale-105' : 'bg-white text-amber-700 hover:bg-amber-50 border border-amber-200',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
         ]">
-          <MousePointer2 class="w-5 h-5" /> เกมลากวาง (Drag & Drop)
+          <MousePointer2 class="w-4 h-4" />
+          <span>มินิเกมที่ 1: จำแนกพิน Arduino</span>
+          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
 
         <button @click="activeGame = 'match'" :class="[
-          activeGame === 'match'
-            ? 'bg-blue-600 text-white shadow-lg scale-105'
-            : 'bg-white text-blue-700 hover:bg-blue-50 border border-blue-200',
-          'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 cursor-pointer'
+          activeGame === 'match' ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white text-blue-700 hover:bg-blue-50 border border-blue-200',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
         ]">
-          <ListOrdered class="w-5 h-5" /> เกมโยงความสัมพันธ์ (Match)
+          <ListOrdered class="w-4 h-4" />
+          <span>มินิเกมที่ 2: จับคู่คำศัพท์สมองกล</span>
+          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
 
         <button @click="activeGame = 'quiz'" :class="[
-          activeGame === 'quiz'
-            ? 'bg-amber-600 text-white shadow-lg scale-105'
-            : 'bg-white text-amber-700 hover:bg-amber-50 border border-amber-200',
-          'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 cursor-pointer'
+          activeGame === 'quiz' ? 'bg-orange-600 text-white shadow-lg scale-105' : 'bg-white text-orange-700 hover:bg-orange-50 border border-orange-200',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
         ]">
-          <FileQuestion class="w-5 h-5" /> Pop Quiz สุดท้าย
+          <FileQuestion class="w-4 h-4" />
+          <span>กิจกรรมสุดท้าย: แบบทดสอบหลังเรียน (Post-test 10 ข้อ)</span>
+          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
       </div>
 
       <!-- Game 1: Drag & Drop -->
-      <DragDropGame v-if="activeGame === 'sort'" title="จำแนกประเภทพินและช่องเสียบของบอร์ด Arduino Uno R3"
-        subtitle="ลากชื่อพินและหน้าที่ไปใส่ในหมวดหมู่ที่ถูกต้องให้ครบ!" :initialItems="dragItemsData"
-        :zones="dragZonesData" />
+      <DragDropGame v-if="activeGame === 'sort'"
+        :course-id="currentCourseId"
+        :week="currentWeek"
+        game-id="game-1"
+        game-title="เกมลากวาง: จำแนกประเภทพิน Arduino Uno R3"
+        title="จำแนกประเภทพินและช่องเสียบของบอร์ด Arduino Uno R3"
+        subtitle="ลากชื่อพินและหน้าที่ไปใส่ในหมวดหมู่ที่ถูกต้องให้ครบ!"
+        :initialItems="dragItemsData"
+        :zones="dragZonesData"
+      />
 
       <!-- Game 2: Matching -->
-      <MatchingGame v-if="activeGame === 'match'" title="คำศัพท์และหน้าที่สำคัญของระบบสมองกล"
-        subtitle="คลิกจับคู่ฝั่งซ้ายและขวาให้ถูกต้อง!" :initialLeftTerms="matchLeftTerms"
-        :initialRightDefs="matchRightDefs" />
+      <MatchingGame v-if="activeGame === 'match'"
+        :course-id="currentCourseId"
+        :week="currentWeek"
+        game-id="game-2"
+        game-title="เกมจับคู่: คำศัพท์และหน้าที่สำคัญของระบบสมองกล"
+        title="คำศัพท์และหน้าที่สำคัญของระบบสมองกล"
+        subtitle="จับคู่คำศัพท์ด้านซ้ายกับความหมายและหน้าที่ด้านขวาให้ถูกต้องครบทั้ง 5 คู่"
+        :initialLeftTerms="matchLeftTerms"
+        :initialRightDefs="matchRightDefs"
+      />
 
-      <!-- Game 3: Pop Quiz -->
-      <PopQuiz v-if="activeGame === 'quiz'" :questions="quizQuestions">
+      <!-- Game 3: Pop Quiz (Post-test) -->
+      <PopQuiz v-if="activeGame === 'quiz'"
+        :course-id="currentCourseId"
+        :week="currentWeek"
+        game-id="quiz"
+        game-title="แบบทดสอบหลังเรียน Week 1 (IoT & Arduino Uno)"
+        title="แบบทดสอบหลังเรียน: สัปดาห์ที่ 1 (IoT & Arduino)"
+        subtitle="แบบทดสอบ 4 ตัวเลือก 10 ข้อ วัดความเข้าใจรอบด้าน ทำได้เพียงครั้งเดียวเท่านั้น"
+        :questions="quizQuestions"
+      >
         <template #actions>
           <RouterLink to="/courses"
             class="px-8 py-4 bg-amber-600 border-2 border-amber-500 text-white font-bold rounded-xl hover:bg-amber-500 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)] flex items-center gap-2">
@@ -1355,6 +1578,15 @@ const quizQuestions = [
         </li>
       </template>
     </AssignmentSection>
+
+    <!-- Teacher Scoreboard Modal -->
+    <TeacherScoreboardModal
+      :is-open="showTeacherModal"
+      :course-id="currentCourseId"
+      :week="currentWeek"
+      :games="weekGames"
+      @close="showTeacherModal = false"
+    />
 
   </div>
 </template>

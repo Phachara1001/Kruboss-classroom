@@ -13,9 +13,13 @@ import {
   BadgeCheck,
   Target,
   Trash2,
-  Edit
+  Edit,
+  X
 } from '@lucide/vue'
 import { authUser, isLoggedIn } from '../data/authStore'
+import { studentsList, isStudent, fetchStudents } from '../data/studentsStore'
+import { questsList, fetchQuests, fetchQuestProgress, getStudentQuestCompletions } from '../data/questsStore'
+import { directShopItems } from '../data/shopStore'
 import AnnouncementModal from '../components/AnnouncementModal.vue'
 import { API_BASE_URL } from '@/config/api'
 
@@ -23,8 +27,54 @@ const router = useRouter()
 
 const isTeacher = computed(() => {
   const r = (authUser.value?.role || '').toLowerCase()
-  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r)
+  const id = (authUser.value?.studentId || authUser.value?.id || '').toLowerCase()
+  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r) || id === 'boss'
 })
+
+const currentUserId = computed(() => {
+  return authUser.value?.studentId || authUser.value?.id || ''
+})
+
+const postImageInput = ref(null)
+const selectedPostImageFile = ref(null)
+const postImagePreview = ref('')
+const activeFullImage = ref(null)
+
+const triggerPostImageSelect = () => {
+  postImageInput.value?.click()
+}
+
+const handlePostImageSelect = (e) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+  if (!file.type.startsWith('image/')) {
+    alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น')
+    return
+  }
+  selectedPostImageFile.value = file
+  postImagePreview.value = URL.createObjectURL(file)
+}
+
+const removePostImage = () => {
+  selectedPostImageFile.value = null
+  postImagePreview.value = ''
+  if (postImageInput.value) {
+    postImageInput.value.value = ''
+  }
+}
+
+const previewFullImage = (url) => {
+  activeFullImage.value = url
+}
+
+const parsePostContent = (rawContent) => {
+  if (!rawContent) return { text: '', image: null }
+  const imgRegex = /\[image:(.*?)\]/
+  const match = rawContent.match(imgRegex)
+  const image = match ? match[1] : null
+  const text = rawContent.replace(imgRegex, '').trim()
+  return { text, image }
+}
 
 const newPostContent = ref('')
 const posts = ref([])
@@ -37,39 +87,45 @@ const fetchPosts = async () => {
     if (res.ok) {
       const data = await res.json()
       const currentStudentId = authUser.value?.studentId || authUser.value?.id
-      posts.value = data.map(p => ({
-        id: p.id,
-        authorId: p.authorId,
-        author: {
-          name: p.author?.name || 'นิรนาม',
-          role: p.author?.role || 'นักศึกษา',
-          avatar: p.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.authorId}`,
-          frame: p.author?.equippedFrame || null
-        },
-        content: p.content,
-        likes: p.likesCount || (Array.isArray(p.likes) ? p.likes.length : 0),
-        comments: p.commentsCount || (Array.isArray(p.comments) ? p.comments.length : 0),
-        timestamp: new Date(p.createdAt).toLocaleDateString('th-TH', { 
-          day: 'numeric', 
-          month: 'short', 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        }),
-        isLiked: Array.isArray(p.likes) && p.likes.some(l => l.studentId === currentStudentId),
-        showMenu: false,
-        showComments: false,
-        isEditing: false,
-        editContent: '',
-        newCommentText: '',
-        commentsList: (p.comments || []).map(c => ({
-          id: c.id,
-          authorId: c.authorId,
-          author: c.author?.name || 'นิรนาม',
-          avatar: c.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.authorId}`,
-          text: c.content,
-          timestamp: new Date(c.createdAt).toLocaleDateString('th-TH', { hour: '2-digit', minute: '2-digit' })
-        }))
-      }))
+      posts.value = data.map(p => {
+        const { text, image } = parsePostContent(p.content)
+        return {
+          id: p.id,
+          authorId: p.authorId,
+          author: {
+            name: p.author?.name || 'นิรนาม',
+            role: p.author?.role || 'นักศึกษา',
+            avatar: p.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.authorId}`,
+            frame: p.author?.equippedFrame || null
+          },
+          content: p.content,
+          text,
+          image,
+          likes: p.likesCount || (Array.isArray(p.likes) ? p.likes.length : 0),
+          comments: p.commentsCount || (Array.isArray(p.comments) ? p.comments.length : 0),
+          timestamp: new Date(p.createdAt).toLocaleDateString('th-TH', {
+            day: 'numeric',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          isLiked: Array.isArray(p.likes) && p.likes.some(l => l.studentId === currentStudentId),
+          showMenu: false,
+          showComments: false,
+          isEditing: false,
+          editContent: text,
+          newCommentText: '',
+          commentsList: (p.comments || []).map(c => ({
+            id: c.id,
+            authorId: c.authorId,
+            author: c.author?.name || 'นิรนาม',
+            avatar: c.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.authorId}`,
+            text: c.content,
+            timestamp: new Date(c.createdAt).toLocaleDateString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+            showMenu: false
+          }))
+        }
+      })
     }
   } catch (e) {
     console.error('Failed to fetch posts:', e)
@@ -78,16 +134,78 @@ const fetchPosts = async () => {
   }
 }
 
-onMounted(() => {
-  fetchPosts()
+const topStudents = computed(() => {
+  return (studentsList.value || [])
+    .filter(s => isStudent(s))
+    .slice()
+    .sort((a, b) => (b.coins || 0) - (a.coins || 0))
+    .slice(0, 3)
 })
 
+const interestingQuests = computed(() => {
+  return (questsList.value || []).slice(0, 3)
+})
+
+const isQuestCompleted = (quest) => {
+  const currentStudentId = authUser.value?.studentId || authUser.value?.id
+  const completions = getStudentQuestCompletions(quest.id, currentStudentId)
+  return quest.maxCompletions > 0 && completions >= quest.maxCompletions
+}
+
+const getQuestProgress = (quest) => {
+  const currentStudentId = authUser.value?.studentId || authUser.value?.id
+  const current = getStudentQuestCompletions(quest.id, currentStudentId)
+  const max = quest.maxCompletions || 1
+  const percent = Math.min(100, Math.round((current / max) * 100))
+  return { current, max, percent }
+}
+
+const getRewardFrameImage = (itemId) => {
+  const item = (directShopItems.value || []).find(i => i.id === itemId)
+  return item?.image || '/img/frame/Cyber.png'
+}
+
+onMounted(() => {
+  fetchPosts()
+  fetchStudents()
+  fetchQuests()
+  const currentStudentId = authUser.value?.studentId || authUser.value?.id
+  if (currentStudentId) {
+    fetchQuestProgress(currentStudentId)
+  }
+})
+
+const isPosting = ref(false)
 const handlePost = async () => {
-  if (!newPostContent.value.trim() || !isLoggedIn.value) return
-  const content = newPostContent.value.trim()
-  const authorId = authUser.value?.studentId || authUser.value?.id
+  if ((!newPostContent.value.trim() && !selectedPostImageFile.value) || !isLoggedIn.value || isPosting.value) return
+  isPosting.value = true
+  const authorId = authUser.value?.studentId || authUser.value?.id || 'boss'
 
   try {
+    let uploadedImageUrl = null
+    if (selectedPostImageFile.value) {
+      const formData = new FormData()
+      formData.append('file', selectedPostImageFile.value)
+      const uploadRes = await fetch(`${API_BASE_URL}/upload`, {
+        method: 'POST',
+        body: formData
+      })
+      if (!uploadRes.ok) {
+        throw new Error('อัปโหลดรูปภาพไม่สำเร็จ')
+      }
+      const uploadData = await uploadRes.json()
+      if (uploadData.success && uploadData.url) {
+        uploadedImageUrl = uploadData.url
+      } else {
+        throw new Error(uploadData.message || 'อัปโหลดรูปภาพไม่สำเร็จ')
+      }
+    }
+
+    let content = newPostContent.value.trim()
+    if (uploadedImageUrl) {
+      content = content ? `${content}\n[image:${uploadedImageUrl}]` : `[image:${uploadedImageUrl}]`
+    }
+
     const res = await fetch(`${API_BASE_URL}/posts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -95,10 +213,17 @@ const handlePost = async () => {
     })
     if (res.ok) {
       newPostContent.value = ''
+      removePostImage()
       await fetchPosts()
+    } else {
+      const err = await res.json().catch(() => ({}))
+      alert(err.error || 'ไม่สามารถโพสต์ได้ กรุณาลองใหม่อีกครั้ง')
     }
   } catch (e) {
     console.error('Failed to create post:', e)
+    alert(e.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์')
+  } finally {
+    isPosting.value = false
   }
 }
 
@@ -132,20 +257,23 @@ const deletePost = async (postId) => {
 }
 
 const startEditPost = (post) => {
-  post.editContent = post.content
+  post.editContent = post.text || post.content
   post.isEditing = true
   post.showMenu = false
 }
 
 const saveEditPost = async (post) => {
   if (post.editContent.trim()) {
-    post.content = post.editContent.trim()
+    const newText = post.editContent.trim()
+    const finalContent = post.image ? `${newText}\n[image:${post.image}]` : newText
     try {
       await fetch(`${API_BASE_URL}/posts/${post.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: post.content })
+        body: JSON.stringify({ content: finalContent })
       })
+      post.content = finalContent
+      post.text = newText
     } catch (e) {
       console.error('Failed to update post:', e)
     }
@@ -273,14 +401,29 @@ const deleteComment = async (post, commentId) => {
               <textarea v-model="newPostContent" rows="3"
                 class="w-full bg-gray-50/50 border border-gray-200 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 resize-none transition-all"
                 placeholder="แบ่งปันความคิดเห็น, ถามคำถาม, หรืออวดกรอบรูปใหม่..."></textarea>
-              <div class="flex items-center justify-between">
-                <button
-                  class="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer">
-                  <ImageIcon class="w-5 h-5" />
+
+              <!-- Image Preview Before Post -->
+              <div v-if="postImagePreview" class="relative inline-block">
+                <img :src="postImagePreview" class="w-32 h-32 object-cover rounded-2xl border border-emerald-200 shadow-sm" />
+                <button type="button" @click="removePostImage"
+                  class="absolute -top-2 -right-2 bg-stone-900/80 hover:bg-stone-900 text-white p-1 rounded-full shadow-md transition-colors cursor-pointer"
+                  title="ลบรูปภาพ">
+                  <X class="w-3.5 h-3.5" />
                 </button>
-                <button @click="handlePost" :disabled="!newPostContent.trim()"
+              </div>
+
+              <div class="flex items-center justify-between pt-1">
+                <input type="file" ref="postImageInput" accept="image/*" class="hidden" @change="handlePostImageSelect" />
+                <button type="button" @click="triggerPostImageSelect"
+                  class="p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                  :class="postImagePreview ? 'text-emerald-600 bg-emerald-50' : ''"
+                  title="แนบรูปภาพ">
+                  <ImageIcon class="w-5 h-5" />
+                  <span v-if="postImagePreview" class="text-[11px]">เลือกรูปแล้ว</span>
+                </button>
+                <button @click="handlePost" :disabled="(!newPostContent.trim() && !postImagePreview) || isPosting"
                   class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl shadow-sm hover:shadow flex items-center gap-2 transition-all cursor-pointer">
-                  <span>โพสต์</span>
+                  <span>{{ isPosting ? 'กำลังโพสต์...' : 'โพสต์' }}</span>
                   <Send class="w-4 h-4" />
                 </button>
               </div>
@@ -313,7 +456,8 @@ const deleteComment = async (post, commentId) => {
                   <p class="text-xs text-gray-400 mt-0.5">{{ post.timestamp }}</p>
                 </div>
               </div>
-              <div class="relative" v-if="post.author.name === authUser?.name || authUser?.role === 'teacher'">
+              <!-- Post 3-Dots Menu -->
+              <div class="relative" v-if="isTeacher || post.authorId === currentUserId">
                 <button @click="post.showMenu = !post.showMenu"
                   class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
                   <MoreHorizontal class="w-5 h-5" />
@@ -322,7 +466,7 @@ const deleteComment = async (post, commentId) => {
                 <!-- Dropdown Menu -->
                 <div v-if="post.showMenu"
                   class="absolute right-0 top-8 w-36 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-20 animate-[fadeIn_0.2s_ease-out]">
-                  <button @click="startEditPost(post)"
+                  <button v-if="post.authorId === currentUserId" @click="startEditPost(post)"
                     class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors cursor-pointer">
                     <Edit class="w-4 h-4" />
                     แก้ไขโพสต์
@@ -347,9 +491,17 @@ const deleteComment = async (post, commentId) => {
                   class="px-4 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors cursor-pointer">บันทึก</button>
               </div>
             </div>
-            <p v-else class="text-gray-700 text-sm leading-relaxed whitespace-pre-line mb-5 pl-2">
-              {{ post.content }}
-            </p>
+            <div v-else class="mb-5 pl-2 space-y-3">
+              <p v-if="post.text" class="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
+                {{ post.text }}
+              </p>
+              <div v-if="post.image" class="mt-2">
+                <img :src="post.image"
+                  class="rounded-2xl max-h-[420px] w-auto max-w-full object-cover border border-gray-100 shadow-sm cursor-pointer hover:brightness-95 transition-all"
+                  @click="previewFullImage(post.image)"
+                  title="คลิกเพื่อดูรูปภาพขนาดเต็ม" />
+              </div>
+            </div>
 
             <!-- Post Actions -->
             <div class="flex items-center gap-6 pt-4 border-t border-gray-50">
@@ -371,24 +523,36 @@ const deleteComment = async (post, commentId) => {
               class="mt-4 pt-4 border-t border-gray-50 space-y-4 animate-[fadeIn_0.2s_ease-out]">
 
               <!-- Comment List -->
-              <div v-for="comment in post.commentsList" :key="comment.id" class="flex gap-3 group/comment">
-                <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-100 shrink-0">
+              <div v-for="comment in post.commentsList" :key="comment.id" class="flex gap-3 group/comment items-start">
+                <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-100 shrink-0 mt-0.5">
                   <img :src="comment.avatar" class="w-full h-full object-cover" />
                 </div>
-                <div class="flex-1">
-                  <div class="bg-gray-50/80 rounded-2xl px-3 py-2 border border-gray-100 inline-block max-w-full">
-                    <div class="flex items-center justify-between mb-0.5 gap-3">
-                      <span class="text-xs font-bold text-gray-900">{{ comment.author }}</span>
-                      <button
-                        v-if="isTeacher || comment.authorId === (authUser?.studentId || authUser?.id) || post.authorId === (authUser?.studentId || authUser?.id)"
-                        @click="deleteComment(post, comment.id)"
-                        class="opacity-0 group-hover/comment:opacity-100 text-gray-400 hover:text-red-500 transition-opacity p-0.5 rounded cursor-pointer"
-                        title="ลบคอมเมนต์"
-                      >
-                        <Trash2 class="w-3 h-3" />
-                      </button>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <!-- Comment Bubble -->
+                    <div class="bg-gray-50/80 rounded-2xl px-3.5 py-2 border border-gray-100 inline-block max-w-[85%]">
+                      <span class="text-xs font-bold text-gray-900 block mb-0.5">{{ comment.author }}</span>
+                      <p class="text-xs text-gray-700 leading-relaxed whitespace-pre-line break-words">{{ comment.text }}</p>
                     </div>
-                    <p class="text-xs text-gray-700 leading-relaxed">{{ comment.text }}</p>
+
+                    <!-- 3-Dots Menu Button (Far right of comment) -->
+                    <div class="relative shrink-0" v-if="isTeacher || comment.authorId === currentUserId">
+                      <button @click="comment.showMenu = !comment.showMenu"
+                        class="opacity-0 group-hover/comment:opacity-100 text-gray-400 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-100 transition-all cursor-pointer"
+                        title="ตัวเลือก">
+                        <MoreHorizontal class="w-4 h-4" />
+                      </button>
+
+                      <!-- Dropdown Menu -->
+                      <div v-if="comment.showMenu"
+                        class="absolute right-0 top-6 w-32 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-30 animate-[fadeIn_0.15s_ease-out]">
+                        <button @click="comment.showMenu = false; deleteComment(post, comment.id)"
+                          class="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors cursor-pointer">
+                          <Trash2 class="w-3.5 h-3.5" />
+                          <span>ลบคอมเมนต์</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <div class="px-2 mt-1">
                     <span class="text-[10px] text-gray-400">{{ comment.timestamp }}</span>
@@ -437,38 +601,34 @@ const deleteComment = async (post, commentId) => {
               อันดับแรก</p>
 
             <div class="space-y-2.5">
-              <div
+              <div v-for="(student, index) in topStudents" :key="student.studentId || student.id"
                 class="flex items-center justify-between bg-white/70 backdrop-blur-sm p-3 rounded-2xl border border-white/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all">
-                <div class="flex items-center gap-3">
-                  <span class="text-xl font-black text-amber-500 w-5 text-center drop-shadow-sm">1</span>
-                  <div class="w-9 h-9 rounded-xl bg-gray-200 overflow-hidden shrink-0 ring-2 ring-amber-400">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=A" class="w-full h-full object-cover" />
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class="text-xl font-black w-5 text-center drop-shadow-sm shrink-0"
+                    :class="index === 0 ? 'text-amber-500' : index === 1 ? 'text-gray-400' : 'text-amber-700/80'">
+                    {{ index + 1 }}
+                  </span>
+                  <div class="relative w-9 h-9 rounded-xl shrink-0">
+                    <img v-if="student.equippedFrame" :src="student.equippedFrame"
+                      class="absolute inset-0 w-full h-full object-cover z-10 scale-125 pointer-events-none drop-shadow-sm" />
+                    <div class="w-full h-full rounded-xl overflow-hidden bg-gray-200"
+                      :class="index === 0 ? 'ring-2 ring-amber-400' : index === 1 ? 'ring-2 ring-gray-300' : 'ring-2 ring-amber-700/40'">
+                      <img
+                        :src="student.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.studentId}`"
+                        class="w-full h-full object-cover" />
+                    </div>
                   </div>
-                  <span class="text-sm font-bold text-gray-800">สมชาย ใจดี</span>
+                  <div class="truncate min-w-0">
+                    <span class="text-sm font-bold text-gray-800 truncate block">{{ student.name }}</span>
+                    <span class="text-[10px] text-gray-400 font-medium">รหัส : {{ student.studentId }}</span>
+                  </div>
                 </div>
-                <span class="text-xs font-black text-emerald-600 bg-emerald-100/50 px-2.5 py-1 rounded-lg">850 🪙</span>
+                <span class="text-xs font-black text-emerald-600 bg-emerald-100/50 px-2.5 py-1 rounded-lg shrink-0">
+                  {{ student.coins || 0 }} 🪙
+                </span>
               </div>
-              <div
-                class="flex items-center justify-between bg-white/70 backdrop-blur-sm p-3 rounded-2xl border border-white/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all">
-                <div class="flex items-center gap-3">
-                  <span class="text-xl font-black text-gray-400 w-5 text-center drop-shadow-sm">2</span>
-                  <div class="w-9 h-9 rounded-xl bg-gray-200 overflow-hidden shrink-0 ring-2 ring-gray-300">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=B" class="w-full h-full object-cover" />
-                  </div>
-                  <span class="text-sm font-bold text-gray-800">สมศรี รักเรียน</span>
-                </div>
-                <span class="text-xs font-black text-emerald-600 bg-emerald-100/50 px-2.5 py-1 rounded-lg">720 🪙</span>
-              </div>
-              <div
-                class="flex items-center justify-between bg-white/70 backdrop-blur-sm p-3 rounded-2xl border border-white/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all">
-                <div class="flex items-center gap-3">
-                  <span class="text-xl font-black text-amber-700/80 w-5 text-center drop-shadow-sm">3</span>
-                  <div class="w-9 h-9 rounded-xl bg-gray-200 overflow-hidden shrink-0 ring-2 ring-amber-700/40">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=C" class="w-full h-full object-cover" />
-                  </div>
-                  <span class="text-sm font-bold text-gray-800">มานะ อดทน</span>
-                </div>
-                <span class="text-xs font-black text-emerald-600 bg-emerald-100/50 px-2.5 py-1 rounded-lg">600 🪙</span>
+              <div v-if="topStudents.length === 0" class="text-center py-4 text-xs text-stone-400 font-medium">
+                ยังไม่มีข้อมูลนักศึกษาในระบบ
               </div>
             </div>
           </div>
@@ -483,48 +643,58 @@ const deleteComment = async (post, commentId) => {
           <p class="text-gray-500 text-[11px] font-bold mb-5">ทำภารกิจเพื่อรับเหรียญและไอเทมพิเศษ</p>
 
           <div class="space-y-3 relative z-10">
-            <!-- Completed Quest -->
-            <div
-              class="rounded-[1rem] p-2.5 bg-[#e5f4d3] border border-[#e5f4d3] flex items-center gap-3 transition-transform hover:-translate-y-0.5 cursor-pointer">
-              <div class="shrink-0 flex items-center justify-center text-[#55b359]">
-                <BadgeCheck class="w-7 h-7" fill="currentColor" stroke="#e5f4d3" stroke-width="2" />
-              </div>
-              <h4 class="font-black text-[13px] text-[#469e4a] drop-shadow-sm">ทักทายกันคาบแรก</h4>
-            </div>
+            <div v-for="quest in interestingQuests" :key="quest.id" @click="router.push('/quests')"
+              class="rounded-[1rem] p-2.5 transition-transform hover:-translate-y-0.5 cursor-pointer border"
+              :class="isQuestCompleted(quest) ? 'bg-[#e5f4d3] border-[#e5f4d3]' : 'bg-white shadow-sm border-indigo-100 hover:border-indigo-300'">
 
-            <!-- In-progress Quest -->
-            <div
-              class="rounded-[1rem] p-2.5 bg-white shadow-sm border border-indigo-100 flex items-center gap-3 transition-transform hover:-translate-y-0.5 cursor-pointer hover:border-indigo-300">
-              <!-- Left -->
-              <div
-                class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-inner bg-indigo-100 text-indigo-500">
-                <Target class="w-5 h-5" />
+              <!-- Completed Quest Style -->
+              <div v-if="isQuestCompleted(quest)" class="flex items-center gap-3">
+                <div class="shrink-0 flex items-center justify-center text-[#55b359]">
+                  <BadgeCheck class="w-7 h-7" fill="currentColor" stroke="#e5f4d3" stroke-width="2" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-black text-[13px] text-[#469e4a] drop-shadow-sm truncate">{{ quest.title }}</h4>
+                  <p class="text-[10px] text-emerald-700/80 truncate">สำเร็จเรียบร้อยแล้ว</p>
+                </div>
               </div>
-              <!-- Middle -->
-              <div class="flex-1 min-w-0">
-                <h4 class="font-black text-xs text-stone-800 truncate mb-1.5">ส่งมอบหลักฐานการเข้าเรียน</h4>
+
+              <!-- In-progress Quest Style -->
+              <div v-else class="flex items-center gap-3">
                 <div
-                  class="flex items-center gap-2 bg-stone-50 px-2 py-1 rounded-full border border-stone-200/60 max-w-[120px]">
-                  <span class="text-[9px] font-black text-stone-600 shrink-0 w-6">1 / 10</span>
-                  <div class="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                    <div class="h-full bg-amber-400 w-[10%] rounded-full"></div>
+                  class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-inner bg-indigo-100 text-indigo-500">
+                  <Target class="w-5 h-5" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-black text-xs text-stone-800 truncate mb-1.5">{{ quest.title }}</h4>
+                  <div
+                    class="flex items-center gap-2 bg-stone-50 px-2 py-1 rounded-full border border-stone-200/60 max-w-[120px]">
+                    <span class="text-[9px] font-black text-stone-600 shrink-0 w-6">
+                      {{ getQuestProgress(quest).current }} / {{ getQuestProgress(quest).max }}
+                    </span>
+                    <div class="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                      <div class="h-full bg-amber-400 rounded-full"
+                        :style="{ width: `${getQuestProgress(quest).percent}%` }"></div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Rewards Preview -->
+                <div class="flex flex-row items-center gap-1.5 shrink-0">
+                  <div v-for="(rew, rIdx) in (quest.rewards || []).slice(0, 2)" :key="rIdx"
+                    class="flex flex-col items-center justify-center bg-stone-50 border border-stone-200 rounded-lg w-8 h-8 shadow-sm">
+                    <span v-if="rew.type === 'coin'" class="text-sm leading-none -mt-0.5">🪙</span>
+                    <img v-else-if="rew.type === 'frame'" :src="getRewardFrameImage(rew.itemId)"
+                      class="w-3.5 h-3.5 object-contain" onerror="this.style.display='none'" />
+                    <span v-else class="text-xs leading-none">🎁</span>
+                    <span class="text-[7px] font-black text-stone-600 mt-0.5">
+                      {{ rew.type === 'coin' ? `x${rew.amount}` : 'x1' }}
+                    </span>
                   </div>
                 </div>
               </div>
-              <!-- Right (Rewards) -->
-              <div class="flex flex-row items-center gap-1.5 shrink-0">
-                <div
-                  class="flex flex-col items-center justify-center bg-stone-50 border border-stone-200 rounded-lg w-8 h-8 shadow-sm">
-                  <span class="text-sm leading-none -mt-0.5">🪙</span>
-                  <span class="text-[7px] font-black text-stone-600 mt-0.5">x50</span>
-                </div>
-                <div
-                  class="flex flex-col items-center justify-center bg-stone-50 border border-stone-200 rounded-lg w-8 h-8 shadow-sm">
-                  <img :src="'/img/frame/Cyber.png'" class="w-3.5 h-3.5 object-contain"
-                    onerror="this.style.display='none'" />
-                  <span class="text-[7px] font-black text-stone-600 mt-0.5">x1</span>
-                </div>
-              </div>
+            </div>
+
+            <div v-if="interestingQuests.length === 0" class="text-center py-4 text-xs text-stone-400 font-medium">
+              ยังไม่มีภารกิจในระบบ
             </div>
           </div>
 
@@ -536,6 +706,24 @@ const deleteComment = async (post, commentId) => {
 
       </div> <!-- End Sidebar Col -->
     </div> <!-- End Main Content Grid -->
+
+    <!-- Full Image Preview Modal -->
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div v-if="activeFullImage"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md select-none"
+          @click="activeFullImage = null">
+          <div class="relative max-w-4xl max-h-[90vh] flex items-center justify-center" @click.stop>
+            <button @click="activeFullImage = null"
+              class="absolute -top-10 right-0 text-white/80 hover:text-white p-1 transition-colors cursor-pointer"
+              title="ปิด">
+              <X class="w-6 h-6" />
+            </button>
+            <img :src="activeFullImage" class="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl" />
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
   </div>
 </template>

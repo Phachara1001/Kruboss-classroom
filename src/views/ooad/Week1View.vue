@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   PieChart, Info, Play, CheckCircle, XCircle, FileText, Upload, Layers,
@@ -10,16 +10,21 @@ import {
   MessageSquare, MonitorCheck, ShoppingCart, CreditCard, Receipt, Database,
   Smartphone, UserCheck, BarChart3, AlertCircle, RefreshCw, Zap,
   Calendar, ChevronDown, ChevronUp, Printer, Download, X,
-  UtensilsCrossed, Library, Building2, Clock
+  UtensilsCrossed, Library, Building2, Clock, Trophy, Lock, FileSpreadsheet
 } from '@lucide/vue'
 
 import DragDropGame from '@/components/games/DragDropGame.vue'
 import MatchingGame from '@/components/games/MatchingGame.vue'
 import PopQuiz from '@/components/games/PopQuiz.vue'
+import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
 import { courses } from '@/data/courses'
+
+import { authUser } from '@/data/authStore'
+import { isStudent } from '@/data/studentsStore'
+import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 // Router
 const route = useRoute()
@@ -35,6 +40,7 @@ const showFullCurriculum = ref(false)
 
 // PDF & Submit Modal State
 const showPdfModal = ref(false)
+const showTeacherModal = ref(false)
 
 // Grading Criteria Data
 const grading = [
@@ -44,64 +50,147 @@ const grading = [
   { name: 'สอบปลายภาค (Final Examination)', score: 20, color: 'bg-fuchsia-600' }
 ]
 
-// Mini-game State
-// Mini-game State
+// Week Games Config
+const weekGames = [
+  { id: 'game-1', name: 'มินิเกม 1 (Input vs Output ของระบบ)', maxScore: 6, isQuiz: false },
+  { id: 'game-2', name: 'มินิเกม 2 (5 ขั้นตอนในวงจร SDLC)', maxScore: 5, isQuiz: false },
+  { id: 'quiz', name: 'แบบทดสอบหลังเรียน (Post-test 10 ข้อ)', maxScore: 10, isQuiz: true }
+]
+
+onMounted(() => {
+  fetchGameScores(currentCourseId, currentWeek)
+})
+
+const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
+const isTeacher = computed(() => !isStudent(authUser.value))
+
+const studentWeekScores = computed(() => {
+  if (!currentStudentId.value) return {}
+  const key = `${currentCourseId}_${currentWeek}_${currentStudentId.value}`
+  return gameScoresStore.value[key]?.scores || {}
+})
+
+const studentNorm = computed(() => {
+  return calculateNormalizedScore(studentWeekScores.value, weekGames)
+})
+
+// แบบทดสอบหลังเรียน (Post-test) 4 ตัวเลือก 10 ข้อ
 const quizQuestions = [
   {
     id: 1,
-    question: "ข้อใดคือความหมายที่ถูกต้องที่สุดของคำว่า 'ระบบ' (System) ในทางเทคโนโลยีสารสนเทศ?",
+    question: "ข้อใดคือความหมายที่ถูกต้องและครอบคลุมที่สุดของคำว่า 'ระบบ' (System)?",
     options: [
-      { id: 'a', text: "การเปิดเครื่องคอมพิวเตอร์ทิ้งไว้เพื่อดาวน์โหลดไฟล์", isCorrect: false },
-      { id: 'b', text: "กลุ่มขององค์ประกอบต่างๆ ที่ทำงานประสานกันอย่างมีเป้าหมาย เพื่อบรรลุวัตถุประสงค์เดียวกัน (Input ➔ Process ➔ Output)", isCorrect: true },
-      { id: 'c', text: "อุปกรณ์คอมพิวเตอร์รุ่นใหม่ที่มีราคาแพงและประมวลผลได้เร็วที่สุด", isCorrect: false }
+      { id: 'a', text: "การเปิดเครื่องคอมพิวเตอร์ทิ้งไว้เพื่อดาวน์โหลดไฟล์ขนาดใหญ่", isCorrect: false },
+      { id: 'b', text: "กลุ่มขององค์ประกอบที่ทำงานประสานกันอย่างมีเป้าหมาย (Input ➔ Process ➔ Storage ➔ Output ➔ Feedback) เพื่อบรรลุวัตถุประสงค์เดียวกัน", isCorrect: true },
+      { id: 'c', text: "โปรแกรมระบบปฏิบัติการ Windows หรือ macOS ที่ติดตั้งในเครื่อง", isCorrect: false },
+      { id: 'd', text: "ตู้เซิร์ฟเวอร์คอมพิวเตอร์ที่มีสายสัญญาณเชื่อมต่อกันอย่างซับซ้อน", isCorrect: false }
     ],
-    explanation: "ระบบ (System) คือกลุ่มขององค์ประกอบที่ทำงานประสานกัน โดยรับข้อมูลเข้า (Input) นำไปประมวลผล (Process) จัดเก็บ (Storage) และส่งออกผลลัพธ์ (Output) พร้อมมีผลป้อนกลับ (Feedback) เพื่อบรรลุเป้าหมายของธุรกิจ"
+    explanation: "ระบบคือกลุ่มขององค์ประกอบที่ประสานกัน ทำงานรับ Input เข้ามาประมวลผล จัดเก็บ ส่งมอบ Output และมี Feedback เพื่อควบคุมเป้าหมาย"
   },
   {
     id: 2,
-    question: "ข้อแตกต่างสำคัญระหว่าง 'ข้อมูล' (Data) กับ 'สารสนเทศ' (Information) คือข้อใด?",
+    question: "ปัญหาคลาสสิกของระบบที่ดำเนินการด้วยมือ (Manual System เช่น การจดสมุด) คือข้อใด?",
     options: [
-      { id: 'a', text: "ข้อมูลคือสิ่งที่ไม่สำคัญ แต่สารสนเทศคือข้อมูลของรัฐบาลเท่านั้น", isCorrect: false },
-      { id: 'b', text: "ข้อมูลคือข้อเท็จจริงดิบที่ยังไม่ผ่านการประมวลผล ส่วนสารสนเทศคือข้อมูลที่ผ่านการประมวลผลและนำไปใช้ตัดสินใจได้", isCorrect: true },
-      { id: 'c', text: "ข้อมูลต้องเก็บในคอมพิวเตอร์ ส่วนสารสนเทศต้องเขียนลงกระดาษเท่านั้น", isCorrect: false }
+      { id: 'a', text: "ความผิดพลาดจากมนุษย์ (Human Error), เอกสารสูญหาย, ค้นหายาก และสรุปยอดขายได้ล่าช้า", isCorrect: true },
+      { id: 'b', text: "ไม่มีการใช้กระแสไฟฟ้าในสำนักงาน", isCorrect: false },
+      { id: 'c', text: "คอมพิวเตอร์ติดไวรัสได้ง่ายกว่าระบบดิจิทัล", isCorrect: false },
+      { id: 'd', text: "ไม่สามารถส่งจดหมายทางไปรษณีย์ได้", isCorrect: false }
     ],
-    explanation: "Data คือข้อเท็จจริงดิบ เช่น รหัสสินค้า 885... หรือราคาสินค้า 45 บาท เมื่อนำมาคำนวณและสรุปเป็น 'รายงานยอดขายประจำวันและสินค้าขายดีอันดับ 1' จะกลายเป็น Information ที่เจ้าของธุรกิจนำไปใช้ตัดสินใจ"
+    explanation: "ระบบ Manual มักมีปัญหาความผิดพลาดในการคำนวณ การบันทึกซ้ำซ้อน เอกสารชำรุดสูญหาย และไม่สามารถเรียกดูภาพรวมได้ทันที"
   },
   {
     id: 3,
-    question: "เหตุผลสำคัญที่สุดที่ธุรกิจในปัจจุบัน (เช่น ร้านอาหาร, ห้องสมุด, หอพัก) ต้องนำ Software Applications มาใช้งานแทนการจดบันทึกด้วยมือคืออะไร?",
+    question: "นักวิเคราะห์ระบบ (System Analyst: SA) เปรียบเสมือนวิชาชีพใดในกระบวนการก่อสร้าง?",
     options: [
-      { id: 'a', text: "เพื่อลดความผิดพลาด (Human Errors) เพิ่มความรวดเร็ว ป้องกันข้อมูลสูญหาย และดูรายงานได้ทันที", isCorrect: true },
-      { id: 'b', text: "เพราะกฎหมายบังคับให้ทุกร้านต้องซื้อคอมพิวเตอร์", isCorrect: false },
-      { id: 'c', text: "เพื่อให้พนักงานมีเวลาเล่นสมาร์ตโฟนมากขึ้นในเวลางาน", isCorrect: false }
+      { id: 'a', text: "ช่างฉาบปูนและทาสีที่คอยเก็บรายละเอียดหน้างาน", isCorrect: false },
+      { id: 'b', text: "สถาปนิกผู้ออกแบบพิมพ์เขียว ที่แปลงความต้องการของเจ้าของบ้านเป็นแบบแปลนให้ช่างก่อสร้าง", isCorrect: true },
+      { id: 'c', text: "เจ้าหน้าที่รักษาความปลอดภัยที่คอยเฝ้าหน้าประตูทางเข้า", isCorrect: false },
+      { id: 'd', text: "พนักงานขายวัสดุก่อสร้างประจำร้านค้า", isCorrect: false }
     ],
-    explanation: "Software Applications ช่วยแก้ปัญหาความล่าช้า การคำนวณเงินผิดพลาด ใบเสร็จหาย หรือสต็อกไม่ตรง ทำให้ธุรกิจดำเนินงานได้อย่างมีประสิทธิภาพและน่าเชื่อถือ"
+    explanation: "SA เปรียบเสมือนสถาปนิก ทำหน้าที่รวบรวมความต้องการของลูกค้า แปลงเป็นพิมพ์เขียวระบบ (UML) เพื่อให้โปรแกรมเมอร์ (ช่าง) นำไปเขียนโค้ด"
   },
   {
     id: 4,
-    question: "นักวิเคราะห์ระบบ (System Analyst: SA) เปรียบเสมือนบุคคลในอาชีพใดในกระบวนการสร้างสิ่งปลูกสร้าง?",
+    question: "หัวใจสำคัญของแนวคิด 'เชิงวัตถุ' (Object-Oriented) ในการพัฒนาระบบคืออะไร?",
     options: [
-      { id: 'a', text: "ช่างทาสีที่คอยเก็บรายละเอียดความสวยงาม", isCorrect: false },
-      { id: 'b', text: "สถาปนิกผู้ออกแบบพิมพ์เขียว ที่ทำหน้าที่แปลงความต้องการของเจ้าของบ้านเป็นแบบแปลนให้ทีมช่างก่อสร้าง", isCorrect: true },
-      { id: 'c', text: "รปภ. ที่คอยเฝ้าประตูตรวจความเรียบร้อยของอาคาร", isCorrect: false }
+      { id: 'a', text: "การมองสิ่งต่างๆ ในโลกแห่งความเป็นจริงเป็น 'ออบเจกต์ (Object)' ที่มีคุณลักษณะและพฤติกรรมในตัวเอง", isCorrect: true },
+      { id: 'b', text: "การเขียนโค้ดคำสั่งเรียงตามลำดับจากบรรทัดบนลงล่างโดยไม่สร้างฟังก์ชัน", isCorrect: false },
+      { id: 'c', text: "การใช้วัตถุที่เป็นสิ่งของจริงมาวางบนคีย์บอร์ดคอมพิวเตอร์", isCorrect: false },
+      { id: 'd', text: "การบังคับให้นักพัฒนาทุกคนใช้เมาส์แบบไร้สายเท่านั้น", isCorrect: false }
     ],
-    explanation: "นักวิเคราะห์ระบบ (SA) เปรียบเหมือนสถาปนิก ทำหน้าที่รับฟังปัญหาและความต้องการของเจ้าของธุรกิจ แล้วนำมาออกแบบเป็น 'พิมพ์เขียวระบบ (UML)' เพื่อส่งต่อให้โปรแกรมเมอร์ (ช่างก่อสร้าง) เขียนโค้ดได้อย่างถูกต้อง"
+    explanation: "Object-Oriented มองระบบเป็นกลุ่มของ Object ที่มีสถานะ (Attribute) และพฤติกรรม (Method) สื่อสารกัน สอดคล้องกับโลกความจริง"
   },
   {
     id: 5,
-    question: "วิชา 'หลักการวิเคราะห์และออกแบบระบบเชิงวัตถุ' (OOAD) มีบทบาทสำคัญที่สุดในขั้นตอนใดของวงจร SDLC?",
+    question: "ความสัมพันธ์ระหว่าง 'คลาส (Class)' และ 'ออบเจกต์ (Object)' เปรียบได้กับข้อใด?",
     options: [
-      { id: 'a', text: "ขั้นตอนการวิเคราะห์ (Analysis) และการออกแบบ (Design) เพื่อสร้างแบบจำลองพิมพ์เขียวด้วย UML", isCorrect: true },
-      { id: 'b', text: "ขั้นตอนการติดตั้งเครื่องคอมพิวเตอร์และลากสายแลน (Hardware Setup)", isCorrect: false },
-      { id: 'c', text: "ขั้นตอนการคิดภาษีเงินได้ประจำปีของบริษัท", isCorrect: false }
+      { id: 'a', text: "แบบแปลนพิมพ์เขียวบ้าน (Class) กับ บ้านที่สร้างขึ้นจริง (Object)", isCorrect: true },
+      { id: 'b', text: "จอคอมพิวเตอร์ (Class) กับ ปลั๊กไฟ (Object)", isCorrect: false },
+      { id: 'c', text: "กระดาษ A4 (Class) กับ หมึกพิมพ์ (Object)", isCorrect: false },
+      { id: 'd', text: "ถนนลาดยาง (Class) กับ ป้ายจราจร (Object)", isCorrect: false }
     ],
-    explanation: "OOAD มีบทบาทสำคัญอย่างยิ่งในขั้นตอน Analysis & Design เพื่อแปลงปัญหาและความต้องการทางธุรกิจให้กลายเป็น 'แบบจำลองเชิงวัตถุและแผนภาพ UML' เป็นพิมพ์เขียวก่อนส่งมอบให้โปรแกรมเมอร์ลงมือเขียนโค้ด"
+    explanation: "Class เป็นแม่พิมพ์หรือแบบแปลน (Blueprint) ส่วน Object คือชิ้นงานที่ถูกสร้างขึ้นจริง (Instance) ตามแบบแปลนนั้น"
+  },
+  {
+    id: 6,
+    question: "คุณลักษณะประจำตัวของออบเจกต์ (Attribute) และพฤติกรรมการทำงาน (Method) ข้อใดจับคู่ได้ถูกต้อง?",
+    options: [
+      { id: 'a', text: "Attribute: สีรถยนต์, ความเร็วสูงสุด / Method: สตาร์ทเครื่อง, เหยียบเบรก", isCorrect: true },
+      { id: 'b', text: "Attribute: เดิน, วิ่ง / Method: สีตา, ส่วนสูง", isCorrect: false },
+      { id: 'c', text: "Attribute: กดปุ่มสั่งซื้อ / Method: ชื่อสินค้า, ราคาสินค้า", isCorrect: false },
+      { id: 'd', text: "Attribute: พิมพ์รายงาน / Method: วันที่ผลิต", isCorrect: false }
+    ],
+    explanation: "Attribute คือคุณสมบัติหรือข้อมูล (Data) เช่น สี, ชื่อ ส่วน Method คือการกระทำหรือฟังก์ชัน (Behavior) เช่น ขับ, คำนวณ"
+  },
+  {
+    id: 7,
+    question: "ภาษา UML (Unified Modeling Language) ถูกสร้างขึ้นเพื่อจุดประสงค์ใดเป็นสำคัญ?",
+    options: [
+      { id: 'a', text: "เป็นภาษาสัญลักษณ์มาตรฐานสากลในการจำลองภาพพิมพ์เขียวระบบเชิงวัตถุ เพื่อให้ทีมงานเข้าใจตรงกัน", isCorrect: true },
+      { id: 'b', text: "ใช้สำหรับเขียนสูตรคำนวณบัญชีในโปรแกรม Excel", isCorrect: false },
+      { id: 'c', text: "ใช้แปลภาษาต่างประเทศในเบราว์เซอร์อัตโนมัติ", isCorrect: false },
+      { id: 'd', text: "ใช้ควบคุมความเร็วรอบพัดลมระบายความร้อนของซีพียู", isCorrect: false }
+    ],
+    explanation: "UML เป็นภาษาสัญลักษณ์มาตรฐาน (Visual Modeling) ช่วยให้นักวิเคราะห์ โปรแกรมเมอร์ และผู้ใช้งานสื่อสารโครงสร้างระบบได้อย่างถูกต้อง"
+  },
+  {
+    id: 8,
+    question: "ข้อใดเรียงลำดับขั้นตอนในวงจรการพัฒนาระบบ (SDLC 5 ขั้นตอนหลัก) ได้อย่างถูกต้อง?",
+    options: [
+      { id: 'a', text: "Planning (วางแผน) ➔ Analysis (วิเคราะห์) ➔ Design (ออกแบบ) ➔ Implementation (พัฒนา) ➔ Maintenance (บำรุงรักษา)", isCorrect: true },
+      { id: 'b', text: "Implementation ➔ Design ➔ Planning ➔ Maintenance ➔ Analysis", isCorrect: false },
+      { id: 'c', text: "Design ➔ Planning ➔ Analysis ➔ Maintenance ➔ Implementation", isCorrect: false },
+      { id: 'd', text: "Maintenance ➔ Analysis ➔ Planning ➔ Implementation ➔ Design", isCorrect: false }
+    ],
+    explanation: "ลำดับมาตรฐานเริ่มจากวางแผนโครงการ (Planning), วิเคราะห์ความต้องการ (Analysis), ออกแบบพิมพ์เขียว (Design), พัฒนาโค้ด (Implementation) และบำรุงรักษา (Maintenance)"
+  },
+  {
+    id: 9,
+    question: "การจัดทำ 'Problem Statement' (การระบุปัญหาทางธุรกิจ) ในสัปดาห์ที่ 1 มีความสำคัญอย่างไร?",
+    options: [
+      { id: 'a', text: "ช่วยชี้ชัดว่าระบบที่จะสร้างขึ้นมานั้น จะเข้าไปแก้ปัญหาอะไรของธุรกิจ และสร้างคุณค่าใดให้ผู้ใช้", isCorrect: true },
+      { id: 'b', text: "ใช้สำหรับการยื่นขอสินเชื่อจากธนาคารพาณิชย์", isCorrect: false },
+      { id: 'c', text: "ช่วยลดขนาดพื้นที่จัดเก็บของไฟล์ในฮาร์ดดิสก์", isCorrect: false },
+      { id: 'd', text: "ใช้กำหนดรหัสผ่านให้กับผู้ดูแลระบบ", isCorrect: false }
+    ],
+    explanation: "Problem Statement ช่วยให้ทีมพัฒนาเข้าใจเป้าหมายที่แท้จริง ไม่หลงทาง และมั่นใจว่าซอฟต์แวร์ที่สร้างตอบโจทย์ปัญหาธุรกิจจริง"
+  },
+  {
+    id: 10,
+    question: "ในวงจร SDLC หากทีมข้ามขั้นตอน Analysis & Design ไปลงมือเขียนโค้ดทันที มักจะเกิดผลเสียข้อใดมากที่สุด?",
+    options: [
+      { id: 'a', text: "โปรแกรมไม่ตรงกับความต้องการจริงของผู้ใช้ ต้องรื้อเขียนใหม่ เสียเวลาและงบประมาณบานปลาย", isCorrect: true },
+      { id: 'b', text: "หน้าจอคอมพิวเตอร์จะดับทันทีที่เริ่มเปิดโปรแกรม", isCorrect: false },
+      { id: 'c', text: "ทำให้หมึกพิมพ์ของเครื่องพิมพ์หมดเร็วกว่าปกติ", isCorrect: false },
+      { id: 'd', text: "ทำให้ระบบอินเทอร์เน็ตของทั้งบริษัทถูกระงับการใช้งาน", isCorrect: false }
+    ],
+    explanation: "การเขียนโค้ดโดยไม่มีพิมพ์เขียว (No Design) เหมือนสร้างบ้านโดยไม่มีแบบแปลน มักสร้างสิ่งที่ลูกค้าไม่ได้ต้องการและต้องรื้อแก้ซ้ำซาก"
   }
 ]
 
 const activeGame = ref('sort') // 'sort', 'order', 'quiz'
 
-// Game 1: Drag & Drop (System Elements: Input vs Output)
+// Game 1: Drag & Drop (System Elements: Input vs Output - 6 items, max 6)
 const dragItemsData = [
   { id: 1, text: 'ยิงสแกนเนอร์บาร์โค้ดรหัสสินค้าที่เคาน์เตอร์', type: 'input' },
   { id: 2, text: 'พิมพ์ใบเสร็จรับเงินออกจากเครื่องพิมพ์ความร้อน', type: 'output' },
@@ -134,19 +223,21 @@ const dragZonesData = [
   }
 ]
 
-// Game 2: Matching Game (SDLC Phases)
+// Game 2: Matching Game (5 SDLC Phases, max 5)
 const matchLeftTerms = [
   { id: 'l1', text: '1. Planning (วางแผน)', match: 'r1' },
   { id: 'l2', text: '2. Analysis (วิเคราะห์)', match: 'r2' },
   { id: 'l3', text: '3. Design (ออกแบบ)', match: 'r3' },
-  { id: 'l4', text: '4. Implementation (พัฒนา)', match: 'r4' }
+  { id: 'l4', text: '4. Implementation (พัฒนา)', match: 'r4' },
+  { id: 'l5', text: '5. Maintenance (บำรุงรักษา)', match: 'r5' }
 ]
 
 const matchRightDefs = [
   { id: 'r1', text: 'ศึกษาความเป็นไปได้ กำหนดงบประมาณและระยะเวลาโครงการ' },
-  { id: 'r2', text: 'สำรวจปัญหา เก็บรวบรวมความต้องการจากผู้ใช้งานจริง' },
-  { id: 'r3', text: 'เขียนพิมพ์เขียว ไดอะแกรม UML หน้าจอ UI และฐานข้อมูล' },
-  { id: 'r4', text: 'ลงมือเขียนโค้ดโปรแกรมตามพิมพ์เขียวที่ออกแบบไว้' }
+  { id: 'r2', text: 'สำรวจปัญหาและเก็บรวบรวมความต้องการจากผู้ใช้งานจริง' },
+  { id: 'r3', text: 'เขียนพิมพ์เขียว ไดอะแกรม UML ออกแบบหน้าจอ UI และฐานข้อมูล' },
+  { id: 'r4', text: 'ลงมือเขียนโค้ดโปรแกรมและทดสอบระบบตามพิมพ์เขียว' },
+  { id: 'r5', text: 'ดูแลรักษาระบบ แก้ไขข้อผิดพลาด และปรับปรุงระบบหลังขึ้นใช้งานจริง' }
 ]
 </script>
 
@@ -1267,54 +1358,170 @@ const matchRightDefs = [
     </section>
 
     <!-- Mini-Game Interactive Section -->
-    <section>
-      <div class="flex items-center gap-3 mb-6">
-        <div class="p-3 bg-purple-100 rounded-2xl text-purple-700 shadow-sm">
-          <Gamepad2 class="w-6 h-6" />
+    <section class="space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-purple-100 rounded-2xl text-purple-700 shadow-sm">
+            <Gamepad2 class="w-6 h-6" />
+          </div>
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-black text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน</h2>
+            <p class="text-gray-500 text-sm mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน</p>
+          </div>
         </div>
-        <div>
-          <h2 class="text-3xl font-black text-gray-800">กิจกรรมทบทวนความรู้ประจำสัปดาห์ (Interactive Games)</h2>
-          <p class="text-gray-500 text-sm">ทดสอบความเข้าใจผ่านมินิเกมจำลองสถานการณ์</p>
+
+        <!-- Teacher Scoreboard Button -->
+        <button @click="showTeacherModal = true"
+          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-purple-900 to-indigo-900 hover:from-purple-800 hover:to-indigo-800 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-purple-700 shrink-0">
+          <FileSpreadsheet class="w-4 h-4 text-amber-400" />
+          <span>ดูตารางคะแนนมินิเกม (สำหรับคุณครู)</span>
+        </button>
+      </div>
+
+      <!-- Student Score Summary Banner -->
+      <div class="rounded-2xl border border-purple-100 bg-white p-5 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+          <div>
+            <span class="text-xs font-bold text-purple-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่ 1</span>
+            <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
+              <span>สถานะ:</span>
+              <span v-if="studentNorm.isAllCompleted" class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                ✓ ทำครบทุกกิจกรรมแล้ว (3/3)
+              </span>
+              <span v-else-if="studentNorm.completedCount > 0" class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                ⏳ กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
+              </span>
+              <span v-else class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
+                ยังไม่ได้เริ่มทำ
+              </span>
+            </div>
+          </div>
+
+          <!-- Total Normalized Score (Scaled to 10) -->
+          <div class="flex items-center gap-3 bg-gradient-to-r from-purple-50 to-indigo-50 px-4 py-2.5 rounded-xl border border-purple-100">
+            <Trophy class="w-7 h-7 text-amber-500 shrink-0" />
+            <div>
+              <span class="text-xs text-purple-900 font-semibold block">คะแนนรวมทั้งหมด (หารเฉลี่ยเต็ม 10)</span>
+              <div class="text-xl font-black text-purple-950 leading-tight">
+                <span>{{ studentNorm.normalized }}</span>
+                <span class="text-xs font-bold text-gray-400"> / 10.0 คะแนน</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Activity Status Badges -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-xs font-medium">
+          <!-- Game 1 -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['game-1'] ? 'bg-purple-50/70 border-purple-200 text-purple-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">1. จำแนก Input vs Output</span>
+              <span class="text-[11px] text-gray-500">เต็ม 6 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['game-1'] ? `${studentWeekScores['game-1'].score} / 6` : 'ยังไม่ได้เล่น' }}
+            </span>
+          </div>
+
+          <!-- Game 2 -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['game-2'] ? 'bg-blue-50/70 border-blue-200 text-blue-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">2. ลำดับ 5 ขั้นตอน SDLC</span>
+              <span class="text-[11px] text-gray-500">เต็ม 5 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['game-2'] ? `${studentWeekScores['game-2'].score} / 5` : 'ยังไม่ได้เล่น' }}
+            </span>
+          </div>
+
+          <!-- Post-test -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['quiz'] ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">3. แบบทดสอบหลังเรียน 10 ข้อ</span>
+              <span class="text-[11px] text-gray-500">เต็ม 10 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['quiz'] ? `${studentWeekScores['quiz'].score} / 10` : 'ยังไม่ได้ทำ' }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Game Mode Selector Buttons -->
-      <div class="flex flex-wrap gap-3 mb-6">
+      <!-- Game Mode Selector Buttons (มินิเกม -> มินิเกม -> สุดท้ายคือแบบทดสอบหลังเรียน) -->
+      <div class="flex flex-wrap gap-3">
         <button @click="activeGame = 'sort'"
-          :class="['px-5 py-3 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm', activeGame === 'sort' ? 'bg-purple-700 text-white shadow-purple-200' : 'bg-white text-gray-600 hover:bg-purple-50 border border-gray-200']">
-          <MousePointer2 class="w-4 h-4" /> เกมที่ 1: จำแนก Input vs Output ของระบบ
+          :class="['px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm cursor-pointer', activeGame === 'sort' ? 'bg-purple-700 text-white shadow-purple-200 scale-105' : 'bg-white text-gray-600 hover:bg-purple-50 border border-gray-200']">
+          <MousePointer2 class="w-4 h-4" />
+          <span>มินิเกมที่ 1: Input vs Output</span>
+          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
 
         <button @click="activeGame = 'order'"
-          :class="['px-5 py-3 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm', activeGame === 'order' ? 'bg-purple-700 text-white shadow-purple-200' : 'bg-white text-gray-600 hover:bg-purple-50 border border-gray-200']">
-          <Shuffle class="w-4 h-4" /> เกมที่ 2: ลำดับขั้นตอนในวงจร SDLC
+          :class="['px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm cursor-pointer', activeGame === 'order' ? 'bg-blue-600 text-white shadow-blue-200 scale-105' : 'bg-white text-gray-600 hover:bg-blue-50 border border-gray-200']">
+          <Shuffle class="w-4 h-4" />
+          <span>มินิเกมที่ 2: วงจร SDLC</span>
+          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
 
         <button @click="activeGame = 'quiz'"
-          :class="['px-5 py-3 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm', activeGame === 'quiz' ? 'bg-purple-700 text-white shadow-purple-200' : 'bg-white text-gray-600 hover:bg-purple-50 border border-gray-200']">
-          <Star class="w-4 h-4" /> เกมที่ 3: แบบทดสอบ PopQuiz ท้ายบท (5 ข้อ)
+          :class="['px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm cursor-pointer', activeGame === 'quiz' ? 'bg-emerald-600 text-white shadow-emerald-200 scale-105' : 'bg-white text-gray-600 hover:bg-emerald-50 border border-gray-200']">
+          <FileQuestion class="w-4 h-4" />
+          <span>🎯 แบบทดสอบหลังเรียน (4 ชอยส์ 10 ข้อ)</span>
+          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
       </div>
 
       <!-- Game 1: DragDrop -->
-      <DragDropGame v-if="activeGame === 'sort'" title="จำแนกองค์ประกอบของระบบ (System Input vs Output)"
-        subtitle="ลากรายการการทำงานไปใส่ในกล่อง Input (ข้อมูลนำเข้า) หรือ Output (ผลลัพธ์) ให้ถูกต้อง"
-        :initialItems="dragItemsData" :zones="dragZonesData" />
+      <DragDropGame v-if="activeGame === 'sort'" 
+        title="มินิเกมที่ 1: จำแนก Input vs Output ของระบบ"
+        subtitle="ลากรายการการทำงานไปใส่ในกล่องให้ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
+        gameId="game-1"
+        :courseId="currentCourseId"
+        :week="currentWeek"
+        :initialItems="dragItemsData" 
+        :zones="dragZonesData" 
+      />
 
       <!-- Game 2: Matching -->
-      <MatchingGame v-if="activeGame === 'order'" title="จับคู่ขั้นตอนในวงจรการพัฒนาระบบ (SDLC)"
-        subtitle="คลิกจับคู่ขั้นตอนหลักกับการกระทำที่ถูกต้อง" :initialLeftTerms="matchLeftTerms"
-        :initialRightDefs="matchRightDefs" />
+      <MatchingGame v-if="activeGame === 'order'" 
+        title="มินิเกมที่ 2: ลำดับ 5 ขั้นตอนในวงจร SDLC"
+        subtitle="จับคู่ขั้นตอนหลักกับการกระทำที่ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)" 
+        gameId="game-2"
+        :courseId="currentCourseId"
+        :week="currentWeek"
+        :initialLeftTerms="matchLeftTerms"
+        :initialRightDefs="matchRightDefs" 
+      />
 
-      <!-- Game 3: PopQuiz -->
-      <PopQuiz v-if="activeGame === 'quiz'" :questions="quizQuestions">
-        <template #actions>
-          <RouterLink to="/course/21900-1004"
-            class="px-8 py-4 bg-purple-700 border-2 border-purple-500 text-white font-bold rounded-2xl hover:bg-purple-600 transition-all shadow-[0_0_20px_rgba(147,51,234,0.4)] flex items-center gap-2">
-            กลับสู่หน้ารายวิชา
-          </RouterLink>
-        </template>
-      </PopQuiz>
+      <!-- Game 3: Final Post-test -->
+      <PopQuiz v-if="activeGame === 'quiz'" 
+        title="แบบทดสอบหลังเรียน (Post-test): หลักการวิเคราะห์และออกแบบระบบเชิงวัตถุ"
+        subtitle="แบบทดสอบ 4 ตัวเลือก 10 ข้อ วัดผลความรู้หลังเรียน ตอบให้ครบแล้วกดส่งคำตอบ (ทำได้ครั้งเดียวเท่านั้น)"
+        gameId="quiz"
+        :courseId="currentCourseId"
+        :week="currentWeek"
+        :questions="quizQuestions"
+      />
+
+      <!-- Teacher Scoreboard Modal -->
+      <TeacherScoreboardModal
+        :show="showTeacherModal"
+        :courseId="currentCourseId"
+        courseName="หลักการวิเคราะห์และออกแบบระบบเชิงวัตถุ"
+        :week="currentWeek"
+        weekTitle="สัปดาห์ที่ 1: บทนำสู่การวิเคราะห์ระบบ"
+        :games="weekGames"
+        @close="showTeacherModal = false"
+      />
     </section>
 
     <!-- Assignment Section (Matching Week 1 Style) -->

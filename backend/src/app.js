@@ -943,12 +943,38 @@ app.get('/api/posts', async (req, res) => {
 
 app.post('/api/posts', async (req, res) => {
     try {
-        const { authorId, content } = req.body;
+        let { authorId, content } = req.body;
         if (!authorId || !content) {
             return res.status(400).json({ error: 'Author and content are required' });
         }
+
+        let user = await prisma.user.findUnique({
+            where: { studentId: String(authorId) }
+        });
+
+        if (!user && !isNaN(Number(authorId)) && Number(authorId) > 0) {
+            user = await prisma.user.findUnique({
+                where: { id: Number(authorId) }
+            });
+        }
+
+        if (!user) {
+            user = await prisma.user.findFirst({
+                where: {
+                    OR: [
+                        { studentId: 'boss' },
+                        { role: 'teacher' }
+                    ]
+                }
+            });
+        }
+
+        if (!user) {
+            return res.status(404).json({ error: 'ไม่พบข้อมูลผู้ใช้งานในระบบ' });
+        }
+
         const post = await prisma.post.create({
-            data: { authorId, content },
+            data: { authorId: user.studentId, content },
             include: {
                 author: { select: { studentId: true, name: true, role: true, avatar: true, equippedFrame: true } },
                 comments: true,
@@ -957,6 +983,7 @@ app.post('/api/posts', async (req, res) => {
         });
         res.json(post);
     } catch (err) {
+        console.error('Create post error:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -1020,10 +1047,39 @@ app.post('/api/posts/:id/like', async (req, res) => {
 
 app.post('/api/posts/:id/comments', async (req, res) => {
     try {
-        const { authorId, content } = req.body;
+        let { authorId, content } = req.body;
         const postId = req.params.id;
+        if (!authorId || !content) {
+            return res.status(400).json({ error: 'Author and content are required' });
+        }
+
+        let user = await prisma.user.findUnique({
+            where: { studentId: String(authorId) }
+        });
+
+        if (!user && !isNaN(Number(authorId)) && Number(authorId) > 0) {
+            user = await prisma.user.findUnique({
+                where: { id: Number(authorId) }
+            });
+        }
+
+        if (!user) {
+            user = await prisma.user.findFirst({
+                where: {
+                    OR: [
+                        { studentId: 'boss' },
+                        { role: 'teacher' }
+                    ]
+                }
+            });
+        }
+
+        if (!user) {
+            return res.status(404).json({ error: 'ไม่พบข้อมูลผู้ใช้งานในระบบ' });
+        }
+
         const comment = await prisma.postComment.create({
-            data: { postId, authorId, content },
+            data: { postId, authorId: user.studentId, content },
             include: {
                 author: { select: { studentId: true, name: true, avatar: true, role: true } }
             }
@@ -1034,6 +1090,7 @@ app.post('/api/posts/:id/comments', async (req, res) => {
         });
         res.json(comment);
     } catch (err) {
+        console.error('Create comment error:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -1050,6 +1107,107 @@ app.delete('/api/posts/comments/:commentId', async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// 10. GAME SCORES (มินิเกมและแบบทดสอบหลังเรียน)
+// ==========================================
+const fs = require('fs');
+const path = require('path');
+const GAME_SCORES_FILE = path.join(__dirname, '../data/game_scores.json');
+
+function loadGameScoresData() {
+    try {
+        const dir = path.dirname(GAME_SCORES_FILE);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        if (!fs.existsSync(GAME_SCORES_FILE)) {
+            fs.writeFileSync(GAME_SCORES_FILE, JSON.stringify({}), 'utf-8');
+            return {};
+        }
+        const data = fs.readFileSync(GAME_SCORES_FILE, 'utf-8');
+        return JSON.parse(data || '{}');
+    } catch (err) {
+        console.error('Error loading game scores:', err);
+        return {};
+    }
+}
+
+function saveGameScoresData(data) {
+    try {
+        const dir = path.dirname(GAME_SCORES_FILE);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.writeFileSync(GAME_SCORES_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (err) {
+        console.error('Error saving game scores:', err);
+    }
+}
+
+// GET all game scores for a course & week
+app.get('/api/game-scores/:courseId/:week', (req, res) => {
+    try {
+        const { courseId, week } = req.params;
+        const allData = loadGameScoresData();
+        const prefix = `${courseId}_${week}_`;
+        const weekScores = {};
+
+        for (const [key, value] of Object.entries(allData)) {
+            if (key.startsWith(prefix)) {
+                const studentId = key.replace(prefix, '');
+                weekScores[studentId] = value;
+            }
+        }
+        res.json({ success: true, data: weekScores });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// POST a game score (Only allowed once per student per game)
+app.post('/api/game-scores', (req, res) => {
+    try {
+        const { courseId, week, studentId, gameId, score, maxScore } = req.body;
+        if (!courseId || !week || !studentId || !gameId || score === undefined || maxScore === undefined) {
+            return res.status(400).json({ success: false, message: 'ข้อมูลไม่ครบถ้วน' });
+        }
+
+        const allData = loadGameScoresData();
+        const key = `${courseId}_${week}_${studentId}`;
+
+        if (!allData[key]) {
+            allData[key] = {
+                courseId,
+                week: Number(week),
+                studentId,
+                scores: {},
+                lastUpdated: new Date().toISOString()
+            };
+        }
+
+        // Strict rule: Single attempt only! Cannot overwrite existing score
+        if (allData[key].scores[gameId]) {
+            return res.status(400).json({
+                success: false,
+                message: 'คุณได้บันทึกคะแนนกิจกรรมนี้ไปแล้ว (เล่นได้ครั้งเดียวเท่านั้น)',
+                existingScore: allData[key].scores[gameId]
+            });
+        }
+
+        allData[key].scores[gameId] = {
+            score: Math.min(Number(score), Number(maxScore)),
+            maxScore: Number(maxScore),
+            submittedAt: new Date().toISOString()
+        };
+        allData[key].lastUpdated = new Date().toISOString();
+
+        saveGameScoresData(allData);
+        res.json({ success: true, record: allData[key] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 

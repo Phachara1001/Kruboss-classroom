@@ -1,13 +1,23 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { BookOpen, PieChart, Info, Play, CheckCircle, XCircle, FileText, Upload, Database, Layers, Shield, Users, Server, FileQuestion, ArrowRight, Target, Award, Book, Lightbulb, Gamepad2, ListOrdered, ChevronRight, Star, Shuffle, MousePointer2, Clock } from '@lucide/vue'
+import { ref, computed, onMounted } from 'vue'
+import {
+  BookOpen, PieChart, Info, Play, CheckCircle, XCircle, FileText, Upload,
+  Database, Layers, Shield, Users, Server, FileQuestion, ArrowRight, Target,
+  Award, Book, Lightbulb, Gamepad2, ListOrdered, ChevronRight, Star,
+  Shuffle, MousePointer2, Clock, Trophy, Lock, FileSpreadsheet
+} from '@lucide/vue'
 
 import DragDropGame from '@/components/games/DragDropGame.vue'
 import MatchingGame from '@/components/games/MatchingGame.vue'
 import PopQuiz from '@/components/games/PopQuiz.vue'
+import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
+
+import { authUser } from '@/data/authStore'
+import { isStudent } from '@/data/studentsStore'
+import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 // Current Course & Week context
 const currentCourseId = '31901-2007'
@@ -15,6 +25,7 @@ const currentWeek = 1
 
 // PDF Modal State
 const showPdfModal = ref(false)
+const showTeacherModal = ref(false)
 
 // Grading Criteria Data
 const grading = [
@@ -24,74 +35,159 @@ const grading = [
   { name: 'สอบปลายภาค (Final)', score: 20, color: 'bg-teal-700' }
 ]
 
-// Mini-game State
+// Week Games Config
+const weekGames = [
+  { id: 'game-1', name: 'มินิเกม 1 (Data vs Information)', maxScore: 6, isQuiz: false },
+  { id: 'game-2', name: 'มินิเกม 2 (ระดับข้อมูล & สถาปัตยกรรม DBMS)', maxScore: 5, isQuiz: false },
+  { id: 'quiz', name: 'แบบทดสอบหลังเรียน (Post-test 10 ข้อ)', maxScore: 10, isQuiz: true }
+]
+
+onMounted(() => {
+  fetchGameScores(currentCourseId, currentWeek)
+})
+
+const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
+const isTeacher = computed(() => !isStudent(authUser.value))
+
+const studentWeekScores = computed(() => {
+  if (!currentStudentId.value) return {}
+  const key = `${currentCourseId}_${currentWeek}_${currentStudentId.value}`
+  return gameScoresStore.value[key]?.scores || {}
+})
+
+const studentNorm = computed(() => {
+  return calculateNormalizedScore(studentWeekScores.value, weekGames)
+})
+
+// แบบทดสอบหลังเรียน (Post-test) 4 ตัวเลือก 10 ข้อ
 const quizQuestions = [
   {
     id: 1,
     question: "ข้อใดต่อไปนี้จัดว่าเป็น 'ข้อมูล (Data)' ที่แท้จริง?",
     options: [
-      { id: 'a', text: "รายงานสรุปยอดขายประจำเดือน", isCorrect: false },
-      { id: 'b', text: "ตัวเลข 150, 200, 350 ที่จดอยู่ในเศษกระดาษ", isCorrect: true },
-      { id: 'c', text: "กราฟแสดงการเติบโตของบริษัท", isCorrect: false }
+      { id: 'a', text: "รายงานสรุปยอดขายประจำเดือนที่พิมพ์เสนอผู้บริหาร", isCorrect: false },
+      { id: 'b', text: "ตัวเลข 150, 200, 350 ที่จดบันทึกไว้บนเศษกระดาษโดยยังไม่ได้ประมวลผล", isCorrect: true },
+      { id: 'c', text: "กราฟแท่งเปรียบเทียบผลกำไรขาดทุนประจำปี", isCorrect: false },
+      { id: 'd', text: "บทวิเคราะห์พฤติกรรมการซื้อสินค้าของผู้บริโภค", isCorrect: false }
     ],
-    explanation: "ตัวเลขที่ยังไม่ได้ถูกประมวลผล จัดเป็น Data ส่วนรายงานหรือกราฟที่ผ่านการประมวลผลแล้วคือ Information (สารสนเทศ)"
+    explanation: "ข้อมูล (Data) คือข้อเท็จจริงดิบที่ยังไม่ได้ผ่านการประมวลผล ส่วนรายงานหรือกราฟสรุปจัดเป็น 'สารสนเทศ (Information)'"
   },
   {
     id: 2,
     question: "ปัญหาใดที่มักเกิดขึ้นบ่อยที่สุดในระบบแฟ้มข้อมูลแบบดั้งเดิม (File-based System)?",
     options: [
-      { id: 'a', text: "Data Redundancy (ความซ้ำซ้อนของข้อมูล)", isCorrect: true },
-      { id: 'b', text: "Data Encryption (การเข้ารหัสข้อมูลผิดพลาด)", isCorrect: false },
-      { id: 'c', text: "System Overheating (เครื่องร้อนเกินไป)", isCorrect: false }
+      { id: 'a', text: "Data Redundancy (ความซ้ำซ้อนของข้อมูลที่ถูกบันทึกไว้หลายที่)", isCorrect: true },
+      { id: 'b', text: "Data Encryption (การเข้ารหัสข้อมูลที่รัดกุมเกินไป)", isCorrect: false },
+      { id: 'c', text: "System Overheating (เซิร์ฟเวอร์มีความร้อนสูงเกินปกติ)", isCorrect: false },
+      { id: 'd', text: "Automatic Indexing (ระบบจัดทำดัชนีอัตโนมัติมากเกินไป)", isCorrect: false }
     ],
-    explanation: "ในระบบแฟ้มข้อมูลดั้งเดิม ข้อมูลเดียวกันมักถูกบันทึกไว้หลายที่ (เช่น ฝ่ายบุคคลมีชื่อพนักงาน ฝ่ายบัญชีก็มีชื่อพนักงานคนเดียวกัน) ทำให้เกิดความซ้ำซ้อน (Data Redundancy) และเสี่ยงต่อการเกิดความขัดแย้งของข้อมูล (Data Inconsistency)"
+    explanation: "ในระบบแฟ้มข้อมูลดั้งเดิม ข้อมูลเดียวกันมักถูกเก็บซ้ำๆ ในหลายแผนก ทำให้เปลืองเนื้อที่และนำไปสู่ข้อมูลขัดแย้ง (Inconsistency)"
   },
   {
     id: 3,
-    question: "การใช้โปรแกรม Microsoft Excel ในการเก็บข้อมูลพนักงาน ถือว่าเป็นระบบจัดการฐานข้อมูล (DBMS) หรือไม่?",
+    question: "การใช้โปรแกรม Microsoft Excel ในการเก็บข้อมูลพนักงาน ถือว่าเป็นระบบจัดการฐานข้อมูล (DBMS) หรือไม่ เพราะเหตุใด?",
     options: [
-      { id: 'a', text: "เป็น เพราะ Excel สามารถค้นหาและจัดเรียงข้อมูลได้", isCorrect: false },
-      { id: 'b', text: "ไม่เป็น เพราะ Excel เป็นเพียงโปรแกรม Spreadsheet", isCorrect: true }
+      { id: 'a', text: "เป็น เพราะ Excel สามารถเรียงลำดับและใส่สูตรคำนวณได้", isCorrect: false },
+      { id: 'b', text: "ไม่เป็น เพราะ Excel เป็น Spreadsheet ขาดระบบจัดการ Transaction และการควบคุม Concurrent Access ที่ปลอดภัย", isCorrect: true },
+      { id: 'c', text: "เป็น เพราะมีหน้าตาเป็นตารางแถวและคอลัมน์เหมือนกัน", isCorrect: false },
+      { id: 'd', text: "ไม่เป็น เพราะ Excel ไม่สามารถบันทึกข้อความภาษาไทยได้", isCorrect: false }
     ],
-    explanation: "Excel จัดเป็น Spreadsheet ไม่ใช่ DBMS (Database Management System) เพราะไม่มีระบบจัดการความสัมพันธ์แบบซับซ้อน, ไม่มีระบบ Transaction ที่แข็งแกร่ง และไม่รองรับ Concurrent access (ผู้ใช้จำนวนมากเข้าใช้และแก้ไขพร้อมกัน) ได้ดีเท่า DBMS"
+    explanation: "Excel เป็น Spreadsheet ที่ออกแบบมาสำหรับคำนวณ ไม่ใช่ DBMS เพราะขาดกลไก ACID, การล็อกระดับเรคคอร์ด และการจัดการความปลอดภัยขั้นสูง"
   },
   {
     id: 4,
-    question: "ใครคือผู้ที่มีหน้าที่ในการกำหนดโครงสร้างภาพรวมของฐานข้อมูล ดูแลสิทธิ์การเข้าถึง และสำรองข้อมูล?",
+    question: "ใครคือผู้มีหน้าที่กำหนดโครงสร้างสถาปัตยกรรมฐานข้อมูล ดูแลสิทธิ์การเข้าถึง และการสำรอง/กู้คืนข้อมูล?",
     options: [
-      { id: 'a', text: "Database Administrator (DBA)", isCorrect: true },
-      { id: 'b', text: "End User (ผู้ใช้ทั่วไป)", isCorrect: false },
-      { id: 'c', text: "Application Developer (นักพัฒนาแอปพลิเคชัน)", isCorrect: false }
+      { id: 'a', text: "Database Administrator (DBA - ผู้บริหารฐานข้อมูล)", isCorrect: true },
+      { id: 'b', text: "End User (ผู้ใช้ระบบทั่วไป)", isCorrect: false },
+      { id: 'c', text: "Hardware Technician (ช่างประกอบคอมพิวเตอร์)", isCorrect: false },
+      { id: 'd', text: "Data Entry Clerk (เจ้าหน้าที่พิมพ์ดีดเอกสาร)", isCorrect: false }
     ],
-    explanation: "DBA หรือ ผู้บริหารฐานข้อมูล มีหน้าที่ดูแลระบบฐานข้อมูลทั้งหมด ทั้งเรื่องการออกแบบเชิงกายภาพ การรักษาความปลอดภัย และการสำรอง/กู้คืนข้อมูล"
+    explanation: "DBA มีหน้าที่รับผิดชอบบริหารจัดการภาพรวมทั้งหมดของฐานข้อมูล รวมถึงประสิทธิภาพ ความปลอดภัย และการสำรองข้อมูล"
   },
   {
     id: 5,
-    question: "ระดับการมองข้อมูล (Data Abstraction) ระดับใดที่ซ่อนรายละเอียดความซับซ้อนทั้งหมด และให้ผู้ใช้แต่ละคนเห็นเฉพาะข้อมูลที่ตัวเองมีสิทธิ์?",
+    question: "ระดับการมองข้อมูล (Three-Level Architecture) ระดับใดที่ซ่อนความซับซ้อนและแสดงเฉพาะข้อมูลที่ผู้ใช้นั้นมีสิทธิ์ดู?",
     options: [
       { id: 'a', text: "Physical Level (ระดับกายภาพ)", isCorrect: false },
       { id: 'b', text: "Logical Level (ระดับตรรกะ)", isCorrect: false },
-      { id: 'c', text: "View Level (ระดับวิว)", isCorrect: true }
+      { id: 'c', text: "View Level หรือ External Level (ระดับวิว/ภายนอก)", isCorrect: true },
+      { id: 'd', text: "Storage Level (ระดับตัวแผ่นแม่เหล็ก)", isCorrect: false }
     ],
-    explanation: "View Level เป็นระดับสูงสุดที่ติดต่อกับผู้ใช้โดยตรง โดยจะดึงข้อมูลมาแสดงเฉพาะสิ่งที่ผู้ใช้นั้นๆ ต้องการและมีสิทธิ์เข้าถึง เพื่อความง่ายและความปลอดภัย"
+    explanation: "View Level เป็นระดับสูงสุดที่ติดต่อกับผู้ใช้ โดยสร้างมุมมองเฉพาะ (View) ให้ผู้ใช้เห็นเฉพาะส่วนที่เกี่ยวข้องกับหน้าที่ตนเอง"
+  },
+  {
+    id: 6,
+    question: "ระดับตรรกะ (Logical Level หรือ Conceptual Level) มีบทบาทหน้าที่สำคัญข้อใด?",
+    options: [
+      { id: 'a', text: "อธิบายว่าฐานข้อมูลเก็บข้อมูลอะไรบ้าง มี Entity ใด และมีความสัมพันธ์ (Relationship) อย่างไร", isCorrect: true },
+      { id: 'b', text: "กำหนดชนิดและรอบหมุนของจานแม่เหล็กในฮาร์ดดิสก์", isCorrect: false },
+      { id: 'c', text: "ออกแบบหน้าต่างกราฟิกสำหรับกดปุ่มคลิกของแอปมือถือ", isCorrect: false },
+      { id: 'd', text: "คำนวณค่าไฟฟ้าของห้องแม่ข่ายคอมพิวเตอร์", isCorrect: false }
+    ],
+    explanation: "Logical Level เป็นระดับที่ DBA ออกแบบว่าระบบประกอบด้วยข้อมูลอะไรบ้าง มีฟิลด์ใด และเชื่อมโยงกันอย่างไร โดยไม่ขึ้นกับฮาร์ดแวร์"
+  },
+  {
+    id: 7,
+    question: "Physical Level (ระดับกายภาพ) เกี่ยวข้องกับสิ่งใดโดยตรง?",
+    options: [
+      { id: 'a', text: "การจัดเก็บข้อมูลจริงลงในหน่วยความจำ ฮาร์ดดิสก์ โครงสร้างไฟล์ และดัชนี (Indexing)", isCorrect: true },
+      { id: 'b', text: "การตั้งชื่อหน้าจอเมนูให้กับผู้ใช้งานภายนอก", isCorrect: false },
+      { id: 'c', text: "การเขียนเงื่อนไขทางธุรกิจในใบเสร็จรับเงิน", isCorrect: false },
+      { id: 'd', text: "การนำเสนอข้อมูลต่อคณะกรรมการบริษัท", isCorrect: false }
+    ],
+    explanation: "Physical Level เป็นระดับล่างสุดที่บอกว่าข้อมูลถูกแปลงเป็นไบต์และบล็อกจัดเก็บบนสื่อบันทึกข้อมูลอย่างไร"
+  },
+  {
+    id: 8,
+    question: "คุณสมบัติ 'ความเป็นอิสระของข้อมูล' (Data Independence) มีประโยชน์อย่างไร?",
+    options: [
+      { id: 'a', text: "สามารถปรับเปลี่ยนโครงสร้างระดับล่างได้โดยไม่ต้องเขียนโปรแกรมประยุกต์ใหม่ทั้งหมด", isCorrect: true },
+      { id: 'b', text: "ทำให้คอมพิวเตอร์ทำงานได้โดยไม่ต้องเสียบปลั๊กไฟ", isCorrect: false },
+      { id: 'c', text: "อนุญาตให้ใครก็ได้ลบฐานข้อมูลทิ้งได้ตลอดเวลา", isCorrect: false },
+      { id: 'd', text: "ยกเลิกระบบความปลอดภัยทั้งหมดเพื่อให้เข้าถึงได้เร็วขึ้น", isCorrect: false }
+    ],
+    explanation: "Data Independence แบ่งเป็น Physical และ Logical ช่วยให้การแก้โครงสร้างข้อมูลไม่กระทบโปรแกรมที่เรียกใช้งานอยู่"
+  },
+  {
+    id: 9,
+    question: "ปัญหา 'Data Inconsistency' (ความไม่สอดคล้องกันของข้อมูล) มักส่งผลเสียต่อธุรกิจอย่างไร?",
+    options: [
+      { id: 'a', text: "เกิดข้อมูลขัดแย้งกันในระบบ ทำให้รายงานไม่ตรงกันและไม่รู้ว่าข้อมูลชุดใดถูกต้อง", isCorrect: true },
+      { id: 'b', text: "ทำให้คีย์บอร์ดพิมพ์ตัวเลขไม่ติด", isCorrect: false },
+      { id: 'c', text: "ทำให้คอมพิวเตอร์ส่งเสียงแจ้งเตือนตลอดเวลา", isCorrect: false },
+      { id: 'd', text: "ทำให้กระดาษพิมพ์รายงานหมดเร็วกว่าปกติ", isCorrect: false }
+    ],
+    explanation: "เมื่อข้อมูลซ้ำซ้อนถูกอัปเดตไม่ครบทุกจุด จะทำให้ข้อมูลแต่ละที่ขัดแย้งกัน เช่น ยอดสต็อกในบัญชีไม่ตรงกับยอดหน้าร้าน"
+  },
+  {
+    id: 10,
+    question: "ข้อใดคือข้อดีที่เด่นชัดที่สุดของการเปลี่ยนจากระบบแฟ้มข้อมูลมาเป็นระบบจัดการฐานข้อมูล (DBMS)?",
+    options: [
+      { id: 'a', text: "ลดความซ้ำซ้อน มีความปลอดภัยสูง ควบคุมการใช้งานพร้อมกันได้ และข้อมูลมีความถูกต้องน่าเชื่อถือ", isCorrect: true },
+      { id: 'b', text: "ไม่ต้องซื้ออุปกรณ์คอมพิวเตอร์มาใช้งานอีกต่อไป", isCorrect: false },
+      { id: 'c', text: "ยกเลิกการตั้งรหัสผ่านเพื่อให้ทำงานได้รวดเร็วที่สุด", isCorrect: false },
+      { id: 'd', text: "บังคับให้ผู้ใช้งานทุกคนต้องเขียนภาษา SQL เป็นทุกคน", isCorrect: false }
+    ],
+    explanation: "DBMS ช่วยรวมศูนย์ข้อมูล ควบคุมการเข้าถึง ป้องกันความซ้ำซ้อน และรักษาความสมบูรณ์ถูกต้อง (Integrity) ของข้อมูล"
   }
 ]
 
 const activeGame = ref('sort') // 'sort', 'order', 'quiz'
 
-// Game 1: Drag & Drop (Data vs Info)
+// Game 1: Drag & Drop (Data vs Info - 6 items, max 6)
 const dragItemsData = [
-  { id: 1, text: 'รายงานสรุปยอดขาย', type: 'info' },
-  { id: 2, text: 'ตัวเลข 15, 20, 25', type: 'data' },
-  { id: 3, text: 'รูปภาพสลิปใบเสร็จดิบ', type: 'data' },
-  { id: 4, text: 'กราฟแสดงการเติบโต', type: 'info' },
-  { id: 5, text: 'รายชื่อลูกค้าเรียงตามตัวอักษร', type: 'info' },
+  { id: 1, text: 'รายงานสรุปยอดขายประจำเดือน', type: 'info' },
+  { id: 2, text: 'ตัวเลข 15, 20, 25 บนกระดาษจด', type: 'data' },
+  { id: 3, text: 'รูปภาพสลิปใบเสร็จรับเงินดิบ', type: 'data' },
+  { id: 4, text: 'กราฟแสดงแนวโน้มกำไรประจำปี', type: 'info' },
+  { id: 5, text: 'รายชื่อลูกค้าเรียงตามยอดซื้อ', type: 'info' },
   { id: 6, text: 'อุณหภูมิที่วัดได้รายชั่วโมง', type: 'data' }
 ]
 const dragZonesData = [
   { 
     id: 'data', 
-    title: 'Data (ข้อมูล)', 
+    title: 'Data (ข้อมูลดิบ)', 
     wrapperClass: 'border-blue-400/50 hover:bg-black/40', 
     titleClass: 'text-blue-300 border-blue-400/30', 
     itemBgClass: 'bg-blue-600/50 border-blue-400', 
@@ -109,16 +205,20 @@ const dragZonesData = [
   }
 ]
 
-// Game 2: Matching / โยงความสัมพันธ์
+// Game 2: Matching / โยงความสัมพันธ์ (5 pairs, max 5)
 const matchLeftTerms = [
   { id: 'l1', text: 'View Level', match: 'r2' },
   { id: 'l2', text: 'Logical Level', match: 'r3' },
-  { id: 'l3', text: 'Physical Level', match: 'r1' }
+  { id: 'l3', text: 'Physical Level', match: 'r1' },
+  { id: 'l4', text: 'Database Schema', match: 'r4' },
+  { id: 'l5', text: 'Data Dictionary', match: 'r5' }
 ]
 const matchRightDefs = [
-  { id: 'r1', text: 'ระดับการเก็บข้อมูลในฮาร์ดดิสก์' },
-  { id: 'r2', text: 'ระดับที่ซ่อนรายละเอียดสำหรับผู้ใช้' },
-  { id: 'r3', text: 'ระดับที่อธิบายความสัมพันธ์ (DBA ดูแล)' }
+  { id: 'r1', text: 'ระดับล่างสุดที่อธิบายว่าข้อมูลถูกจัดเก็บบนฮาร์ดดิสก์อย่างไร' },
+  { id: 'r2', text: 'ระดับที่แสดงมุมมองเฉพาะของผู้ใช้แต่ละกลุ่มและซ่อนรายละเอียดความซับซ้อน' },
+  { id: 'r3', text: 'ระดับที่อธิบายว่าเก็บข้อมูลอะไรและความสัมพันธ์เป็นอย่างไร (DBA ดูแล)' },
+  { id: 'r4', text: 'โครงสร้างโดยรวมและการออกแบบสถาปัตยกรรมฐานข้อมูล' },
+  { id: 'r5', text: 'พจนานุกรมข้อมูลที่เก็บ metadata หรือคำอธิบายโครงสร้างข้อมูลทั้งหมด' }
 ]
 </script>
 
@@ -541,53 +641,176 @@ const matchRightDefs = [
     </section>
 
     <!-- Interactive Game Center -->
-    <section>
-      <div class="flex items-center justify-between mb-6">
+    <section class="space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-          <div class="p-3 bg-purple-100 rounded-xl text-purple-600 shadow-sm">
+          <div class="p-3 bg-emerald-100 rounded-xl text-emerald-600 shadow-sm">
             <Gamepad2 class="w-6 h-6" />
           </div>
-          <h2 class="text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ</h2>
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน</h2>
+            <p class="text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน</p>
+          </div>
+        </div>
+
+        <!-- Teacher Scoreboard Button -->
+        <button @click="showTeacherModal = true"
+          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-900 to-teal-900 hover:from-emerald-800 hover:to-teal-800 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-emerald-700 shrink-0">
+          <FileSpreadsheet class="w-4 h-4 text-amber-400" />
+          <span>ดูตารางคะแนนมินิเกม (สำหรับคุณครู)</span>
+        </button>
+      </div>
+
+      <!-- Student Score Summary Banner -->
+      <div class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+          <div>
+            <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่ 1</span>
+            <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
+              <span>สถานะ:</span>
+              <span v-if="studentNorm.isAllCompleted" class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                ✓ ทำครบทุกกิจกรรมแล้ว (3/3)
+              </span>
+              <span v-else-if="studentNorm.completedCount > 0" class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                ⏳ กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
+              </span>
+              <span v-else class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
+                ยังไม่ได้เริ่มทำ
+              </span>
+            </div>
+          </div>
+
+          <!-- Total Normalized Score (Scaled to 10) -->
+          <div class="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-2.5 rounded-xl border border-emerald-100">
+            <Trophy class="w-7 h-7 text-amber-500 shrink-0" />
+            <div>
+              <span class="text-xs text-emerald-900 font-semibold block">คะแนนรวมทั้งหมด (หารเฉลี่ยเต็ม 10)</span>
+              <div class="text-xl font-black text-emerald-950 leading-tight">
+                <span>{{ studentNorm.normalized }}</span>
+                <span class="text-xs font-bold text-gray-400"> / 10.0 คะแนน</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Activity Status Badges -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-xs font-medium">
+          <!-- Game 1 -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['game-1'] ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">1. จำแนก Data vs Info</span>
+              <span class="text-[11px] text-gray-500">เต็ม 6 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['game-1'] ? `${studentWeekScores['game-1'].score} / 6` : 'ยังไม่ได้เล่น' }}
+            </span>
+          </div>
+
+          <!-- Game 2 -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['game-2'] ? 'bg-blue-50/70 border-blue-200 text-blue-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">2. โยงระดับข้อมูล & สถาปัตยกรรม</span>
+              <span class="text-[11px] text-gray-500">เต็ม 5 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['game-2'] ? `${studentWeekScores['game-2'].score} / 5` : 'ยังไม่ได้เล่น' }}
+            </span>
+          </div>
+
+          <!-- Post-test -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['quiz'] ? 'bg-cyan-50/70 border-cyan-200 text-cyan-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">3. แบบทดสอบหลังเรียน 10 ข้อ</span>
+              <span class="text-[11px] text-gray-500">เต็ม 10 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['quiz'] ? `${studentWeekScores['quiz'].score} / 10` : 'ยังไม่ได้ทำ' }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Game Tabs -->
-      <div class="flex flex-wrap gap-4 mb-8">
-        <button @click="activeGame = 'sort'" :class="[activeGame === 'sort' ? 'bg-purple-600 text-white shadow-lg scale-105' : 'bg-white text-purple-700 hover:bg-purple-50 border border-purple-200', 'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2']">
-          <MousePointer2 class="w-5 h-5" /> เกมลากวาง (Drag & Drop)
+      <!-- Game Tabs (มินิเกม -> มินิเกม -> สุดท้ายคือแบบทดสอบหลังเรียน) -->
+      <div class="flex flex-wrap gap-3">
+        <button @click="activeGame = 'sort'" :class="[
+          activeGame === 'sort' ? 'bg-emerald-600 text-white shadow-lg scale-105' : 'bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-200',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
+        ]">
+          <MousePointer2 class="w-4 h-4" />
+          <span>มินิเกมที่ 1: Data vs Info</span>
+          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
-        <button @click="activeGame = 'order'" :class="[activeGame === 'order' ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white text-blue-700 hover:bg-blue-50 border border-blue-200', 'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2']">
-          <ListOrdered class="w-5 h-5" /> เกมโยงความสัมพันธ์ (Match)
+
+        <button @click="activeGame = 'order'" :class="[
+          activeGame === 'order' ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white text-blue-700 hover:bg-blue-50 border border-blue-200',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
+        ]">
+          <ListOrdered class="w-4 h-4" />
+          <span>มินิเกมที่ 2: โยงระดับข้อมูล</span>
+          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
-        <button @click="activeGame = 'quiz'" :class="[activeGame === 'quiz' ? 'bg-green-600 text-white shadow-lg scale-105' : 'bg-white text-green-700 hover:bg-green-50 border border-green-200', 'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2']">
-          <FileQuestion class="w-5 h-5" /> Pop Quiz สุดท้าย
+
+        <button @click="activeGame = 'quiz'" :class="[
+          activeGame === 'quiz' ? 'bg-teal-600 text-white shadow-lg scale-105' : 'bg-white text-teal-700 hover:bg-teal-50 border border-teal-300',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
+        ]">
+          <FileQuestion class="w-4 h-4" />
+          <span>🎯 แบบทดสอบหลังเรียน (4 ชอยส์ 10 ข้อ)</span>
+          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
       </div>
 
       <!-- Game 1: Drag & Drop (Data vs Info) -->
       <DragDropGame v-if="activeGame === 'sort'" 
-        title="ลากแล้ววาง: Data หรือ Information?"
-        subtitle="ลากข้อความด้านล่างไปใส่กล่องที่ถูกต้องให้ครบ!"
+        title="มินิเกมที่ 1: จำแนก Data vs Information"
+        subtitle="ลากข้อความด้านล่างไปใส่กล่องที่ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
+        gameId="game-1"
+        :courseId="currentCourseId"
+        :week="currentWeek"
         :initialItems="dragItemsData"
         :zones="dragZonesData"
       />
 
       <!-- Game 2: Matching / โยงความสัมพันธ์ -->
       <MatchingGame v-if="activeGame === 'order'"
-        title="โยงความสัมพันธ์: Data Abstraction"
-        subtitle="คลิกจับคู่ฝั่งซ้ายและขวาให้ถูกต้อง!"
+        title="มินิเกมที่ 2: โยงความสัมพันธ์ Data Abstraction & DBMS"
+        subtitle="จับคู่คำศัพท์กับคำอธิบายให้ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
+        gameId="game-2"
+        :courseId="currentCourseId"
+        :week="currentWeek"
         :initialLeftTerms="matchLeftTerms"
         :initialRightDefs="matchRightDefs"
       />
 
-      <!-- Game 3: Pop Quiz -->
-      <PopQuiz v-if="activeGame === 'quiz'" :questions="quizQuestions">
-        <template #actions>
-          <RouterLink to="/courses" class="px-8 py-4 bg-emerald-500 border-2 border-emerald-400 text-white font-bold rounded-xl hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(52,211,153,0.4)] flex items-center gap-2">
-            กลับสู่หน้ารายวิชา
-          </RouterLink>
-        </template>
-      </PopQuiz>
+      <!-- Game 3: Final Post-test -->
+      <PopQuiz v-if="activeGame === 'quiz'" 
+        title="แบบทดสอบหลังเรียน (Post-test): บทนำสู่ระบบฐานข้อมูล"
+        subtitle="แบบทดสอบ 4 ตัวเลือก 10 ข้อ วัดผลความรู้หลังเรียน ตอบให้ครบแล้วกดส่งคำตอบ (ทำได้ครั้งเดียวเท่านั้น)"
+        gameId="quiz"
+        :courseId="currentCourseId"
+        :week="currentWeek"
+        :questions="quizQuestions"
+      />
+
+      <!-- Teacher Scoreboard Modal -->
+      <TeacherScoreboardModal
+        :show="showTeacherModal"
+        :courseId="currentCourseId"
+        courseName="ระบบจัดการฐานข้อมูล"
+        :week="currentWeek"
+        weekTitle="สัปดาห์ที่ 1: บทนำสู่ระบบฐานข้อมูล"
+        :games="weekGames"
+        @close="showTeacherModal = false"
+      />
     </section>
 
     <!-- Assignment Section -->

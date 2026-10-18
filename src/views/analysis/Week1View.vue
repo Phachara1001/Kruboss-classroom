@@ -1,20 +1,26 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import {
   BookOpen, PieChart, Info, Play, CheckCircle, XCircle, FileText, Upload,
   Database, Layers, Shield, Users, Server, FileQuestion, ArrowRight, Target,
   Award, Book, Lightbulb, Gamepad2, ListOrdered, ChevronRight, Star,
   Shuffle, MousePointer2, Code, Settings, Sparkles, BarChart3, LineChart,
-  TrendingUp, RefreshCw, FileCheck, CheckCircle2, ChevronLeft, Eye, HelpCircle, Clock, Edit3
+  TrendingUp, RefreshCw, FileCheck, CheckCircle2, ChevronLeft, Eye, HelpCircle, Clock, Edit3,
+  Trophy, Lock, FileSpreadsheet
 } from '@lucide/vue'
 
 import DragDropGame from '@/components/games/DragDropGame.vue'
+import MatchingGame from '@/components/games/MatchingGame.vue'
 import PopQuiz from '@/components/games/PopQuiz.vue'
-import WordblankGame from '@/components/games/WordblankGame.vue'
+import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 import SubmitAssignmentModal from '@/components/SubmitAssignmentModal.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
+
+import { authUser } from '@/data/authStore'
+import { isStudent } from '@/data/studentsStore'
+import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 const router = useRouter()
 
@@ -25,6 +31,7 @@ const currentWeek = 1
 // Modal States
 const showPdfModal = ref(false)
 const showSubmitModal = ref(false)
+const showTeacherModal = ref(false)
 
 // Grading Criteria Data (เหมือนกับวิชาอื่นๆ: 20 - 40 - 20 - 20 รวม 100)
 const grading = [
@@ -34,64 +41,34 @@ const grading = [
   { name: 'สอบปลายภาค (Final Presentation)', score: 20, color: 'bg-cyan-700' }
 ]
 
-// Mini-game State
-const activeGame = ref('quiz') // 'quiz' | 'sort'
-
-// Game 1: Pop Quiz
-const quizQuestions = [
-  {
-    id: 1,
-    question: "ข้อใดคือเป้าหมายสูงสุดของ 'การวิเคราะห์และนำเสนอข้อมูล' (Data Analysis & Visualization)?",
-    options: [
-      { id: 'a', text: "เพื่อสร้างกราฟิกสีสันสดใสตกแต่งรายงานเท่านั้น", isCorrect: false },
-      { id: 'b', text: "เพื่อเปลี่ยนข้อมูลดิบให้เป็นข้อค้นพบ (Insights) สนับสนุนการตัดสินใจทางธุรกิจได้อย่างถูกต้อง", isCorrect: true },
-      { id: 'c', text: "เพื่อเก็บสะสมข้อมูลให้มีขนาดใหญ่ที่สุดเท่าที่จะทำได้", isCorrect: false }
-    ],
-    explanation: "หัวใจของการวิเคราะห์ข้อมูลไม่ใช่เพียงแค่การวาดชาร์ตสวยงาม แต่คือการกลั่นกรอง Insight เพื่อนำไปสู่การตัดสินใจ (Data-Driven Decision Making) ที่ลดความเสี่ยงทางธุรกิจ"
-  },
-  {
-    id: 2,
-    question: "มิติคุณภาพข้อมูลด้าน 'ความสมบูรณ์' (Completeness) หมายถึงลักษณะใด?",
-    options: [
-      { id: 'a', text: "ชุดข้อมูลไม่มีค่าสูญหาย (Missing Value) บันทึกข้อมูลครบทุกช่องที่จำเป็นต่อการวิเคราะห์", isCorrect: true },
-      { id: 'b', text: "ชุดข้อมูลถูกจัดเก็บไว้จนเต็มความจุของฮาร์ดดิสก์", isCorrect: false },
-      { id: 'c', text: "ข้อมูลถูกส่งผ่านสายเคเบิลความเร็วสูงเท่านั้น", isCorrect: false }
-    ],
-    explanation: "Completeness คือความครบถ้วนของข้อมูล ไม่มีฟิลด์สำคัญถูกเว้นว่างไว้ เช่น รายการสั่งซื้อต้องมีทั้งราคาสินค้า จำนวน รหัสลูกค้า และวันที่"
-  },
-  {
-    id: 3,
-    question: "หากบริษัทนำข้อมูลยอดขายเมื่อ 5 ปีก่อนมาวางแผนสต็อกสินค้าสัปดาห์หน้า จะส่งผลกระทบต่อมิติคุณภาพใดมากที่สุด?",
-    options: [
-      { id: 'a', text: "ความทันสมัยและความเป็นปัจจุบัน (Timeliness & Currency)", isCorrect: true },
-      { id: 'b', text: "ความลับของข้อมูล (Confidentiality)", isCorrect: false },
-      { id: 'c', text: "รูปแบบตัวอักษร (Typography)", isCorrect: false }
-    ],
-    explanation: "ข้อมูลที่เก่าและล้าสมัย (Outdated Data) ขาดความทันสมัยและความเป็นปัจจุบัน พฤติกรรมผู้บริโภคเปลี่ยนไปแล้ว ทำให้การคาดการณ์ผิดพลาดอย่างรุนแรง"
-  },
-  {
-    id: 4,
-    question: "เหตุใดองค์กรจึงนิยมนำเสนอข้อมูลด้วย Data Visualization มากกว่าตารางตัวเลขดิบ?",
-    options: [
-      { id: 'a', text: "เพราะสมองมนุษย์ประมวลผลการรับรู้ทางสายตา (Visual Perception) ได้เร็วกว่าการอ่านตัวเลขหลายหมื่นเท่า", isCorrect: true },
-      { id: 'b', text: "เพราะกราฟมีตัวหนังสือน้อยกว่าตารางเสมอ", isCorrect: false },
-      { id: 'c', text: "เพราะคอมพิวเตอร์ไม่อนุญาตให้อ่านตัวเลข", isCorrect: false }
-    ],
-    explanation: "สมองมนุษย์จับคู่รูปแบบ แนวโน้ม (Trends) และจุดผิดปกติ (Outliers) จากภาพและกราฟได้รวดเร็วกว่าการกวาดสายตาอ่านตัวเลขในตารางหลายสิบบรรทัด"
-  },
-  {
-    id: 5,
-    question: "ในวงจรชีวิตของข้อมูล (Data Lifecycle) ขั้นตอนแรกสุดที่นักวิเคราะห์ข้อมูลควรทำคืออะไร?",
-    options: [
-      { id: 'a', text: "ลงมือสร้าง Dashboard ทันที", isCorrect: false },
-      { id: 'b', text: "ทำความเข้าใจปัญหาและตั้งคำถามทางธุรกิจที่ชัดเจน (Ask / Define Problem)", isCorrect: true },
-      { id: 'c', text: "ลบข้อมูลที่คิดว่าไม่สำคัญทิ้งทั้งหมด", isCorrect: false }
-    ],
-    explanation: "ขั้นตอนแรกคือการทำความเข้าใจบริบทและตั้งคำถามทางธุรกิจ (Ask) เพื่อให้ทราบว่าเรากำลังจะวิเคราะห์เพื่อตอบโจทย์อะไรและช่วยเหลือใคร"
-  }
+// Week Games Config
+const weekGames = [
+  { id: 'game-1', name: 'มินิเกม 1 (มิติคุณภาพข้อมูล Data Quality)', maxScore: 6, isQuiz: false },
+  { id: 'game-2', name: 'มินิเกม 2 (ระดับของการวิเคราะห์ข้อมูล)', maxScore: 5, isQuiz: false },
+  { id: 'quiz', name: 'แบบทดสอบหลังเรียน (Post-test 10 ข้อ)', maxScore: 10, isQuiz: true }
 ]
 
-// Game 2: Drag & Drop (Data Quality Dimensions)
+onMounted(() => {
+  fetchGameScores(currentCourseId, currentWeek)
+})
+
+const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
+const isTeacher = computed(() => !isStudent(authUser.value))
+
+const studentWeekScores = computed(() => {
+  if (!currentStudentId.value) return {}
+  const key = `${currentCourseId}_${currentWeek}_${currentStudentId.value}`
+  return gameScoresStore.value[key]?.scores || {}
+})
+
+const studentNorm = computed(() => {
+  return calculateNormalizedScore(studentWeekScores.value, weekGames)
+})
+
+// Mini-game State
+const activeGame = ref('sort') // 'sort' | 'match' | 'quiz'
+
+// Game 1: Drag & Drop (Data Quality Dimensions)
 const dragItemsData = [
   { id: 1, text: 'ตัวเลขยอดขายตรงกับใบเสร็จจริงทุกประการ', type: 'accuracy' },
   { id: 2, text: 'ไม่มีช่องว่างหรือ Missing Value ในคอลัมน์สำคัญ', type: 'completeness' },
@@ -131,19 +108,136 @@ const dragZonesData = [
   }
 ]
 
-// Game 3: Word Blank (Data Lifecycle)
-const wordblankPassage = "กระบวนการวิเคราะห์ข้อมูลเริ่มต้นที่ขั้นตอน {b1} เพื่อทำความเข้าใจปัญหาและตั้งคำถามทางธุรกิจ จากนั้นจึง {b2} ข้อมูลจากแหล่งต่างๆ เมื่อได้ข้อมูลมาแล้วต้องนำมา {b3} เพื่อตรวจสอบคุณภาพและแก้ไขข้อมูลที่ผิดพลาด ขั้นตอนต่อไปคือการ {b4} เพื่อหาแนวโน้มและข้อค้นพบที่ซ่อนอยู่ แล้วจึงนำผลลัพธ์ไป {b5} ผ่านการสร้าง Dashboard สุดท้ายผู้บริหารจะนำข้อค้นพบนี้ไป {b6} เพื่อแก้ไขปัญหาและวางแผนธุรกิจต่อไป"
-
-const wordblankBlanks = [
-  { id: 'b1', answer: 'Ask (ตั้งคำถาม)', hint: 'เริ่มต้นด้วยการตั้งคำถาม' },
-  { id: 'b2', answer: 'Prepare (รวบรวม)', hint: 'เอาข้อมูลมาจากหลายๆ ที่' },
-  { id: 'b3', answer: 'Process (ทำความสะอาด)', hint: 'Data Cleaning' },
-  { id: 'b4', answer: 'Analyze (วิเคราะห์)', hint: 'หา Insights' },
-  { id: 'b5', answer: 'Share (นำเสนอ)', hint: 'เล่าเรื่องด้วยข้อมูล' },
-  { id: 'b6', answer: 'Act (ตัดสินใจ)', hint: 'นำไปปฏิบัติจริง' }
+// Game 2: Matching Game (ระดับของการวิเคราะห์ข้อมูล & ธรรมาภิบาล)
+const matchLeftTerms = [
+  { id: 'l1', text: '1. Descriptive Analytics', match: 'r1' },
+  { id: 'l2', text: '2. Diagnostic Analytics', match: 'r2' },
+  { id: 'l3', text: '3. Predictive Analytics', match: 'r3' },
+  { id: 'l4', text: '4. Prescriptive Analytics', match: 'r4' },
+  { id: 'l5', text: '5. Data Governance', match: 'r5' }
 ]
 
-const wordblankDistractors = ['Delete (ลบทิ้ง)', 'Guess (คาดเดา)', 'Store (จัดเก็บ)']
+const matchRightDefs = [
+  { id: 'r1', text: 'วิเคราะห์เชิงพรรณนา อธิบายว่า "เกิดอะไรขึ้นในอดีต" เช่น รายงานสรุปผลยอดขายและ Dashboard' },
+  { id: 'r2', text: 'วิเคราะห์เชิงวินิจฉัย เจาะลึกหาสาเหตุว่า "ทำไมสิ่งนั้นจึงเกิดขึ้น" โดยเปรียบเทียบข้อมูล' },
+  { id: 'r3', text: 'วิเคราะห์เชิงพยากรณ์ คาดการณ์แนวโน้มว่า "น่าจะเกิดอะไรขึ้นต่อไปในอนาคต" ด้วยแบบจำลองสถิติ/AI' },
+  { id: 'r4', text: 'วิเคราะห์เชิงแนะนำ เสนอแนะทางเลือกว่า "ควรดำเนินการอย่างไรต่อไปเพื่อให้ได้ผลลัพธ์ที่ดีที่สุด"' },
+  { id: 'r5', text: 'ธรรมาภิบาลข้อมูล กรอบนโยบายกำหนดสิทธิ์ คุณภาพ ความถูกต้อง และความมั่นคงปลอดภัยของข้อมูล' }
+]
+
+// Game 3: แบบทดสอบหลังเรียน (Post-test 10 ข้อ 4 ตัวเลือก)
+const quizQuestions = [
+  {
+    id: 1,
+    question: "ข้อใดคือเป้าหมายสูงสุดของ 'การวิเคราะห์และนำเสนอข้อมูล' (Data Analysis & Visualization)?",
+    options: [
+      { id: 'a', text: "เพื่อสร้างกราฟิกสีสันสดใสตกแต่งรายงานเท่านั้น", isCorrect: false },
+      { id: 'b', text: "เพื่อเปลี่ยนข้อมูลดิบให้เป็นข้อค้นพบ (Insights) สนับสนุนการตัดสินใจทางธุรกิจ (Data-Driven Decision Making)", isCorrect: true },
+      { id: 'c', text: "เพื่อเก็บสะสมข้อมูลให้มีขนาดใหญ่ที่สุดเท่าที่จะทำได้", isCorrect: false },
+      { id: 'd', text: "เพื่อลดจำนวนพนักงานและปิดกิจการแผนกต่างๆ", isCorrect: false }
+    ],
+    explanation: "หัวใจของการวิเคราะห์ข้อมูลไม่ใช่เพียงแค่การวาดชาร์ตสวยงาม แต่คือการกลั่นกรอง Insight เพื่อนำไปสู่การตัดสินใจ (Data-Driven Decision Making) ที่ลดความเสี่ยงทางธุรกิจ"
+  },
+  {
+    id: 2,
+    question: "มิติคุณภาพข้อมูลด้าน 'ความสมบูรณ์' (Completeness) หมายถึงลักษณะใด?",
+    options: [
+      { id: 'a', text: "ชุดข้อมูลไม่มีค่าสูญหาย (No Missing Values) บันทึกข้อมูลครบทุกช่องที่จำเป็นต่อการวิเคราะห์", isCorrect: true },
+      { id: 'b', text: "ชุดข้อมูลถูกจัดเก็บไว้จนเต็มความจุของฮาร์ดดิสก์", isCorrect: false },
+      { id: 'c', text: "ข้อมูลถูกส่งผ่านสายเคเบิลความเร็วสูงเท่านั้น", isCorrect: false },
+      { id: 'd', text: "ข้อมูลถูกเข้ารหัสลับความยาว 32 ตัวอักษร", isCorrect: false }
+    ],
+    explanation: "Completeness คือความครบถ้วนของข้อมูล ไม่มีฟิลด์สำคัญถูกเว้นว่างไว้ เช่น รายการสั่งซื้อต้องมีทั้งราคาสินค้า จำนวน รหัสลูกค้า และวันที่"
+  },
+  {
+    id: 3,
+    question: "หากบริษัทนำข้อมูลยอดขายเมื่อ 5 ปีก่อนมาวางแผนสต็อกสินค้าสัปดาห์หน้า จะส่งผลกระทบต่อมิติคุณภาพใดมากที่สุด?",
+    options: [
+      { id: 'a', text: "ความทันสมัยและความเป็นปัจจุบัน (Timeliness & Currency)", isCorrect: true },
+      { id: 'b', text: "ความลับของข้อมูล (Confidentiality)", isCorrect: false },
+      { id: 'c', text: "รูปแบบตัวอักษรและสีสัน (Typography & Theme)", isCorrect: false },
+      { id: 'd', text: "ปริมาณพื้นที่จัดเก็บบนคลาวด์ (Cloud Storage)", isCorrect: false }
+    ],
+    explanation: "ข้อมูลที่เก่าและล้าสมัย (Outdated Data) ขาดความทันสมัยและความเป็นปัจจุบัน พฤติกรรมผู้บริโภคเปลี่ยนไปแล้ว ทำให้การคาดการณ์ผิดพลาดอย่างรุนแรง"
+  },
+  {
+    id: 4,
+    question: "เหตุใดองค์กรจึงนิยมนำเสนอข้อมูลด้วย Data Visualization มากกว่าตารางตัวเลขดิบ?",
+    options: [
+      { id: 'a', text: "เพราะสมองมนุษย์ประมวลผลการรับรู้ทางสายตา (Visual Perception) ได้เร็วกว่าการอ่านตัวเลขหลายหมื่นเท่า", isCorrect: true },
+      { id: 'b', text: "เพราะกราฟมีตัวหนังสือน้อยกว่าตารางเสมอ", isCorrect: false },
+      { id: 'c', text: "เพราะคอมพิวเตอร์ไม่อนุญาตให้อ่านตัวเลขดิบ", isCorrect: false },
+      { id: 'd', text: "เพราะไม่ต้องใช้ข้อมูลจริงในการสร้างกราฟ", isCorrect: false }
+    ],
+    explanation: "สมองมนุษย์จับคู่รูปแบบ แนวโน้ม (Trends) และจุดผิดปกติ (Outliers) จากภาพและกราฟได้รวดเร็วกว่าการกวาดสายตาอ่านตัวเลขในตารางหลายสิบบรรทัด"
+  },
+  {
+    id: 5,
+    question: "ในวงจรชีวิตของการวิเคราะห์ข้อมูล (Data Analytics Lifecycle) ขั้นตอนแรกสุดที่นักวิเคราะห์ข้อมูลควรทำคืออะไร?",
+    options: [
+      { id: 'a', text: "ลงมือสร้าง Dashboard ทันทีโดยไม่ต้องคิด", isCorrect: false },
+      { id: 'b', text: "ทำความเข้าใจปัญหาและตั้งคำถามทางธุรกิจที่ชัดเจน (Ask / Business Understanding)", isCorrect: true },
+      { id: 'c', text: "ลบข้อมูลที่คิดว่าไม่สำคัญทิ้งทั้งหมด", isCorrect: false },
+      { id: 'd', text: "ซื้อโปรแกรมซอฟต์แวร์ราคาแพงที่สุดมาติดตั้ง", isCorrect: false }
+    ],
+    explanation: "ขั้นตอนแรกคือการทำความเข้าใจบริบทและตั้งคำถามทางธุรกิจ (Ask) เพื่อให้ทราบว่าเรากำลังจะวิเคราะห์เพื่อตอบโจทย์อะไรและช่วยเหลือใคร"
+  },
+  {
+    id: 6,
+    question: "ข้อมูลประเภท 'ข้อความรีวิวสินค้าบน Social Media และคลิปวิดีโอสัมภาษณ์ลูกค้า' จัดอยู่ในกลุ่มข้อมูลประเภทใด?",
+    options: [
+      { id: 'a', text: "Structured Data (ข้อมูลที่มีโครงสร้างตารางชัดเจน)", isCorrect: false },
+      { id: 'b', text: "Unstructured Data (ข้อมูลที่ไม่มีโครงสร้างแน่นอน)", isCorrect: true },
+      { id: 'c', text: "Relational Database Data", isCorrect: false },
+      { id: 'd', text: "Machine Code Binary Data", isCorrect: false }
+    ],
+    explanation: "ข้อความรีวิว ภาพถ่าย เสียง และคลิปวิดีโอ เป็นข้อมูลที่ไม่ได้จัดเก็บในรูปแบบแถวและคอลัมน์เหมือนตารางทั่วไป จึงจัดเป็น Unstructured Data"
+  },
+  {
+    id: 7,
+    question: "การวิเคราะห์ระดับใดที่มุ่งตอบคำถามว่า 'ทำไมสิ่งนี้จึงเกิดขึ้น' (Why did it happen?) โดยการเปรียบเทียบข้อมูลและหาสาเหตุที่แท้จริง?",
+    options: [
+      { id: 'a', text: "Descriptive Analytics (เชิงพรรณนา)", isCorrect: false },
+      { id: 'b', text: "Diagnostic Analytics (เชิงวินิจฉัย)", isCorrect: true },
+      { id: 'c', text: "Predictive Analytics (เชิงพยากรณ์)", isCorrect: false },
+      { id: 'd', text: "Prescriptive Analytics (เชิงแนะนำ)", isCorrect: false }
+    ],
+    explanation: "Diagnostic Analytics มุ่งเน้นการเจาะลึกเพื่อหาสาเหตุของปัญหา (Root Cause Analysis) เช่น ตรวจสอบว่าทำไมยอดขายจึงลดลงในกลุ่มสินค้าบางประเภท"
+  },
+  {
+    id: 8,
+    question: "ขั้นตอน 'Data Cleaning' (การทำความสะอาดข้อมูล) มีความสำคัญสูงสุดต่อการวิเคราะห์อย่างไร?",
+    options: [
+      { id: 'a', text: "จัดการค่าสูญหาย (Missing Values), ข้อมูลซ้ำซ้อน และข้อผิดพลาด เพื่อให้ผลลัพธ์การวิเคราะห์มีความน่าเชื่อถือ", isCorrect: true },
+      { id: 'b', text: "ลบคอลัมน์ทั้งหมดให้เหลือเพียงฟิลด์เดียว", isCorrect: false },
+      { id: 'c', text: "สแกนหาไวรัสในไฟล์ข้อมูลเท่านั้น", isCorrect: false },
+      { id: 'd', text: "เปลี่ยนภาษาในชุดข้อมูลให้เป็นภาษาละติน", isCorrect: false }
+    ],
+    explanation: "Data Cleaning ช่วยขจัดข้อมูลผิดพลาด ข้อมูลซ้ำ และช่องว่าง เพื่อป้องกันปัญหาขยะเข้าขยะออก (Garbage In, Garbage Out)"
+  },
+  {
+    id: 9,
+    question: "กฎหมาย PDPA (พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล) กำหนดให้นักวิเคราะห์ข้อมูลต้องปฏิบัติตามอย่างไร?",
+    options: [
+      { id: 'a', text: "ห้ามใช้คอมพิวเตอร์หลังเวลา 18.00 น.", isCorrect: false },
+      { id: 'b', text: "ต้องได้รับความยินยอมและปกป้องข้อมูลส่วนบุคคล (PII) ของลูกค้า เช่น ปกปิดข้อมูลระบุตัวตน (Anonymization)", isCorrect: true },
+      { id: 'c', text: "บังคับให้นักวิเคราะห์ข้อมูลต้องเปิดเผยเงินเดือนของตนเองต่อสาธารณะ", isCorrect: false },
+      { id: 'd', text: "ห้ามวิเคราะห์ข้อมูลที่มีมูลค่ามากกว่า 1,000 บาท", isCorrect: false }
+    ],
+    explanation: "PDPA กำหนดให้การเก็บและวิเคราะห์ข้อมูลส่วนบุคคล (PII) ต้องได้รับความยินยอมและมีมาตรการรักษาความปลอดภัย เช่น การทำ Masking หรือ Anonymization"
+  },
+  {
+    id: 10,
+    question: "คำกล่าวว่า 'Garbage In, Garbage Out' (GIGO) ในวงการ Data มีความหมายตรงกับข้อใดที่สุด?",
+    options: [
+      { id: 'a', text: "หากป้อนข้อมูลดิบที่มีคุณภาพแย่และผิดพลาดเข้าไป ผลลัพธ์หรือข้อค้นพบที่ได้ออกมาก็จะไร้ประโยชน์และผิดพลาดตามไปด้วย", isCorrect: true },
+      { id: 'b', text: "คอมพิวเตอร์สมัยใหม่สามารถเปลี่ยนข้อมูลผิดให้กลายเป็นข้อมูลถูกได้เสมอ", isCorrect: false },
+      { id: 'c', text: "นักวิเคราะห์ข้อมูลควรทำความสะอาดโต๊ะทำงานทุกวัน", isCorrect: false },
+      { id: 'd', text: "ข้อมูลที่มีขนาดไฟล์ใหญ่ที่สุดคือข้อมูลที่ดีที่สุด", isCorrect: false }
+    ],
+    explanation: "GIGO หมายถึง ความถูกต้องและคุณภาพของการตัดสินใจขึ้นอยู่กับคุณภาพของข้อมูลตั้งต้น หากข้อมูลนำเข้าผิดพลาด ผลลัพธ์และโมเดลที่ได้ก็ย่อมผิดพลาด"
+  }
+]
 </script>
 
 <template>
@@ -476,46 +570,168 @@ const wordblankDistractors = ['Delete (ลบทิ้ง)', 'Guess (คาด�
     </section>
 
     <!-- Mini-Games & Interactive Lab Section (Identical design to other courses) -->
-    <section>
-      <div class="flex items-center gap-3 mb-6">
-        <div class="p-3 bg-purple-100 rounded-xl text-purple-600 shadow-sm">
-          <Gamepad2 class="w-6 h-6" />
+    <section class="space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-sky-100 rounded-xl text-sky-600 shadow-sm">
+            <Gamepad2 class="w-6 h-6" />
+          </div>
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน</h2>
+            <p class="text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน</p>
+          </div>
         </div>
-        <h2 class="text-3xl font-bold text-gray-800">มินิเกมทบทวนความรู้ (Interactive Review)</h2>
+
+        <!-- Teacher Scoreboard Button -->
+        <button @click="showTeacherModal = true"
+          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-sky-900 to-blue-900 hover:from-sky-800 hover:to-blue-800 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-sky-700 shrink-0">
+          <FileSpreadsheet class="w-4 h-4 text-amber-400" />
+          <span>ดูตารางคะแนนมินิเกม (สำหรับคุณครู)</span>
+        </button>
       </div>
 
-      <!-- Game Navigation Tabs -->
-      <div class="flex flex-wrap gap-4 mb-8">
-        <button @click="activeGame = 'sort'" :class="[activeGame === 'sort' ? 'bg-sky-600 text-white shadow-lg scale-105' : 'bg-white text-sky-700 hover:bg-sky-50 border border-sky-200', 'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 cursor-pointer']">
-          <Shuffle class="w-5 h-5" /> เกมจัดกลุ่มคุณภาพข้อมูล (Drag & Drop)
+      <!-- Student Score Summary Banner -->
+      <div class="rounded-2xl border border-sky-100 bg-white p-5 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+          <div>
+            <span class="text-xs font-bold text-sky-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่ 1</span>
+            <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
+              <span>สถานะ:</span>
+              <span v-if="studentNorm.isAllCompleted" class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                ✓ ทำครบทุกกิจกรรมแล้ว (3/3)
+              </span>
+              <span v-else-if="studentNorm.completedCount > 0" class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                ⏳ กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
+              </span>
+              <span v-else class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
+                ยังไม่ได้เริ่มทำ
+              </span>
+            </div>
+          </div>
+
+          <!-- Total Normalized Score (Scaled to 10) -->
+          <div class="flex items-center gap-3 bg-gradient-to-r from-sky-50 to-blue-50 px-4 py-2.5 rounded-xl border border-sky-100">
+            <Trophy class="w-7 h-7 text-amber-500 shrink-0" />
+            <div>
+              <span class="text-xs text-sky-900 font-semibold block">คะแนนรวมทั้งหมด (หารเฉลี่ยเต็ม 10)</span>
+              <div class="text-xl font-black text-sky-950 leading-tight">
+                <span>{{ studentNorm.normalized }}</span>
+                <span class="text-xs font-bold text-gray-400"> / 10.0 คะแนน</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Activity Status Badges -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-xs font-medium">
+          <!-- Game 1 -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['game-1'] ? 'bg-sky-50/70 border-sky-200 text-sky-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">1. มิติคุณภาพข้อมูล</span>
+              <span class="text-[11px] text-gray-500">เต็ม 6 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['game-1'] ? `${studentWeekScores['game-1'].score} / 6` : 'ยังไม่ได้เล่น' }}
+            </span>
+          </div>
+
+          <!-- Game 2 -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['game-2'] ? 'bg-indigo-50/70 border-indigo-200 text-indigo-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">2. ระดับการวิเคราะห์ข้อมูล</span>
+              <span class="text-[11px] text-gray-500">เต็ม 5 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['game-2'] ? `${studentWeekScores['game-2'].score} / 5` : 'ยังไม่ได้เล่น' }}
+            </span>
+          </div>
+
+          <!-- Post-test -->
+          <div :class="[
+            'p-3 rounded-xl border flex items-center justify-between',
+            studentWeekScores['quiz'] ? 'bg-cyan-50/70 border-cyan-200 text-cyan-900' : 'bg-gray-50 border-gray-200 text-gray-600'
+          ]">
+            <div>
+              <span class="font-bold block">3. แบบทดสอบหลังเรียน 10 ข้อ</span>
+              <span class="text-[11px] text-gray-500">เต็ม 10 คะแนน</span>
+            </div>
+            <span class="font-black text-sm">
+              {{ studentWeekScores['quiz'] ? `${studentWeekScores['quiz'].score} / 10` : 'ยังไม่ได้ทำ' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Tabs (มินิเกม -> มินิเกม -> สุดท้ายคือแบบทดสอบหลังเรียน) -->
+      <div class="flex flex-wrap gap-3">
+        <button @click="activeGame = 'sort'" :class="[
+          activeGame === 'sort' ? 'bg-sky-600 text-white shadow-lg scale-105' : 'bg-white text-sky-700 hover:bg-sky-50 border border-sky-200',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
+        ]">
+          <MousePointer2 class="w-4 h-4" />
+          <span>มินิเกมที่ 1: คุณภาพข้อมูล</span>
+          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
-        <button @click="activeGame = 'wordblank'" :class="[activeGame === 'wordblank' ? 'bg-sky-600 text-white shadow-lg scale-105' : 'bg-white text-sky-700 hover:bg-sky-50 border border-sky-200', 'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 cursor-pointer']">
-          <Edit3 class="w-5 h-5" /> เกมเติมคำ (Fill in the Blanks)
+
+        <button @click="activeGame = 'match'" :class="[
+          activeGame === 'match' ? 'bg-indigo-600 text-white shadow-lg scale-105' : 'bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
+        ]">
+          <ListOrdered class="w-4 h-4" />
+          <span>มินิเกมที่ 2: ระดับการวิเคราะห์ข้อมูล</span>
+          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
-        <button @click="activeGame = 'quiz'" :class="[activeGame === 'quiz' ? 'bg-sky-600 text-white shadow-lg scale-105' : 'bg-white text-sky-700 hover:bg-sky-50 border border-sky-200', 'px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 cursor-pointer']">
-          <FileQuestion class="w-5 h-5" /> Pop Quiz สุดท้าย
+
+        <button @click="activeGame = 'quiz'" :class="[
+          activeGame === 'quiz' ? 'bg-cyan-600 text-white shadow-lg scale-105' : 'bg-white text-cyan-700 hover:bg-cyan-50 border border-cyan-200',
+          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
+        ]">
+          <FileQuestion class="w-4 h-4" />
+          <span>กิจกรรมสุดท้าย: แบบทดสอบหลังเรียน (Post-test 10 ข้อ)</span>
+          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
         </button>
       </div>
 
       <!-- Game 1: Drag & Drop (Data Quality Dimensions) -->
       <DragDropGame v-if="activeGame === 'sort'" 
+        :course-id="currentCourseId"
+        :week="currentWeek"
+        game-id="game-1"
+        game-title="เกมลากวาง: มิติคุณภาพข้อมูล (Data Quality Dimensions)"
         title="ลากแล้ววาง: มิติคุณภาพข้อมูล (Data Quality Dimensions)"
         subtitle="ลากข้อความสถานการณ์ข้อมูลด้านล่างไปใส่กล่องมิติคุณภาพข้อมูลที่ถูกต้องให้ครบ!"
         :initialItems="dragItemsData"
         :zones="dragZonesData"
       />
 
-      <!-- Game 3: Word Blank -->
-      <WordblankGame v-if="activeGame === 'wordblank'"
-        title="เติมคำในช่องว่าง: วงจรชีวิตของการวิเคราะห์ข้อมูล"
-        subtitle="ลากคำศัพท์ที่เกี่ยวข้องกับ Data Lifecycle ทั้ง 6 ขั้นตอนไปเติมในช่องว่างให้สมบูรณ์"
-        :passage="wordblankPassage"
-        :blanks="wordblankBlanks"
-        :distractors="wordblankDistractors"
+      <!-- Game 2: Matching Game -->
+      <MatchingGame v-if="activeGame === 'match'"
+        :course-id="currentCourseId"
+        :week="currentWeek"
+        game-id="game-2"
+        game-title="เกมจับคู่: ระดับของการวิเคราะห์ข้อมูล (Types of Analytics)"
+        title="ระดับของการวิเคราะห์ข้อมูล & ธรรมาภิบาล"
+        subtitle="จับคู่ระดับการวิเคราะห์ข้อมูลทางธุรกิจด้านซ้าย กับนิยามและวัตถุประสงค์ด้านขวาให้ถูกต้องครบ 5 คู่"
+        :initialLeftTerms="matchLeftTerms"
+        :initialRightDefs="matchRightDefs"
       />
 
-      <!-- Game 2: Pop Quiz -->
-      <PopQuiz v-if="activeGame === 'quiz'" :questions="quizQuestions">
+      <!-- Game 3: Pop Quiz (Post-test) -->
+      <PopQuiz v-if="activeGame === 'quiz'"
+        :course-id="currentCourseId"
+        :week="currentWeek"
+        game-id="quiz"
+        game-title="แบบทดสอบหลังเรียน Week 1 (Data Analytics & Visualization)"
+        title="แบบทดสอบหลังเรียน: สัปดาห์ที่ 1 (Data Analytics)"
+        subtitle="แบบทดสอบ 4 ตัวเลือก 10 ข้อ วัดความเข้าใจรอบด้าน ทำได้เพียงครั้งเดียวเท่านั้น"
+        :questions="quizQuestions"
+      >
         <template #actions>
           <RouterLink to="/courses" class="px-8 py-4 bg-sky-500 border-2 border-sky-400 text-white font-bold rounded-xl hover:bg-sky-400 transition-all shadow-[0_0_20px_rgba(56,189,248,0.4)] flex items-center gap-2">
             กลับสู่หน้ารายวิชา
@@ -727,6 +943,15 @@ const wordblankDistractors = ['Delete (ลบทิ้ง)', 'Guess (คาด�
         <span class="font-bold text-black">ลงชื่อผู้ประเมิน: ............................................</span>
       </div>
     </AssignmentPdfModal>
+
+    <!-- Teacher Scoreboard Modal -->
+    <TeacherScoreboardModal
+      :is-open="showTeacherModal"
+      :course-id="currentCourseId"
+      :week="currentWeek"
+      :games="weekGames"
+      @close="showTeacherModal = false"
+    />
 
   </div>
 </template>
