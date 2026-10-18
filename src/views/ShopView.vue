@@ -944,13 +944,19 @@ const resetTilt = (e) => {
             <h3 class="text-lg font-black text-white mb-6">พรีวิวไอเทม</h3>
 
             <!-- Avatar Preview with Frame -->
-            <div
-              class="relative w-40 h-40 rounded-full bg-stone-800 flex items-center justify-center border-4 border-stone-700 shadow-inner mb-6 overflow-hidden">
-              <img :src="(currentStudent?.avatar && (currentStudent.avatar.includes('/') || currentStudent.avatar.includes('http') || currentStudent.avatar.startsWith('data:'))) ? currentStudent.avatar : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
+            <div class="relative w-36 h-36 mb-6 flex items-center justify-center">
+              <!-- Frame Overlay (อยู่นอก overflow-hidden เพื่อไม่ให้ขอบของกรอบรูปโดนบัง/ตัดขอบ) -->
               <img v-if="previewItem.itemType === 'frame'" :src="previewItem.image"
-                class="absolute inset-0 w-full h-full object-contain scale-125 pointer-events-none drop-shadow-xl z-10" />
-              <img v-else :src="previewItem.image"
-                class="absolute -bottom-2 -right-2 w-16 h-16 object-contain pointer-events-none drop-shadow-xl z-10" />
+                class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-2xl z-20 object-contain transition-all duration-300" />
+
+              <!-- Avatar Inner Circle -->
+              <div class="w-full h-full rounded-full bg-stone-800 flex items-center justify-center border-4 border-stone-700 shadow-inner overflow-hidden relative z-10">
+                <img :src="(currentStudent?.avatar && (currentStudent.avatar.includes('/') || currentStudent.avatar.includes('http') || currentStudent.avatar.startsWith('data:'))) ? currentStudent.avatar : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
+              </div>
+
+              <!-- Other Item Type -->
+              <img v-if="previewItem.itemType !== 'frame'" :src="previewItem.image"
+                class="absolute -bottom-2 -right-2 w-16 h-16 object-contain pointer-events-none drop-shadow-xl z-20" />
             </div>
 
             <div class="text-center space-y-2 w-full">
