@@ -1202,102 +1202,121 @@ app.delete('/api/posts/comments/:commentId', async (req, res) => {
 });
 
 // ==========================================
-// 10. GAME SCORES (มินิเกมและแบบทดสอบหลังเรียน)
+// 10. GAME SCORES (มินิเกมและแบบทดสอบหลังเรียน - บันทึกลง PostgreSQL ผ่าน Prisma)
 // ==========================================
-const fs = require('fs');
-const path = require('path');
-const GAME_SCORES_FILE = path.join(__dirname, '../data/game_scores.json');
-
-function loadGameScoresData() {
-    try {
-        const dir = path.dirname(GAME_SCORES_FILE);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        if (!fs.existsSync(GAME_SCORES_FILE)) {
-            fs.writeFileSync(GAME_SCORES_FILE, JSON.stringify({}), 'utf-8');
-            return {};
-        }
-        const data = fs.readFileSync(GAME_SCORES_FILE, 'utf-8');
-        return JSON.parse(data || '{}');
-    } catch (err) {
-        console.error('Error loading game scores:', err);
-        return {};
-    }
-}
-
-function saveGameScoresData(data) {
-    try {
-        const dir = path.dirname(GAME_SCORES_FILE);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        fs.writeFileSync(GAME_SCORES_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    } catch (err) {
-        console.error('Error saving game scores:', err);
-    }
-}
 
 // GET all game scores for a course & week
-app.get('/api/game-scores/:courseId/:week', (req, res) => {
+app.get('/api/game-scores/:courseId/:week', async (req, res) => {
     try {
         const { courseId, week } = req.params;
-        const allData = loadGameScoresData();
-        const prefix = `${courseId}_${week}_`;
-        const weekScores = {};
+        const records = await prisma.gameScore.findMany({
+            where: {
+                courseId,
+                week: Number(week)
+            }
+        });
 
-        for (const [key, value] of Object.entries(allData)) {
-            if (key.startsWith(prefix)) {
-                const studentId = key.replace(prefix, '');
-                weekScores[studentId] = value;
+        const weekScores = {};
+        for (const item of records) {
+            if (!weekScores[item.studentId]) {
+                weekScores[item.studentId] = {
+                    courseId: item.courseId,
+                    week: item.week,
+                    studentId: item.studentId,
+                    scores: {},
+                    lastUpdated: item.submittedAt
+                };
+            }
+            weekScores[item.studentId].scores[item.gameId] = {
+                score: item.score,
+                maxScore: item.maxScore,
+                submittedAt: item.submittedAt
+            };
+            if (new Date(item.submittedAt) > new Date(weekScores[item.studentId].lastUpdated)) {
+                weekScores[item.studentId].lastUpdated = item.submittedAt;
             }
         }
+
         res.json({ success: true, data: weekScores });
     } catch (err) {
+        console.error('Error fetching game scores from DB:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
 // POST a game score (Only allowed once per student per game)
-app.post('/api/game-scores', (req, res) => {
+app.post('/api/game-scores', async (req, res) => {
     try {
         const { courseId, week, studentId, gameId, score, maxScore } = req.body;
         if (!courseId || !week || !studentId || !gameId || score === undefined || maxScore === undefined) {
             return res.status(400).json({ success: false, message: 'ข้อมูลไม่ครบถ้วน' });
         }
 
-        const allData = loadGameScoresData();
-        const key = `${courseId}_${week}_${studentId}`;
+        // Strict rule: Single attempt only! Check if score already exists
+        const existingScore = await prisma.gameScore.findUnique({
+            where: {
+                courseId_week_studentId_gameId: {
+                    courseId,
+                    week: Number(week),
+                    studentId,
+                    gameId
+                }
+            }
+        });
 
-        if (!allData[key]) {
-            allData[key] = {
-                courseId,
-                week: Number(week),
-                studentId,
-                scores: {},
-                lastUpdated: new Date().toISOString()
-            };
-        }
-
-        // Strict rule: Single attempt only! Cannot overwrite existing score
-        if (allData[key].scores[gameId]) {
+        if (existingScore) {
             return res.status(400).json({
                 success: false,
                 message: 'คุณได้บันทึกคะแนนกิจกรรมนี้ไปแล้ว (เล่นได้ครั้งเดียวเท่านั้น)',
-                existingScore: allData[key].scores[gameId]
+                existingScore: {
+                    score: existingScore.score,
+                    maxScore: existingScore.maxScore,
+                    submittedAt: existingScore.submittedAt
+                }
             });
         }
 
-        allData[key].scores[gameId] = {
-            score: Math.min(Number(score), Number(maxScore)),
-            maxScore: Number(maxScore),
-            submittedAt: new Date().toISOString()
-        };
-        allData[key].lastUpdated = new Date().toISOString();
+        const validScore = Math.min(Number(score), Number(maxScore));
+        const newRecord = await prisma.gameScore.create({
+            data: {
+                courseId,
+                week: Number(week),
+                studentId,
+                gameId,
+                score: validScore,
+                maxScore: Number(maxScore),
+            }
+        });
 
-        saveGameScoresData(allData);
-        res.json({ success: true, record: allData[key] });
+        // Query all games played by this student for this week to return the full week record
+        const allStudentScoresThisWeek = await prisma.gameScore.findMany({
+            where: {
+                courseId,
+                week: Number(week),
+                studentId
+            }
+        });
+
+        const scoresMap = {};
+        for (const item of allStudentScoresThisWeek) {
+            scoresMap[item.gameId] = {
+                score: item.score,
+                maxScore: item.maxScore,
+                submittedAt: item.submittedAt
+            };
+        }
+
+        const record = {
+            courseId,
+            week: Number(week),
+            studentId,
+            scores: scoresMap,
+            lastUpdated: newRecord.submittedAt
+        };
+
+        res.json({ success: true, record });
     } catch (err) {
+        console.error('Error saving game score to DB:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
