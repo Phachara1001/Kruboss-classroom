@@ -6,7 +6,7 @@ import {
   Smile, Laugh, Meh, Frown, Sparkles, AlertCircle
 } from '@lucide/vue'
 import { authUser } from '@/data/authStore'
-import { submissionsStore, gradesStore, fetchSubmissions, fetchGrades } from '@/data/gradesStore'
+import { submissionsStore, gradesStore, fetchSubmissions, fetchGrades, formatExternalUrl } from '@/data/gradesStore'
 import SubmitAssignmentModal from '@/components/SubmitAssignmentModal.vue'
 import GradeAssignmentModal from '@/components/GradeAssignmentModal.vue'
 
@@ -194,8 +194,9 @@ onMounted(() => {
                     <div class="flex items-center gap-1.5 text-xs text-stone-600">
                       <span class="text-stone-400 font-medium">ลิงก์ที่ส่ง:</span>
                       <a 
-                        :href="currentSubmission.link" 
+                        :href="formatExternalUrl(currentSubmission.link)" 
                         target="_blank" 
+                        rel="noopener noreferrer"
                         class="text-blue-600 hover:text-blue-700 font-mono underline font-medium flex items-center gap-1 truncate max-w-xs sm:max-w-md"
                       >
                         <LinkIcon class="w-3.5 h-3.5 shrink-0" />

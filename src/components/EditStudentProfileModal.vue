@@ -294,8 +294,7 @@ const getFrameName = (id) => {
               <div class="relative w-20 h-20 group">
                 <img v-if="equippedFrame" :src="equippedFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-md z-10" />
                 <div class="w-full h-full rounded-full bg-white flex items-center justify-center text-3xl font-black text-stone-700 border-2 border-white shadow-sm overflow-hidden relative z-0">
-                  <img v-if="croppedAvatar && (croppedAvatar.startsWith('data:') || croppedAvatar.includes('/') || croppedAvatar.includes('http'))" :src="croppedAvatar" class="w-full h-full object-cover object-top" />
-                  <span v-else>{{ student.avatar }}</span>
+                  <img :src="croppedAvatar ? croppedAvatar : ((student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.startsWith('data:'))) ? student.avatar : '/placeholder_profile.png')" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
                   
                   <!-- Overlay for upload -->
                   <label class="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
@@ -389,8 +388,8 @@ const getFrameName = (id) => {
               </label>
               <div class="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                  <div class="relative w-12 h-12 rounded-full bg-stone-200 flex items-center justify-center font-bold text-stone-600 border border-stone-300">
-                    {{ student?.avatar || 'U' }}
+                  <div class="relative w-12 h-12 rounded-full bg-stone-200 flex items-center justify-center font-bold text-stone-600 border border-stone-300 overflow-hidden">
+                    <img :src="(student?.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.startsWith('data:'))) ? student.avatar : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
                     <img v-if="equippedFrame" :src="equippedFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-sm z-10" />
                   </div>
                   <div class="text-left">
@@ -508,7 +507,7 @@ const getFrameName = (id) => {
 
   <!-- Frame Selection Modal -->
   <FrameSelectionModal v-model="showFrameModal" v-model:selectedFrame="equippedFrame"
-    :avatarText="student?.avatar || 'U'" :frames="availableFrames" />
+    :avatarText="student?.avatar || '/placeholder_profile.png'" :frames="availableFrames" />
 
 </template>
 

@@ -225,8 +225,7 @@ const openProfileEdit = () => {
           <!-- Frame -->
           <img v-if="activeFrame" :src="activeFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-sm z-10" />
           <div class="w-full h-full rounded-full bg-green-300 flex items-center justify-center text-green-900 font-bold overflow-hidden border border-green-400 relative z-0">
-            <img v-if="currentUser?.avatar && (currentUser.avatar.includes('/') || currentUser.avatar.includes('http'))" :src="currentUser.avatar" class="w-full h-full object-cover object-top" />
-            <span v-else>{{ currentUser?.avatar || 'U' }}</span>
+            <img :src="(currentUser?.avatar && (currentUser.avatar.includes('/') || currentUser.avatar.includes('http') || currentUser.avatar.startsWith('data:'))) ? currentUser.avatar : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
           </div>
           <!-- Notification Badge -->
           <div v-if="isTeacher && pendingRequestsCount > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-green-900 rounded-full animate-pulse z-20"></div>

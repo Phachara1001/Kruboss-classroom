@@ -1,6 +1,22 @@
 import { ref } from 'vue'
 import { API_BASE_URL } from '@/config/api'
 
+export const DEFAULT_AVATAR = '/placeholder_profile.png'
+
+export const getStudentAvatar = (studentOrAvatar) => {
+  const a = typeof studentOrAvatar === 'object' && studentOrAvatar !== null
+    ? studentOrAvatar.avatar
+    : studentOrAvatar
+
+  if (!a || typeof a !== 'string') return DEFAULT_AVATAR
+  const trimmed = a.trim()
+  if (!trimmed || trimmed === '-' || trimmed.length <= 2) return DEFAULT_AVATAR
+  if (trimmed.startsWith('data:') || trimmed.startsWith('http') || trimmed.startsWith('/')) return trimmed
+  if (trimmed.includes('localhost')) return `http://${trimmed}`
+  if (trimmed.includes('/')) return trimmed
+  return DEFAULT_AVATAR
+}
+
 export const getAvatarInitial = (name) => {
   if (!name) return 'น'
   const cleaned = name.replace(/^(นาย|นางสาว|นาง|ว่าที่ร้อยตรี|ด\.ช\.|ด\.ญ\.)\s*/, '').trim()
@@ -23,13 +39,16 @@ export const fetchStudents = async () => {
     const response = await fetch(`${API_BASE_URL}/students?_t=${Date.now()}`);
     const data = await response.json();
 
-    // Auto-sanitize avatar URLs to full HTTPS domain
+    // Auto-sanitize avatar URLs to full HTTPS domain and provide placeholder if not uploaded
     const sanitized = (data || []).map(s => {
       if (s.avatar && s.avatar.includes('/assets/')) {
         const parts = s.avatar.split('/assets/');
         if (parts.length > 1) {
           s.avatar = `https://kruboss-classroom.loeitech.ac.th/assets/${parts[1]}`;
         }
+      }
+      if (!s.avatar || typeof s.avatar !== 'string' || (!s.avatar.includes('/') && !s.avatar.startsWith('http') && !s.avatar.startsWith('data:'))) {
+        s.avatar = DEFAULT_AVATAR;
       }
       if (s.equippedFrame && s.equippedFrame.includes('/assets/')) {
         const parts = s.equippedFrame.split('/assets/');

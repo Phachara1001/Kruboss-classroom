@@ -68,7 +68,7 @@ watch(
   () => props.student,
   (s) => {
     if (s) {
-      avatar.value = s.avatar || s.name.charAt(0) || 'U'
+      avatar.value = (s.avatar && (s.avatar.includes('/') || s.avatar.includes('http') || s.avatar.startsWith('data:'))) ? s.avatar : ''
       nickname.value = s.nickname === '-' ? '' : (s.nickname || '')
       phone.value = s.phone || ''
       quote.value = s.quote === 'ยังไม่ได้ระบุคำคมประจำใจ' ? '' : (s.quote || '')
@@ -215,8 +215,7 @@ const getFrameName = (id) => {
               <div class="relative w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-md shadow-sm border border-white/30 shrink-0 overflow-hidden z-0">
                 <!-- Frame overlay in header -->
                 <img v-if="activeFrame" :src="activeFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-md z-10" />
-                <img v-if="avatar && (avatar.startsWith('data:') || avatar.includes('/') || avatar.includes('http'))" :src="avatar" class="w-full h-full object-cover object-top" />
-                <span v-else class="font-bold text-xl">{{ avatar || 'U' }}</span>
+                <img :src="avatar && (avatar.startsWith('data:') || avatar.includes('/') || avatar.includes('http')) ? avatar : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
               </div>
               <div>
                 <h3 class="font-black text-lg text-white leading-tight">โปรไฟล์ของฉัน</h3>
@@ -274,8 +273,7 @@ const getFrameName = (id) => {
               <div class="relative w-20 h-20 group">
                 <img v-if="activeFrame" :src="activeFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-md z-10" />
                 <div class="w-full h-full rounded-full bg-white flex items-center justify-center text-3xl font-black text-stone-700 border-2 border-white shadow-sm overflow-hidden relative z-0">
-                  <img v-if="avatar && (avatar.startsWith('data:') || avatar.includes('/') || avatar.includes('http'))" :src="avatar" class="w-full h-full object-cover object-top" />
-                  <span v-else>{{ avatar || 'U' }}</span>
+                  <img :src="avatar && (avatar.startsWith('data:') || avatar.includes('/') || avatar.includes('http')) ? avatar : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
                   
                   <!-- Overlay for upload -->
                   <label class="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">

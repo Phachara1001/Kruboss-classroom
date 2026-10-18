@@ -2,7 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { X, UploadCloud, Link as LinkIcon, FileText, CheckCircle2, AlertCircle, Pencil } from '@lucide/vue'
 import { authUser } from '@/data/authStore'
-import { submissionsStore, submitAssignmentLink, fetchSubmissions } from '@/data/gradesStore'
+import { submissionsStore, submitAssignmentLink, fetchSubmissions, formatExternalUrl } from '@/data/gradesStore'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -123,7 +123,7 @@ const handleSubmit = async () => {
 
           <div class="mt-4 p-3 bg-white rounded-xl border border-emerald-100 text-left">
             <p class="text-xs text-stone-500 font-bold mb-1 uppercase">แนบลิงก์ (Link)</p>
-            <a :href="currentSubmission.link" target="_blank"
+            <a :href="formatExternalUrl(currentSubmission.link)" target="_blank" rel="noopener noreferrer"
               class="text-blue-600 hover:underline text-sm break-all flex items-center gap-2">
               <LinkIcon class="w-4 h-4 shrink-0" /> {{ currentSubmission.link }}
             </a>

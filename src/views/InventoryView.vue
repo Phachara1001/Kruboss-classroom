@@ -209,9 +209,9 @@ const resetTilt = (e) => {
               <div
                 class="w-full h-full rounded-full bg-slate-100 border-[4px] border-white shadow-lg flex items-center justify-center text-4xl font-black text-slate-400 overflow-hidden relative z-10">
                 <img
-                  v-if="currentStudent.avatar && (currentStudent.avatar.includes('/') || currentStudent.avatar.includes('http'))"
-                  :src="currentStudent.avatar" class="w-full h-full object-cover object-top" />
-                <span v-else>{{ currentStudent.avatar || 'U' }}</span>
+                  :src="(currentStudent.avatar && (currentStudent.avatar.includes('/') || currentStudent.avatar.includes('http') || currentStudent.avatar.startsWith('data:'))) ? currentStudent.avatar : '/placeholder_profile.png'"
+                  class="w-full h-full object-cover object-top"
+                  @error="$event.target.src = '/placeholder_profile.png'" />
               </div>
             </div>
 

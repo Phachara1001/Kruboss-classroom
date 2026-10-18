@@ -8,7 +8,8 @@ import {
   setAssignmentScore, 
   submissionsStore,
   fetchSubmissions,
-  fetchGrades
+  fetchGrades,
+  formatExternalUrl
 } from '@/data/gradesStore'
 
 const props = defineProps({
@@ -289,8 +290,9 @@ const saveAllScores = async () => {
                 
                 <td class="py-3 px-4 text-center">
                   <a v-if="getSubmission(student)"
-                     :href="getSubmission(student).link"
+                     :href="formatExternalUrl(getSubmission(student).link)"
                      target="_blank"
+                     rel="noopener noreferrer"
                      class="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <LinkIcon class="w-3.5 h-3.5" /> ดูผลงาน

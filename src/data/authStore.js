@@ -7,15 +7,29 @@ export const isLoggedIn = ref(!!authUser.value)
 
 export const passwordResetRequests = ref([]) // You can implement a fetch for this if needed
 
+function sanitizeUserAvatar(user) {
+  if (!user) return user
+  if (!user.avatar || typeof user.avatar !== 'string' || (!user.avatar.includes('/') && !user.avatar.startsWith('http') && !user.avatar.startsWith('data:'))) {
+    user.avatar = '/placeholder_profile.png'
+  }
+  return user
+}
+
 function loadAuth() {
   const saved = localStorage.getItem(STORAGE_KEY_AUTH)
-  if (saved) return JSON.parse(saved)
+  if (saved) {
+    try {
+      return sanitizeUserAvatar(JSON.parse(saved))
+    } catch {
+      return null
+    }
+  }
   return null
 }
 
 export function updateAuthUser(newFields) {
   if (authUser.value) {
-    authUser.value = { ...authUser.value, ...newFields }
+    authUser.value = sanitizeUserAvatar({ ...authUser.value, ...newFields })
     localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(authUser.value))
   }
 }
@@ -72,9 +86,10 @@ export async function login(username, password) {
     const data = await response.json();
     
     if (data.success) {
-      authUser.value = data.user;
+      const sanitizedUser = sanitizeUserAvatar(data.user);
+      authUser.value = sanitizedUser;
       isLoggedIn.value = true;
-      localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(data.user));
+      localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(sanitizedUser));
       localStorage.setItem('auth_token', data.token); // Save token for future requests
       return { success: true };
     } else {
@@ -99,11 +114,12 @@ export async function loginFirstTime(studentId, newPassword) {
     const data = await response.json();
     
     if (data.success) {
-      authUser.value = data.user;
+      const sanitizedUser = sanitizeUserAvatar(data.user);
+      authUser.value = sanitizedUser;
       isLoggedIn.value = true;
-      localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(data.user));
+      localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(sanitizedUser));
       localStorage.setItem('auth_token', data.token);
-      return { success: true, student: data.user };
+      return { success: true, student: sanitizedUser };
     }
     return { success: false, message: data.message };
   } catch (err) {

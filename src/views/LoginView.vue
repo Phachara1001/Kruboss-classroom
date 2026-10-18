@@ -135,9 +135,7 @@ const goBack = () => {
                 <!-- Avatar circle slightly smaller to fit inside frame -->
                 <div
                   class="absolute inset-0 m-auto w-[76%] h-[76%] bg-emerald-100 rounded-full overflow-hidden flex items-center justify-center border-2 border-emerald-200/50 shadow-inner z-0">
-                  <span v-if="!studentObj.avatar" class="text-3xl font-black text-emerald-600">{{
-                    getAvatarInitial(studentObj.name) }}</span>
-                  <img v-else :src="studentObj.avatar" class="w-full h-full object-cover" />
+                  <img :src="(studentObj.avatar && (studentObj.avatar.includes('/') || studentObj.avatar.includes('http') || studentObj.avatar.startsWith('data:'))) ? studentObj.avatar : '/placeholder_profile.png'" class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
                 </div>
                 <!-- Frame on top -->
                 <img v-if="studentObj.equippedFrame" :src="studentObj.equippedFrame"

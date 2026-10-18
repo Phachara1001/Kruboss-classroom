@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { Download, ExternalLink, Database, Server, PenTool, Braces, Terminal, ChevronLeft, Wrench } from '@lucide/vue'
+import { Download, ExternalLink, Database, Server, PenTool, Braces, Terminal, ChevronLeft, Wrench, Cloud, Globe } from '@lucide/vue'
 import { useRoute, useRouter } from 'vue-router'
 import { courses } from '../data/courses'
 
@@ -11,71 +11,89 @@ const course = computed(() => courses.find(c => c.id === route.params.id) || cou
 
 const databaseTools = [
   {
-    title: 'ส่วนที่ 1: การออกแบบและเตรียมความพร้อม (สัปดาห์ที่ 1-2)',
-    description: 'เครื่องมือสำหรับการเตรียมตัวเขียนโค้ดและออกแบบสถาปัตยกรรมฐานข้อมูลก่อนลงมือสร้างจริง',
-    color: 'text-blue-700',
-    bg: 'bg-blue-50',
-    tools: [
-      {
-        id: 'vscode',
-        name: 'Visual Studio Code',
-        description: 'โปรแกรม Editor สำหรับเขียนโค้ดที่ได้รับความนิยมสูงสุด เบาและเร็ว ใช้สำหรับเขียนคำสั่ง SQL หรือตรวจสอบไฟล์โครงสร้างข้อมูลแบบ JSON นอกจากนี้ยังสามารถลงส่วนเสริม (Extension) เพื่อจำลองการเชื่อมต่อฐานข้อมูลได้ด้วย',
-        icon: Terminal,
-        color: 'bg-blue-600',
-        link: 'https://code.visualstudio.com/',
-        type: 'Code Editor'
-      },
-      {
-        id: 'drawio',
-        name: 'Draw.io',
-        description: 'เครื่องมือสร้างแผนภาพ (Diagram) บนเว็บไซต์ที่ใช้งานได้ฟรีและดีที่สุด ใช้สำหรับออกแบบ Entity-Relationship Diagram (ER-Diagram) เพื่อวางโครงสร้างฐานข้อมูลเชิงสัมพันธ์ก่อนนำไปสร้างตารางจริง',
-        icon: PenTool,
-        color: 'bg-yellow-600',
-        link: 'https://app.diagrams.net/',
-        type: 'Design Tool (Web)'
-      }
-    ]
-  },
-  {
-    title: 'ส่วนที่ 2: ฐานข้อมูลเชิงสัมพันธ์ Relational Database (สัปดาห์ที่ 3-11)',
-    description: 'ชุดโปรแกรมหลักสำหรับการเรียนการสอนภาษา SQL, การสร้าง View, Stored Procedure, และ Transaction',
-    color: 'text-orange-700',
-    bg: 'bg-orange-50',
-    tools: [
-      {
-        id: 'xampp',
-        name: 'XAMPP',
-        description: 'โปรแกรมจำลองเซิร์ฟเวอร์แบบออฟไลน์ที่ติดตั้งง่ายที่สุด ภายในจะมาพร้อมกับฐานข้อมูล MySQL/MariaDB ใช้เป็นเซิร์ฟเวอร์หลักตลอดการเรียนในครึ่งเทอมแรก ให้นักศึกษาประมวลผลคำสั่ง SQL ได้โดยไม่ต้องต่ออินเทอร์เน็ต',
-        icon: Server,
-        color: 'bg-orange-500',
-        link: 'https://www.apachefriends.org/index.html',
-        type: 'Relational DB Server'
-      },
-      {
-        id: 'dbeaver',
-        name: 'DBeaver (Community)',
-        description: 'โปรแกรมจัดการฐานข้อมูล (Database GUI Tool) ระดับมืออาชีพ ทำหน้าที่เชื่อมต่อไปยัง XAMPP เพื่อแสดงผลตารางข้อมูลแบบกราฟิกสวยงาม ช่วยให้นักศึกษาเขียนโค้ด SQL ได้ง่ายขึ้น มีระบบช่วยเติมคำ (Auto-complete)',
-        icon: Database,
-        color: 'bg-indigo-600',
-        link: 'https://dbeaver.io/download/',
-        type: 'Database Client / GUI'
-      }
-    ]
-  },
-  {
-    title: 'ส่วนที่ 3: ฐานข้อมูล NoSQL และสมัยใหม่ (สัปดาห์ที่ 12-14)',
-    description: 'เครื่องมือสำหรับการจัดการข้อมูลที่ไม่มีโครงสร้างตายตัว (Schema-less) และฐานข้อมูลยุคใหม่บนคลาวด์',
+    title: 'ส่วนที่ 1: แพลตฟอร์มคลาวด์และการออกแบบ (Cloud Platform & Design)',
+    description: 'แพลตฟอร์มฐานข้อมูลหลักและเครื่องมือออกแบบสถาปัตยกรรมโครงสร้างข้อมูล',
     color: 'text-emerald-700',
     bg: 'bg-emerald-50',
     tools: [
       {
+        id: 'supabase',
+        name: 'Supabase (Cloud Database)',
+        description: 'แพลตฟอร์มระบบจัดการฐานข้อมูลระดับ Enterprise (ขับเคลื่อนด้วย PostgreSQL 100%) บนระบบคลาวด์ พร้อมระบบ Table Editor, SQL Editor, ระบบรักษาความปลอดภัย RLS, Storage และ Auto-generated REST APIs โดยเข้าใช้งานผ่านเว็บเบราว์เซอร์ได้ทันทีโดยไม่ต้องติดตั้งโปรแกรมในเครื่อง',
+        icon: Cloud,
+        color: 'bg-emerald-600',
+        link: 'https://supabase.com/',
+        type: 'Cloud PostgreSQL / BaaS'
+      },
+      {
+        id: 'drawio',
+        name: 'Draw.io',
+        description: 'เครื่องมือสร้างแผนภาพ (Diagram) บนเว็บไซต์ ใช้งานได้ฟรีและสะดวก ใช้สำหรับออกแบบ Entity-Relationship Diagram (ER-Diagram) และ Relational Schema เพื่อวางโครงสร้างความสัมพันธ์ของตารางก่อนนำไปสร้างจริง',
+        icon: PenTool,
+        color: 'bg-amber-600',
+        link: 'https://app.diagrams.net/',
+        type: 'Design Tool (Web)'
+      },
+      {
+        id: 'vscode',
+        name: 'Visual Studio Code',
+        description: 'โปรแกรม Code Editor ยอดนิยมอันดับหนึ่ง น้ำหนักเบาและมีความคล่องตัวสูง ใช้สำหรับเขียนสคริปต์ SQL (.sql), ไฟล์โครงสร้างข้อมูล JSON รวมถึงโค้ดเชื่อมต่อฐานข้อมูลสำหรับโครงงานปลายภาค',
+        icon: Terminal,
+        color: 'bg-blue-600',
+        link: 'https://code.visualstudio.com/',
+        type: 'Code Editor'
+      }
+    ]
+  },
+  {
+    title: 'ส่วนที่ 2: เครื่องมือเชื่อมต่อฐานข้อมูลเชิงสัมพันธ์ (Database Client & Management)',
+    description: 'ชุดโปรแกรมระดับมืออาชีพสำหรับเขียนและประมวลผลคำสั่งภาษา SQL, View, Stored Procedure และ Transaction',
+    color: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    tools: [
+      {
+        id: 'dbeaver',
+        name: 'DBeaver (Community Edition)',
+        description: 'สุดยอดโปรแกรมจัดการฐานข้อมูล (Universal Database Tool) แบบ GUI ระดับมืออาชีพ สามารถเชื่อมต่อตรง (Direct Connection) ไปยังฐานข้อมูล PostgreSQL บน Supabase เพื่อฝึกเขียนคำสั่ง SQL, วิเคราะห์ Execution Plan, รันสคริปต์ และดูแผนผัง ERD อัตโนมัติ',
+        icon: Database,
+        color: 'bg-indigo-600',
+        link: 'https://dbeaver.io/download/',
+        type: 'Universal DB Client'
+      },
+      {
+        id: 'postgresql',
+        name: 'PostgreSQL & pgAdmin',
+        description: 'ระบบจัดการฐานข้อมูลเชิงสัมพันธ์แบบโอเพนซอร์สที่ทรงพลังที่สุดในโลก สำหรับใช้ศึกษาโครงสร้างการทำงานคำสั่ง SQL มาตรฐาน, Storage Engine, ACID Transaction และการบริหารจัดการฐานข้อมูลระดับ Server',
+        icon: Server,
+        color: 'bg-sky-700',
+        link: 'https://www.postgresql.org/download/',
+        type: 'Enterprise RDBMS'
+      }
+    ]
+  },
+  {
+    title: 'ส่วนที่ 3: ฐานข้อมูล NoSQL และการทดสอบเชื่อมต่อสมัยใหม่ (NoSQL & Modern APIs)',
+    description: 'เครื่องมือสำหรับจัดการข้อมูลแบบกึ่งโครงสร้าง (Document/JSON) และการทดสอบเชื่อมต่อฐานข้อมูลผ่าน Web API',
+    color: 'text-violet-700',
+    bg: 'bg-violet-50',
+    tools: [
+      {
         id: 'mongodb',
         name: 'MongoDB Compass',
-        description: 'โปรแกรม GUI สำหรับจัดการฐานข้อมูลแบบ NoSQL (Document) ของ MongoDB โดยเฉพาะ ช่วยให้นักศึกษาสามารถดูโครงสร้างข้อมูลแบบ JSON ซ้อนทับกัน (Nested) และทดลองดึงข้อมูลด้วย Query Language ของ MongoDB ได้ง่ายๆ',
+        description: 'โปรแกรม GUI สำหรับจัดการฐานข้อมูลแบบ NoSQL (Document Store) ช่วยให้นักศึกษาเข้าใจโครงสร้างข้อมูล BSON/JSON และเปรียบเทียบความแตกต่างระหว่าง Relational กับ NoSQL ได้อย่างชัดเจน',
         icon: Braces,
         color: 'bg-emerald-600',
         link: 'https://www.mongodb.com/products/tools/compass',
         type: 'NoSQL Database GUI'
+      },
+      {
+        id: 'postman',
+        name: 'Postman (หรือ Thunder Client)',
+        description: 'เครื่องมือทดสอบส่งคำขอ Web API (REST API) ใช้ทดสอบดึงข้อมูล (GET), เพิ่มข้อมูล (POST), อัปเดต (PATCH) และลบข้อมูล (DELETE) กับฐานข้อมูลคลาวด์ Supabase โดยตรงเสมือนการพัฒนาแอปพลิเคชันจริง',
+        icon: Globe,
+        color: 'bg-orange-600',
+        link: 'https://www.postman.com/downloads/',
+        type: 'API Client & Testing'
       }
     ]
   }
@@ -249,14 +267,14 @@ const currentTools = computed(() => {
     </div>
 
     <!-- Instructions Box -->
-    <div v-if="course.id === '31901-2007'" class="bg-blue-50 border border-blue-200 rounded-2xl p-6 md:p-8 flex items-start gap-4 shadow-sm mt-8">
-      <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+    <div v-if="course.id === '31901-2007'" class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 md:p-8 flex items-start gap-4 shadow-sm mt-8">
+      <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
         <span class="font-black text-xl">i</span>
       </div>
       <div>
-        <h4 class="font-bold text-blue-900 text-lg mb-2">ข้อแนะนำสำหรับการติดตั้ง</h4>
-        <p class="text-blue-800/80 leading-relaxed">
-          ให้นักศึกษาดาวน์โหลดและติดตั้งเครื่องมือใน <strong>ส่วนที่ 1 และ 2 (VS Code, XAMPP, DBeaver)</strong> ให้เรียบร้อยก่อนสัปดาห์ที่ 2 เพื่อเตรียมความพร้อมสำหรับการปฏิบัติการเขียนคำสั่ง SQL พื้นฐาน ส่วน MongoDB ในส่วนที่ 3 สามารถติดตั้งภายหลังในช่วงครึ่งเทอมหลังได้
+        <h4 class="font-bold text-emerald-900 text-lg mb-2">ข้อแนะนำสำหรับการเรียนการสอน</h4>
+        <p class="text-emerald-800/80 leading-relaxed text-sm sm:text-base">
+          ให้นักศึกษาสมัครบัญชี <strong>Supabase (supabase.com)</strong> โดยใช้บัญชี Google หรือ GitHub เพื่อเตรียมความพร้อมสำหรับสร้างและบริหารจัดการฐานข้อมูล PostgreSQL บนระบบคลาวด์ผ่านเว็บเบราว์เซอร์ได้ทันทีโดยไม่ต้องติดตั้งเซิร์ฟเวอร์ในเครื่อง และแนะนำให้ดาวน์โหลดติดตั้ง <strong>VS Code</strong> และ <strong>DBeaver</strong> ไว้ในเครื่องคอมพิวเตอร์เพื่อใช้เขียนสคริปต์ SQL และฝึกฝนการเชื่อมต่อระบบฐานข้อมูลระดับมืออาชีพ
         </p>
       </div>
     </div>

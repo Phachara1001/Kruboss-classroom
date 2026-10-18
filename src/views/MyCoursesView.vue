@@ -222,7 +222,12 @@ const closeModal = () => {
     </div>
 
     <!-- Student Rank Tier Card -->
-    <StudentRankCard :course-id="course.id" :course-name="course.name" />
+    <StudentRankCard 
+      :course-id="course.id" 
+      :course-name="course.name" 
+      :preview-student-id="effectiveStudentId"
+      :is-student-view="isPreviewingStudent || !isTeacher"
+    />
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
       <div v-for="topic in course.topics" :key="topic.id" @click="handleTopicClick(topic)" :class="[

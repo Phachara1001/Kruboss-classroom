@@ -78,7 +78,7 @@ const getFrameName = (id) => {
             <div class="relative w-40 h-40 md:w-48 md:h-48 z-10 flex items-center justify-center">
               <!-- Avatar Circle -->
               <div class="w-32 h-32 md:w-40 md:h-40 rounded-full bg-stone-100 flex items-center justify-center text-5xl font-black text-stone-700 shadow-xl border-4 border-white overflow-hidden absolute">
-                {{ avatarText || 'U' }}
+                <img :src="(avatarText && (avatarText.includes('/') || avatarText.includes('http') || avatarText.startsWith('data:'))) ? avatarText : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
               </div>
               
               <!-- Frame Overlay -->

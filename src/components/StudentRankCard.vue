@@ -49,12 +49,21 @@ const props = defineProps({
   courseName: {
     type: String,
     default: 'รายวิชา'
+  },
+  previewStudentId: {
+    type: String,
+    default: ''
+  },
+  isStudentView: {
+    type: Boolean,
+    default: false
   }
 })
 
 const isTeacher = computed(() => {
-  const r = (authUser.value?.role || '').toLowerCase()
-  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r)
+  if (props.isStudentView) return false
+  if (!authUser.value) return false
+  return !isStudent(authUser.value)
 })
 
 const myStudentId = computed(() => {
@@ -85,12 +94,9 @@ const selectedTierFilter = ref(null)
 const activeStudentId = ref('')
 
 const currentStudent = computed(() => {
-  if (activeStudentId.value) {
-    const found = enrolledStudents.value.find(s => s.studentId === activeStudentId.value)
-    if (found) return found
-  }
-  if (!isTeacher.value && myStudentId.value) {
-    const found = enrolledStudents.value.find(s => s.studentId === myStudentId.value)
+  const targetId = props.previewStudentId || activeStudentId.value || (!isTeacher.value ? myStudentId.value : '')
+  if (targetId) {
+    const found = enrolledStudents.value.find(s => s.studentId === targetId || s.id === targetId)
     if (found) return found
   }
   return enrolledStudents.value[0] || null
@@ -131,7 +137,7 @@ const showScoreBreakdown = ref(false)
 // ==========================================
 const overviewStudents = computed(() => {
   return enrolledStudents.value.filter(s => {
-    if (selectedRoomFilter.value === 'all') return true
+    if (!isTeacher.value || selectedRoomFilter.value === 'all') return true
     return s.classroom === selectedRoomFilter.value
   })
 })
@@ -268,8 +274,8 @@ const showRoadmapModal = ref(false)
             </button>
           </div>
 
-          <!-- Filter: Room Picker in 'course_overview' -->
-          <div v-if="viewMode === 'course_overview'" class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl p-1.5 shrink-0">
+          <!-- Filter: Room Picker in 'course_overview' (Teacher only) -->
+          <div v-if="isTeacher && viewMode === 'course_overview'" class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl p-1.5 shrink-0">
             <Filter class="w-3.5 h-3.5 text-stone-400 ml-2" />
             <select 
               v-model="selectedRoomFilter"
@@ -327,28 +333,13 @@ const showRoadmapModal = ref(false)
               >
                 <!-- Inner Circular Student Avatar -->
                 <div class="w-full h-full rounded-full bg-stone-900 border-2 border-white/25 overflow-hidden flex items-center justify-center relative shadow-inner">
-                  <!-- Photo Avatar (if available) -->
+                  <!-- Photo Avatar (with placeholder fallback) -->
                   <img 
-                    v-if="currentStudent.avatar && (currentStudent.avatar.includes('/') || currentStudent.avatar.includes('http'))" 
-                    :src="currentStudent.avatar" 
+                    :src="(currentStudent.avatar && (currentStudent.avatar.includes('/') || currentStudent.avatar.includes('http') || currentStudent.avatar.startsWith('data:'))) ? currentStudent.avatar : '/placeholder_profile.png'" 
                     :alt="currentStudent.name"
                     class="w-full h-full object-cover" 
+                    @error="$event.target.src = '/placeholder_profile.png'"
                   />
-                  <!-- Fallback: Initials with Stylish Gradient & Classroom Info -->
-                  <div 
-                    v-else 
-                    class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 text-white select-none p-2"
-                  >
-                    <span 
-                      class="text-4xl sm:text-5xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-tr"
-                      :class="studentRank.themeGradient || 'from-stone-200 to-white'"
-                    >
-                      {{ currentStudent.avatar || currentStudent.name.charAt(0) }}
-                    </span>
-                    <span class="text-[10px] font-bold text-stone-400 mt-0.5 text-center leading-tight">
-                      ห้อง {{ currentStudent.classroom }}
-                    </span>
-                  </div>
 
                   <!-- Online Status Dot -->
                   <div class="absolute top-2 right-2 w-3.5 h-3.5 rounded-full border-2 border-stone-900 bg-emerald-500 shadow-xs"></div>
@@ -394,6 +385,13 @@ const showRoadmapModal = ref(false)
                 <Sparkles class="w-3 h-3" />
                 Tier #{{ studentRank.rankNumber }}
               </div>
+              <div 
+                v-else
+                class="absolute -bottom-3.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-stone-950 border border-white/20 shadow-xl whitespace-nowrap flex items-center gap-1.5 z-40 text-stone-400"
+              >
+                <Lock class="w-3 h-3 text-stone-400" />
+                Unranked
+              </div>
             </div>
           </div>
 
@@ -423,6 +421,13 @@ const showRoadmapModal = ref(false)
                   :class="[studentRank.bgColor, studentRank.borderColor, studentRank.textColor]"
                 >
                   ระดับเกรด {{ studentRank.grade }} ({{ studentRank.letter }})
+                </span>
+                <span 
+                  v-else
+                  class="px-3 py-1 rounded-full text-xs font-bold bg-stone-900 border border-white/10 text-stone-400 flex items-center gap-1.5 shadow-sm"
+                >
+                  <Lock class="w-3.5 h-3.5 text-stone-400" />
+                  Unranked
                 </span>
               </div>
               
@@ -643,7 +648,10 @@ const showRoadmapModal = ref(false)
             <div>
               <p class="text-[11px] text-stone-400 font-medium">ระดับแรงค์สูงสุดในวิชา</p>
               <p class="text-sm font-black text-white flex items-center gap-1.5">
-                <span :class="highestTierAchieved.textColor">{{ highestTierAchieved.name }}</span>
+                <span class="flex items-center gap-1" :class="highestTierAchieved.textColor">
+                  <Lock v-if="highestTierAchieved.grade === '0' || highestTierAchieved.name === 'Unranked'" class="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                  {{ highestTierAchieved.name }}
+                </span>
                 <span class="text-[10px] text-stone-400">({{ highestTierAchieved.grade }})</span>
               </p>
             </div>
@@ -656,7 +664,10 @@ const showRoadmapModal = ref(false)
             <div>
               <p class="text-[11px] text-stone-400 font-medium">แรงค์ประชากรส่วนใหญ่</p>
               <p class="text-sm font-black text-white flex items-center gap-1.5">
-                <span :class="dominantTier.textColor">{{ dominantTier.name }}</span>
+                <span class="flex items-center gap-1" :class="dominantTier.textColor">
+                  <Lock v-if="dominantTier.grade === '0' || dominantTier.name === 'Unranked'" class="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                  {{ dominantTier.name }}
+                </span>
                 <span class="text-[10px] text-stone-400">({{ dominantTier.count }} คน)</span>
               </p>
             </div>
@@ -706,15 +717,16 @@ const showRoadmapModal = ref(false)
                   :alt="tier.name"
                   class="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform" 
                 />
-                <div v-else class="w-6 h-6 rounded-full bg-stone-800 flex items-center justify-center text-stone-500 text-[10px]">
-                  <Lock class="w-3 h-3" />
+                <div v-else class="w-6 h-6 rounded-full bg-stone-800 flex items-center justify-center text-stone-400 text-[10px]">
+                  <Lock class="w-3.5 h-3.5 text-stone-400" />
                 </div>
               </div>
 
               <!-- Tier Label & Grade -->
               <div class="w-28 sm:w-36 shrink-0 flex flex-col">
                 <div class="flex items-center gap-1.5">
-                  <span class="text-xs font-bold uppercase tracking-wide truncate" :class="tier.textColor">
+                  <span class="text-xs font-bold uppercase tracking-wide truncate flex items-center gap-1" :class="tier.textColor">
+                    <Lock v-if="tier.grade === '0' || tier.name === 'Unranked'" class="w-3 h-3 text-stone-400 shrink-0" />
                     {{ tier.name }}
                   </span>
                 </div>
@@ -811,14 +823,16 @@ const showRoadmapModal = ref(false)
 
               <div class="w-20 h-20 my-2 flex items-center justify-center relative">
                 <img 
-                  v-if="filteredLeaderboard[0].tier.badgeImg"
+                  v-if="filteredLeaderboard[0].tier.badgeImg" 
                   :src="filteredLeaderboard[0].tier.badgeImg" 
                   :class="[
                     'w-full h-full object-contain filter drop-shadow-lg group-hover:scale-110 transition-transform',
                     filteredLeaderboard[0].tier.animClass
                   ]" 
                 />
-                <Lock v-else class="w-10 h-10 text-stone-500" />
+                <div v-else class="w-12 h-12 rounded-full bg-stone-800 flex items-center justify-center">
+                  <Lock class="w-8 h-8 text-stone-400" />
+                </div>
               </div>
 
               <h5 class="text-base font-black text-white truncate max-w-[200px]">{{ filteredLeaderboard[0].student.name }}</h5>
@@ -844,11 +858,13 @@ const showRoadmapModal = ref(false)
 
               <div class="w-16 h-16 my-2 flex items-center justify-center relative">
                 <img 
-                  v-if="filteredLeaderboard[2].tier.badgeImg"
+                  v-if="filteredLeaderboard[2].tier.badgeImg" 
                   :src="filteredLeaderboard[2].tier.badgeImg" 
                   class="w-full h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" 
                 />
-                <Lock v-else class="w-8 h-8 text-stone-500" />
+                <div v-else class="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center">
+                  <Lock class="w-6 h-6 text-stone-400" />
+                </div>
               </div>
 
               <h5 class="text-sm font-bold text-white truncate max-w-[180px]">{{ filteredLeaderboard[2].student.name }}</h5>
@@ -903,8 +919,7 @@ const showRoadmapModal = ref(false)
                   <td class="py-3 px-3">
                     <div class="flex items-center gap-2.5">
                       <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-white text-xs shrink-0 overflow-hidden">
-                        <img v-if="item.student.avatar && (item.student.avatar.includes('/') || item.student.avatar.includes('http') || item.student.avatar.includes('localhost') || item.student.avatar.startsWith('data:'))" :src="item.student.avatar.startsWith('http') ? item.student.avatar : (item.student.avatar.startsWith('data:') ? item.student.avatar : `http://${item.student.avatar}`)" class="w-full h-full object-cover" />
-                        <span v-else>{{ item.student.avatar || item.student.name.charAt(0) }}</span>
+                        <img :src="(item.student.avatar && (item.student.avatar.includes('/') || item.student.avatar.includes('http') || item.student.avatar.includes('localhost') || item.student.avatar.startsWith('data:'))) ? (item.student.avatar.startsWith('http') ? item.student.avatar : (item.student.avatar.startsWith('data:') ? item.student.avatar : `http://${item.student.avatar}`)) : '/placeholder_profile.png'" class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
                       </div>
                       <div>
                         <div class="font-bold text-white group-hover:text-emerald-400 transition-colors">
@@ -927,13 +942,16 @@ const showRoadmapModal = ref(false)
                     <div class="flex items-center gap-2">
                       <div class="w-6 h-6 shrink-0 flex items-center justify-center">
                         <img 
-                          v-if="item.tier.badgeImg"
+                          v-if="item.tier.badgeImg" 
                           :src="item.tier.badgeImg" 
                           :class="['w-full h-full object-contain', item.tier.animClass]" 
                         />
-                        <Lock v-else class="w-3.5 h-3.5 text-stone-500" />
+                        <div v-else class="w-5 h-5 rounded-full bg-stone-800 flex items-center justify-center">
+                          <Lock class="w-3 h-3 text-stone-400" />
+                        </div>
                       </div>
-                      <span class="font-bold tracking-wide" :class="item.tier.textColor">
+                      <span class="font-bold tracking-wide flex items-center gap-1" :class="item.tier.textColor">
+                        <Lock v-if="item.tier.grade === '0' || item.tier.name === 'Unranked'" class="w-3 h-3 text-stone-400 shrink-0" />
                         {{ item.tier.name }}
                       </span>
                     </div>
@@ -948,8 +966,12 @@ const showRoadmapModal = ref(false)
                     >
                       {{ item.tier.grade }} ({{ item.tier.letter }})
                     </span>
-                    <span v-else class="text-[10px] text-stone-500 italic">
-                      ยังไม่มีเกรด
+                    <span 
+                      v-else 
+                      class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-900 border border-white/10 text-stone-400 inline-flex items-center gap-1 shadow-xs"
+                    >
+                      <Lock class="w-2.5 h-2.5 text-stone-400" />
+                      Unranked
                     </span>
                   </td>
 
@@ -1104,10 +1126,12 @@ const showRoadmapModal = ref(false)
                 <div class="flex-1 text-center sm:text-left space-y-1">
                   <div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                     <span class="text-xs font-mono font-bold text-stone-400">#8</span>
-                    <h4 class="text-xl font-black uppercase tracking-wider text-stone-400">
+                    <h4 class="text-xl font-black uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
+                      <Lock class="w-4 h-4 text-stone-400" />
                       {{ unrankedTier.name }}
                     </h4>
-                    <span class="px-2.5 py-0.5 rounded-lg text-xs font-black border bg-stone-500/10 border-stone-500/40 text-stone-400">
+                    <span class="px-2.5 py-0.5 rounded-lg text-xs font-black border bg-stone-500/10 border-stone-500/40 text-stone-400 flex items-center gap-1">
+                      <Lock class="w-3 h-3 text-stone-400" />
                       เกรด {{ unrankedTier.grade }} ({{ unrankedTier.letter }})
                     </span>
                   </div>

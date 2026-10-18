@@ -54,25 +54,25 @@ export const courseAssignments = {
     {
       id: "asm-1",
       week: 1,
-      title: "ใบงานที่ 1: สำรวจปัญหาแฟ้มข้อมูลและเสนอแนะ DBMS",
+      title: "ใบงานที่ 1: สำรวจปัญหาแฟ้มข้อมูล การเลือก DBMS และเริ่มต้น Supabase Cloud",
       maxScore: 10,
     },
     {
       id: "asm-2",
       week: 2,
-      title: "ใบงานที่ 2: การออกแบบ Relational Schema & Storage Engine",
+      title: "ใบงานที่ 2: การออกแบบ Relational Schema และสร้างตารางด้วย SQL DDL/DML",
       maxScore: 10,
     },
     {
       id: "asm-3",
       week: 3,
-      title: "ใบงานที่ 3: เวิร์กช็อป NoSQL (Document Storage)",
+      title: "ใบงานที่ 3: เวิร์กช็อป NoSQL และการจัดการข้อมูลแบบ Document ด้วย JSONB",
       maxScore: 10,
     },
     {
       id: "asm-4",
       week: 5,
-      title: "ใบงานที่ 4: การสร้างและการใช้งาน View ในระบบฐานข้อมูล",
+      title: "ใบงานที่ 4: การสร้างและการสืบค้นข้อมูลผ่าน View และ Row Level Security (RLS)",
       maxScore: 10,
     },
   ],
@@ -106,7 +106,7 @@ export const courseAssignments = {
     {
       id: "asm-1",
       week: 1,
-      title: "ใบงานที่ 1: วิเคราะห์กรณีศึกษา Data-Driven Decision Making",
+      title: "ใบงานที่ 1: การสำรวจบทบาท Data Analyst และการขับเคลื่อนธุรกิจด้วยข้อมูล (Data-Driven Decision Making)",
       maxScore: 10,
     },
     {
@@ -366,6 +366,16 @@ export const fetchCheckInSessions = async (courseId) => {
   }
 };
 
+export const formatExternalUrl = (url) => {
+  if (!url || typeof url !== 'string') return ''
+  const trimmed = url.trim()
+  if (!trimmed) return ''
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed
+  }
+  return `https://${trimmed}`
+};
+
 export const fetchSubmissions = async (courseId) => {
   try {
     const res = await fetch(`${API_BASE_URL}/submissions/${courseId}`);
@@ -374,7 +384,7 @@ export const fetchSubmissions = async (courseId) => {
       data.forEach((sub) => {
         const key = `${sub.courseId}_${sub.studentId}_${sub.assignmentId}`;
         submissionsStore.value[key] = {
-          link: sub.link,
+          link: formatExternalUrl(sub.link),
           note: sub.note || "",
           submittedAt: sub.submittedAt,
         };
@@ -403,10 +413,11 @@ export const submitAssignmentLink = async (
   link,
   note = "",
 ) => {
+  const cleanLink = formatExternalUrl(link);
   const key = `${courseId}_${studentId}_${assignmentId}`;
   const submittedAt = new Date().toLocaleString("th-TH");
   submissionsStore.value[key] = {
-    link,
+    link: cleanLink,
     note,
     submittedAt,
   };
@@ -419,7 +430,7 @@ export const submitAssignmentLink = async (
         courseId,
         assignmentId,
         studentId,
-        link,
+        link: cleanLink,
         note,
         submittedAt,
       }),

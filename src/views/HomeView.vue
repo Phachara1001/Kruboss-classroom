@@ -95,7 +95,7 @@ const fetchPosts = async () => {
           author: {
             name: p.author?.name || 'นิรนาม',
             role: p.author?.role || 'นักศึกษา',
-            avatar: p.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.authorId}`,
+            avatar: (p.author?.avatar && (p.author.avatar.includes('/') || p.author.avatar.includes('http') || p.author.avatar.startsWith('data:'))) ? p.author.avatar : '/placeholder_profile.png',
             frame: p.author?.equippedFrame || null
           },
           content: p.content,
@@ -119,7 +119,7 @@ const fetchPosts = async () => {
             id: c.id,
             authorId: c.authorId,
             author: c.author?.name || 'นิรนาม',
-            avatar: c.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.authorId}`,
+            avatar: (c.author?.avatar && (c.author.avatar.includes('/') || c.author.avatar.includes('http') || c.author.avatar.startsWith('data:'))) ? c.author.avatar : '/placeholder_profile.png',
             text: c.content,
             timestamp: new Date(c.createdAt).toLocaleDateString('th-TH', { hour: '2-digit', minute: '2-digit' }),
             showMenu: false
@@ -302,7 +302,7 @@ const submitComment = async (post) => {
         id: newComment.id,
         authorId,
         author: authUser.value.name,
-        avatar: authUser.value.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.value.id}`,
+        avatar: (authUser.value.avatar && (authUser.value.avatar.includes('/') || authUser.value.avatar.includes('http') || authUser.value.avatar.startsWith('data:'))) ? authUser.value.avatar : '/placeholder_profile.png',
         text: content,
         timestamp: 'เมื่อสักครู่'
       })
@@ -393,8 +393,8 @@ const deleteComment = async (post, commentId) => {
               <img v-if="authUser.equippedFrame" :src="authUser.equippedFrame"
                 class="absolute inset-0 w-full h-full object-cover z-10 scale-125 pointer-events-none drop-shadow-sm" />
               <div class="w-full h-full rounded-xl overflow-hidden bg-gray-100">
-                <img :src="authUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.id}`"
-                  class="w-full h-full object-cover" />
+                <img :src="(authUser.avatar && (authUser.avatar.includes('/') || authUser.avatar.includes('http') || authUser.avatar.startsWith('data:'))) ? authUser.avatar : '/placeholder_profile.png'"
+                  class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
               </div>
             </div>
             <div class="flex-1 space-y-3">
@@ -442,7 +442,7 @@ const deleteComment = async (post, commentId) => {
                   <img v-if="post.author.frame" :src="post.author.frame"
                     class="absolute inset-0 w-full h-full object-cover z-10 scale-125 pointer-events-none drop-shadow-md" />
                   <div class="w-full h-full rounded-2xl overflow-hidden bg-gray-100">
-                    <img :src="post.author.avatar" class="w-full h-full object-cover" />
+                    <img :src="post.author.avatar || '/placeholder_profile.png'" class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
                   </div>
                 </div>
                 <div>
@@ -525,7 +525,7 @@ const deleteComment = async (post, commentId) => {
               <!-- Comment List -->
               <div v-for="comment in post.commentsList" :key="comment.id" class="flex gap-3 group/comment items-start">
                 <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-100 shrink-0 mt-0.5">
-                  <img :src="comment.avatar" class="w-full h-full object-cover" />
+                  <img :src="comment.avatar || '/placeholder_profile.png'" class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start justify-between gap-2">
@@ -563,8 +563,8 @@ const deleteComment = async (post, commentId) => {
               <!-- Add Comment Input -->
               <div class="flex gap-3 items-center mt-2" v-if="isLoggedIn">
                 <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-100 shrink-0">
-                  <img :src="authUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.id}`"
-                    class="w-full h-full object-cover" />
+                  <img :src="(authUser.avatar && (authUser.avatar.includes('/') || authUser.avatar.includes('http') || authUser.avatar.startsWith('data:'))) ? authUser.avatar : '/placeholder_profile.png'"
+                    class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
                 </div>
                 <div class="flex-1 relative">
                   <input v-model="post.newCommentText" @keyup.enter="submitComment(post)" type="text"
@@ -614,8 +614,8 @@ const deleteComment = async (post, commentId) => {
                     <div class="w-full h-full rounded-xl overflow-hidden bg-gray-200"
                       :class="index === 0 ? 'ring-2 ring-amber-400' : index === 1 ? 'ring-2 ring-gray-300' : 'ring-2 ring-amber-700/40'">
                       <img
-                        :src="student.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.studentId}`"
-                        class="w-full h-full object-cover" />
+                        :src="(student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.startsWith('data:'))) ? student.avatar : '/placeholder_profile.png'"
+                        class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
                     </div>
                   </div>
                   <div class="truncate min-w-0">

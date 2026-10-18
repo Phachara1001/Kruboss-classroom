@@ -290,7 +290,7 @@ app.post('/api/students', async (req, res) => {
                 classroom: classroom || 'ปวส.1/1',
                 courseIds: targetCourseIds,
                 role: role || 'นักศึกษา',
-                avatar: getAvatarInitial(name.trim()),
+                avatar: '/placeholder_profile.png',
                 coins: 100,
             }
         });
@@ -598,6 +598,16 @@ app.delete('/api/quests/:id', async (req, res) => {
     }
 });
 
+// Get all quest progress (for teachers and grading modal)
+app.get('/api/quests/progress', async (req, res) => {
+    try {
+        const progress = await prisma.questProgress.findMany();
+        res.json(progress);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Get quest progress for a student
 app.get('/api/quests/progress/:studentId', async (req, res) => {
     try {
@@ -610,17 +620,29 @@ app.get('/api/quests/progress/:studentId', async (req, res) => {
     }
 });
 
-// Update quest progress
+// Update quest progress (supports direct number or atomic increment)
 app.post('/api/quests/progress', async (req, res) => {
     try {
-        const { studentId, questId, completions } = req.body;
-        const progress = await prisma.questProgress.upsert({
-            where: {
-                studentId_questId: { studentId, questId }
-            },
-            update: { completions },
-            create: { studentId, questId, completions }
-        });
+        const { studentId, questId, completions, increment } = req.body;
+        let progress;
+        if (increment) {
+            progress = await prisma.questProgress.upsert({
+                where: {
+                    studentId_questId: { studentId, questId }
+                },
+                update: { completions: { increment: 1 } },
+                create: { studentId, questId, completions: 1 }
+            });
+        } else {
+            const count = Number(completions) || 1;
+            progress = await prisma.questProgress.upsert({
+                where: {
+                    studentId_questId: { studentId, questId }
+                },
+                update: { completions: count },
+                create: { studentId, questId, completions: count }
+            });
+        }
         res.json(progress);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -783,7 +805,14 @@ app.get('/api/submissions/:courseId', async (req, res) => {
                 student: { select: { studentId: true, name: true, avatar: true, classroom: true } }
             }
         });
-        res.json(submissions);
+        const sanitized = submissions.map(s => {
+            let l = s.link ? s.link.trim() : '';
+            if (l && !/^https?:\/\//i.test(l)) {
+                l = `https://${l}`;
+            }
+            return { ...s, link: l };
+        });
+        res.json(sanitized);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -795,7 +824,14 @@ app.get('/api/submissions/:courseId/:studentId', async (req, res) => {
         const submissions = await prisma.submission.findMany({
             where: { courseId, studentId }
         });
-        res.json(submissions);
+        const sanitized = submissions.map(s => {
+            let l = s.link ? s.link.trim() : '';
+            if (l && !/^https?:\/\//i.test(l)) {
+                l = `https://${l}`;
+            }
+            return { ...s, link: l };
+        });
+        res.json(sanitized);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -803,7 +839,13 @@ app.get('/api/submissions/:courseId/:studentId', async (req, res) => {
 
 app.post('/api/submissions', async (req, res) => {
     try {
-        const { courseId, assignmentId, studentId, link, note, submittedAt } = req.body;
+        let { courseId, assignmentId, studentId, link, note, submittedAt } = req.body;
+        if (link && typeof link === 'string') {
+            link = link.trim();
+            if (link && !/^https?:\/\//i.test(link)) {
+                link = `https://${link}`;
+            }
+        }
         const timeStr = submittedAt || new Date().toLocaleString("th-TH");
         const submission = await prisma.submission.upsert({
             where: {

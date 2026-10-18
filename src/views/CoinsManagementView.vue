@@ -181,8 +181,11 @@ const handleDeductCoins = (studentId) => {
               >
                 <td class="py-3 px-6">
                   <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 font-black flex items-center justify-center shrink-0">
-                      {{ getAvatarInitial(student.name) }}
+                    <div class="relative w-10 h-10 shrink-0">
+                      <img v-if="student.equippedFrame" :src="student.equippedFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-sm z-10" />
+                      <div class="w-full h-full rounded-full bg-indigo-50 border border-stone-200 flex items-center justify-center overflow-hidden">
+                        <img :src="(student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.startsWith('data:'))) ? (student.avatar.startsWith('http') ? student.avatar : (student.avatar.startsWith('data:') ? student.avatar : `http://${student.avatar}`)) : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
+                      </div>
                     </div>
                     <div>
                       <p class="font-bold text-sm text-stone-800">{{ student.name }}</p>

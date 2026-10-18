@@ -432,8 +432,7 @@ const handleExecuteBatchEnroll = () => {
                   <div class="relative w-10 h-10 shrink-0">
                     <img v-if="student.equippedFrame" :src="student.equippedFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-sm z-10" />
                     <div class="w-full h-full rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center border border-emerald-200 text-sm relative z-0 overflow-hidden">
-                      <img v-if="student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.includes('localhost') || student.avatar.startsWith('data:'))" :src="student.avatar.startsWith('http') ? student.avatar : (student.avatar.startsWith('data:') ? student.avatar : `http://${student.avatar}`)" class="w-full h-full object-cover object-top" />
-                      <span v-else>{{ student.avatar || 'U' }}</span>
+                      <img :src="(student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.includes('localhost') || student.avatar.startsWith('data:'))) ? (student.avatar.startsWith('http') ? student.avatar : (student.avatar.startsWith('data:') ? student.avatar : `http://${student.avatar}`)) : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
                     </div>
                   </div>
                   <div>

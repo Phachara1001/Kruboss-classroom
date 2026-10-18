@@ -36,7 +36,8 @@ import {
   setAttendanceCheckIn, 
   batchCheckInClassroom,
   submissionsStore,
-  fetchAllCourseData
+  fetchAllCourseData,
+  formatExternalUrl
 } from '../data/gradesStore'
 import { addCoins, deductCoins, getStudentCoins } from '../data/shopStore'
 import { authUser } from '../data/authStore'
@@ -124,7 +125,7 @@ const availableClassrooms = computed(() => {
   return [...new Set([...roomsFromConfig, ...roomsFromData])].filter(Boolean)
 })
 
-// Students in this course & classroom (Locked to own classroom for students, Sorted by studentId ascending)
+// Students in this course & classroom (Locked to own classroom for teacher filter, strictly own record for students, Sorted by studentId ascending)
 const courseStudents = computed(() => {
   const effectiveClassroom = isTeacher.value ? selectedClassroom.value : studentClassroom.value
   return studentsList.value
@@ -132,6 +133,14 @@ const courseStudents = computed(() => {
       if (!isStudentInCourse(s, selectedCourseId.value)) return false
       if (!isStudent(s)) return false
       if (effectiveClassroom !== 'all' && s.classroom !== effectiveClassroom) return false
+
+      // ถ้าเป็นนักศึกษา (ไม่ใช่ครู/อาจารย์) ให้ดูได้เฉพาะข้อมูลของตัวเองเท่านั้น!
+      if (!isTeacher.value) {
+        const myStudentId = String(currentStudent.value?.studentId || authUser.value?.studentId || authUser.value?.id || '').trim()
+        const sStudentId = String(s.studentId || '').trim()
+        const sId = String(s.id || '').trim()
+        if (myStudentId && sStudentId !== myStudentId && sId !== myStudentId) return false
+      }
 
       const query = searchQuery.value.trim().toLowerCase()
       if (!query) return true
@@ -183,6 +192,12 @@ const attendancePresentRate = computed(() => {
     if (rec.status === 'present' || rec.status === 'leave') presentCount++
   })
   return Math.round((presentCount / courseStudents.value.length) * 100)
+})
+
+const myScoreSummary = computed(() => {
+  const sId = currentStudent.value?.studentId || authUser.value?.studentId || authUser.value?.id
+  if (!sId) return { totalScore: 0, gradeInfo: { grade: '0', letter: 'F' } }
+  return getStudentFullScore(selectedCourseId.value, sId, totalRecordedWeeks.value)
 })
 
 // Feedback Message
@@ -446,16 +461,20 @@ const handleBatchAllPresent = () => {
         <!-- Quick Summary Stats -->
         <div class="flex items-center gap-3 shrink-0 bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/15">
           <div class="text-center px-3 border-r border-white/20">
-            <span class="text-[10px] text-stone-300 block uppercase font-bold">นศ. ในชั้น</span>
-            <span class="text-xl font-black text-white">{{ courseStudents.length }} คน</span>
+            <span class="text-[10px] text-stone-300 block uppercase font-bold">{{ isTeacher ? 'นศ. ในชั้น' : 'สถานะ' }}</span>
+            <span class="text-xl font-black text-white">{{ isTeacher ? `${courseStudents.length} คน` : (currentStudent?.name?.split(' ')[0] || 'นักศึกษา') }}</span>
           </div>
           <div class="text-center px-3 border-r border-white/20">
-            <span class="text-[10px] text-stone-300 block uppercase font-bold">คะแนนเฉลี่ย</span>
-            <span class="text-xl font-black text-emerald-400">{{ classAverageScore }}/100</span>
+            <span class="text-[10px] text-stone-300 block uppercase font-bold">{{ isTeacher ? 'คะแนนเฉลี่ย' : 'คะแนนสะสม' }}</span>
+            <span class="text-xl font-black text-emerald-400">
+              {{ isTeacher ? `${classAverageScore}/100` : `${myScoreSummary.totalScore}/100` }}
+            </span>
           </div>
           <div class="text-center px-3">
-            <span class="text-[10px] text-stone-300 block uppercase font-bold">เข้าเรียนสัปดาห์นี้</span>
-            <span class="text-xl font-black text-amber-400">{{ attendancePresentRate }}%</span>
+            <span class="text-[10px] text-stone-300 block uppercase font-bold">{{ isTeacher ? 'เข้าเรียนสัปดาห์นี้' : 'เกรดปัจจุบัน' }}</span>
+            <span class="text-xl font-black text-amber-400">
+              {{ isTeacher ? `${attendancePresentRate}%` : `${myScoreSummary.gradeInfo?.grade || 0} (${myScoreSummary.gradeInfo?.letter || 'F'})` }}
+            </span>
           </div>
         </div>
       </div>
@@ -555,8 +574,8 @@ const handleBatchAllPresent = () => {
         </button>
       </div>
 
-      <!-- Quick Search input -->
-      <div class="relative w-full sm:w-64">
+      <!-- Quick Search input (Teacher only) -->
+      <div v-if="isTeacher" class="relative w-full sm:w-64">
         <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
         <input 
           v-model="searchQuery"
@@ -574,9 +593,9 @@ const handleBatchAllPresent = () => {
       <div class="flex items-center justify-between flex-wrap gap-2 text-xs text-stone-500">
         <span class="flex items-center gap-1.5">
           <Info class="w-4 h-4" :class="isTeacher ? 'text-emerald-600' : 'text-blue-600'" />
-          {{ isTeacher ? 'สามารถคลิกที่ช่องคะแนนความรับผิดชอบ, สอบกลางภาค, ปลายภาค เพื่อแก้ไขได้โดยตรง (บันทึกอัตโนมัติ)' : 'สรุปคะแนนสะสมและผลการเรียนในรายวิชา (โหมดดูข้อมูลเท่านั้น)' }}
+          {{ isTeacher ? 'สามารถคลิกที่ช่องคะแนนความรับผิดชอบ, สอบกลางภาค, ปลายภาค เพื่อแก้ไขได้โดยตรง (บันทึกอัตโนมัติ)' : 'สรุปคะแนนสะสมและผลการเรียนในรายวิชา (โหมดดูข้อมูลเฉพาะตนเอง)' }}
         </span>
-        <span>แสดง {{ courseStudents.length }} คน</span>
+        <span>{{ isTeacher ? `แสดง ${courseStudents.length} คน` : 'ข้อมูลเฉพาะตนเอง' }}</span>
       </div>
 
       <div class="bg-white rounded-3xl border border-stone-200 shadow-xs overflow-hidden">
@@ -630,10 +649,9 @@ const handleBatchAllPresent = () => {
                 <td class="py-3 px-4">
                   <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center shrink-0 text-xs overflow-hidden">
-                      <img v-if="student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.includes('localhost'))" 
-                           :src="student.avatar.startsWith('http') ? student.avatar : (student.avatar.startsWith('data:') ? student.avatar : `http://${student.avatar.replace(/^http:\/\//, '')}`)" 
-                           class="w-full h-full object-cover" />
-                      <span v-else>{{ student.avatar }}</span>
+                      <img :src="(student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.includes('localhost') || student.avatar.startsWith('data:'))) ? (student.avatar.startsWith('http') ? student.avatar : (student.avatar.startsWith('data:') ? student.avatar : `http://${student.avatar.replace(/^http:\/\//, '')}`)) : '/placeholder_profile.png'" 
+                           class="w-full h-full object-cover" 
+                           @error="$event.target.src = '/placeholder_profile.png'" />
                     </div>
                     <div>
                       <div class="flex items-center gap-1.5">
@@ -897,8 +915,9 @@ const handleBatchAllPresent = () => {
 
                   <!-- ลิงก์ดูงาน (ถ้ามี) -->
                   <a v-if="getSubmission(student.studentId, activeAssignment.id)"
-                     :href="getSubmission(student.studentId, activeAssignment.id).link"
+                     :href="formatExternalUrl(getSubmission(student.studentId, activeAssignment.id).link)"
                      target="_blank"
+                     rel="noopener noreferrer"
                      class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold text-[11px] inline-flex items-center gap-1 transition-colors"
                   >
                     <Search class="w-3.5 h-3.5" /> ดูงาน (Link)
