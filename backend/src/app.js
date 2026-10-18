@@ -18,6 +18,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 // Ensure 'assets' bucket exists
 ensureBucket('assets');
 
+function fixAssetUrl(url) {
+    if (!url || typeof url !== 'string') return url;
+    const idx = url.indexOf('/assets/');
+    if (idx !== -1) {
+        const filePart = url.substring(idx + 8);
+        return `https://kruboss-classroom.loeitech.ac.th/assets/${filePart}`;
+    }
+    return url;
+}
+
 const upload = multer({ storage: multer.memoryStorage() });
 
 // ==========================================
@@ -216,15 +226,11 @@ app.post('/api/auth/requests/:id/reject', async (req, res) => {
 app.get('/api/students', async (req, res) => {
     try {
         const students = await prisma.user.findMany();
-        const cleaned = students.map(s => {
-            if (s.avatar && (s.avatar.includes(':9000/assets/') || s.avatar.includes('/assets/'))) {
-                const parts = s.avatar.split('/assets/');
-                if (parts.length > 1 && !parts[1].startsWith('http')) {
-                    s.avatar = `/assets/${parts[1]}`;
-                }
-            }
-            return s;
-        });
+        const cleaned = students.map(s => ({
+            ...s,
+            avatar: fixAssetUrl(s.avatar),
+            equippedFrame: fixAssetUrl(s.equippedFrame)
+        }));
         res.json(cleaned);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -361,7 +367,11 @@ app.get('/api/shop/direct', async (req, res) => {
         const items = await prisma.directShopItem.findMany({
             orderBy: { createdAt: 'desc' }
         });
-        res.json(items);
+        const cleaned = items.map(it => ({
+            ...it,
+            image: fixAssetUrl(it.image)
+        }));
+        res.json(cleaned);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -490,7 +500,19 @@ app.get('/api/inventory/:studentId', async (req, res) => {
             where: { studentId: req.params.studentId },
             orderBy: { obtainedAt: 'desc' }
         });
-        res.json(inventory);
+        const cleaned = inventory.map(inv => {
+            if (inv.itemData && typeof inv.itemData === 'object') {
+                return {
+                    ...inv,
+                    itemData: {
+                        ...inv.itemData,
+                        image: fixAssetUrl(inv.itemData.image)
+                    }
+                };
+            }
+            return inv;
+        });
+        res.json(cleaned);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -609,7 +631,11 @@ app.get('/api/announcements', async (req, res) => {
         const announcements = await prisma.announcement.findMany({
             orderBy: { createdAt: 'desc' }
         });
-        res.json(announcements);
+        const cleaned = announcements.map(a => ({
+            ...a,
+            image: fixAssetUrl(a.image)
+        }));
+        res.json(cleaned);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -661,7 +687,15 @@ app.get('/api/shop/boxes', async (req, res) => {
         const boxes = await prisma.mysteryBox.findMany({
             orderBy: { createdAt: 'asc' }
         });
-        res.json(boxes);
+        const cleaned = boxes.map(b => ({
+            ...b,
+            image: fixAssetUrl(b.image),
+            items: Array.isArray(b.items) ? b.items.map(it => ({
+                ...it,
+                image: fixAssetUrl(it.image)
+            })) : b.items
+        }));
+        res.json(cleaned);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

@@ -79,6 +79,16 @@ export const aetheriaBoxPreset = {
   items: []
 }
 
+export function fixAssetUrl(url) {
+  if (!url || typeof url !== 'string') return url
+  const idx = url.indexOf('/assets/')
+  if (idx !== -1) {
+    const filePart = url.substring(idx + 8)
+    return `https://kruboss-classroom.loeitech.ac.th/assets/${filePart}`
+  }
+  return url
+}
+
 export const directShopItems = ref([])
 
 const API_BASE = API_BASE_URL
@@ -87,7 +97,10 @@ export async function fetchDirectItems() {
   try {
     const res = await fetch(`${API_BASE}/shop/direct`)
     const data = await res.json()
-    directShopItems.value = data
+    directShopItems.value = (data || []).map(it => ({
+      ...it,
+      image: fixAssetUrl(it.image)
+    }))
   } catch (e) {
     console.error('Failed to fetch direct items', e)
   }
@@ -99,8 +112,16 @@ export async function fetchBoxes() {
     if (res.ok) {
       const data = await res.json()
       if (Array.isArray(data)) {
-        if (data.length > 0) {
-          boxesList.value = data
+        const cleaned = data.map(b => ({
+          ...b,
+          image: fixAssetUrl(b.image),
+          items: Array.isArray(b.items) ? b.items.map(it => ({
+            ...it,
+            image: fixAssetUrl(it.image)
+          })) : []
+        }))
+        if (cleaned.length > 0) {
+          boxesList.value = cleaned
           localStorage.removeItem(STORAGE_KEY_BOXES)
         } else {
           // If database is empty, check if browser has old localStorage boxes to auto-migrate once

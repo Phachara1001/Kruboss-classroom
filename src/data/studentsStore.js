@@ -23,12 +23,18 @@ export const fetchStudents = async () => {
     const response = await fetch(`${API_BASE_URL}/students?_t=${Date.now()}`);
     const data = await response.json();
 
-    // Auto-sanitize avatar URLs (replace :9000 or 192.168.x.x with relative /assets/ to prevent Mixed Content & SSL errors)
+    // Auto-sanitize avatar URLs to full HTTPS domain
     const sanitized = (data || []).map(s => {
-      if (s.avatar && (s.avatar.includes(':9000/assets/') || s.avatar.includes('/assets/'))) {
+      if (s.avatar && s.avatar.includes('/assets/')) {
         const parts = s.avatar.split('/assets/');
-        if (parts.length > 1 && !parts[1].startsWith('http')) {
-          s.avatar = `/assets/${parts[1]}`;
+        if (parts.length > 1) {
+          s.avatar = `https://kruboss-classroom.loeitech.ac.th/assets/${parts[1]}`;
+        }
+      }
+      if (s.equippedFrame && s.equippedFrame.includes('/assets/')) {
+        const parts = s.equippedFrame.split('/assets/');
+        if (parts.length > 1) {
+          s.equippedFrame = `https://kruboss-classroom.loeitech.ac.th/assets/${parts[1]}`;
         }
       }
       return s;
