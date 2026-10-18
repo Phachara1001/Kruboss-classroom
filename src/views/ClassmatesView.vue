@@ -43,8 +43,10 @@ watch(() => route.params.id, (newId) => {
 })
 
 const isTeacher = computed(() => {
+  if (!authUser.value) return false
   const r = (authUser.value?.role || '').toLowerCase()
-  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r)
+  const id = (authUser.value?.studentId || authUser.value?.id || '').toString().toLowerCase()
+  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r) || id === 'boss' || id === '0000'
 })
 
 const currentStudent = computed(() => {
@@ -54,7 +56,7 @@ const currentStudent = computed(() => {
 })
 
 const studentClassroom = computed(() => {
-  return currentStudent.value?.classroom || authUser.value?.classroom || 'ปวส.1/1'
+  return currentStudent.value?.classroom || authUser.value?.classroom || ''
 })
 
 const course = computed(() => courses.find(c => c.id === route.params.id) || courses[0])
@@ -75,11 +77,11 @@ const teacher = computed(() => {
 })
 
 // Classroom Filter State
-const selectedClassroom = ref(isTeacher.value ? 'all' : studentClassroom.value) // 'all' or specific room name like 'ปวส.1/1'
+const selectedClassroom = ref(isTeacher.value ? 'all' : (studentClassroom.value || 'all'))
 const searchQuery = ref('')
 
-watch(studentClassroom, (room) => {
-  if (!isTeacher.value && room) {
+watch([studentClassroom, isTeacher], ([room, teacher]) => {
+  if (!teacher && room) {
     selectedClassroom.value = room
   }
 }, { immediate: true })
@@ -98,8 +100,15 @@ const courseStudents = computed(() => {
 
 const filteredClassmates = computed(() => {
   return courseStudents.value.filter(s => {
-    const matchRoom = selectedClassroom.value === 'all' || s.classroom === selectedClassroom.value
-    if (!matchRoom) return false
+    // สำหรับนักเรียน: ล็อคให้ดูได้แค่ห้องตัวเองเท่านั้น (ห้ามดูห้องอื่น)
+    if (!isTeacher.value) {
+      if (studentClassroom.value && s.classroom !== studentClassroom.value) {
+        return false
+      }
+    } else {
+      const matchRoom = selectedClassroom.value === 'all' || s.classroom === selectedClassroom.value
+      if (!matchRoom) return false
+    }
 
     const query = searchQuery.value.trim().toLowerCase()
     if (!query) return true

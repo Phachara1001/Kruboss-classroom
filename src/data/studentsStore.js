@@ -22,14 +22,29 @@ export const fetchStudents = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/students?_t=${Date.now()}`);
     const data = await response.json();
-    studentsList.value = data;
+
+    // Auto-sanitize avatar URLs (replace :9000 or 192.168.x.x with relative /assets/ to prevent Mixed Content & SSL errors)
+    const sanitized = (data || []).map(s => {
+      if (s.avatar && (s.avatar.includes(':9000/assets/') || s.avatar.includes('/assets/'))) {
+        const parts = s.avatar.split('/assets/');
+        if (parts.length > 1 && !parts[1].startsWith('http')) {
+          s.avatar = `/assets/${parts[1]}`;
+        }
+      }
+      return s;
+    });
+
+    studentsList.value = sanitized;
 
     // Sync logged in user profile & coins
     if (authUser.value) {
       const myId = authUser.value.studentId || authUser.value.id;
-      const me = data.find(s => s.studentId === myId || s.id === myId);
+      const me = sanitized.find(s => s.studentId === myId || s.id === myId);
       if (me && me.coins !== undefined && authUser.value.coins !== me.coins) {
         updateAuthUser({ coins: me.coins });
+      }
+      if (me && me.avatar && authUser.value.avatar !== me.avatar) {
+        updateAuthUser({ avatar: me.avatar });
       }
     }
   } catch (err) {

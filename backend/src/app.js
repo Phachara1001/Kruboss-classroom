@@ -41,11 +41,13 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         const publicBase = process.env.PUBLIC_STORAGE_URL || process.env.MINIO_PUBLIC_URL;
         let url;
         if (publicBase) {
-            url = `${publicBase.replace(/\/$/, '')}/${bucketName}/${fileName}`;
+            let base = publicBase.replace(/\/$/, '');
+            if (base.startsWith('https://') && base.includes(':9000')) {
+                base = base.replace(':9000', '');
+            }
+            url = base.endsWith(`/${bucketName}`) ? `${base}/${fileName}` : `${base}/${bucketName}/${fileName}`;
         } else {
-            const minioHost = process.env.MINIO_ENDPOINT || 'localhost';
-            const minioPort = process.env.MINIO_PORT || '9000';
-            url = `http://${minioHost}:${minioPort}/${bucketName}/${fileName}`;
+            url = `/${bucketName}/${fileName}`;
         }
 
         res.json({ success: true, url });
@@ -214,7 +216,16 @@ app.post('/api/auth/requests/:id/reject', async (req, res) => {
 app.get('/api/students', async (req, res) => {
     try {
         const students = await prisma.user.findMany();
-        res.json(students);
+        const cleaned = students.map(s => {
+            if (s.avatar && (s.avatar.includes(':9000/assets/') || s.avatar.includes('/assets/'))) {
+                const parts = s.avatar.split('/assets/');
+                if (parts.length > 1 && !parts[1].startsWith('http')) {
+                    s.avatar = `/assets/${parts[1]}`;
+                }
+            }
+            return s;
+        });
+        res.json(cleaned);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

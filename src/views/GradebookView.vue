@@ -124,19 +124,25 @@ const availableClassrooms = computed(() => {
   return [...new Set([...roomsFromConfig, ...roomsFromData])].filter(Boolean)
 })
 
-// Students in this course & classroom (Locked to own classroom for students)
+// Students in this course & classroom (Locked to own classroom for students, Sorted by studentId ascending)
 const courseStudents = computed(() => {
   const effectiveClassroom = isTeacher.value ? selectedClassroom.value : studentClassroom.value
-  return studentsList.value.filter(s => {
-    if (!isStudentInCourse(s, selectedCourseId.value)) return false
-    if (!isStudent(s)) return false
-    if (effectiveClassroom !== 'all' && s.classroom !== effectiveClassroom) return false
+  return studentsList.value
+    .filter(s => {
+      if (!isStudentInCourse(s, selectedCourseId.value)) return false
+      if (!isStudent(s)) return false
+      if (effectiveClassroom !== 'all' && s.classroom !== effectiveClassroom) return false
 
-    const query = searchQuery.value.trim().toLowerCase()
-    if (!query) return true
+      const query = searchQuery.value.trim().toLowerCase()
+      if (!query) return true
 
-    return (s.name || '').toLowerCase().includes(query) || (s.studentId || '').includes(query)
-  })
+      return (s.name || '').toLowerCase().includes(query) || (s.studentId || '').includes(query)
+    })
+    .sort((a, b) => {
+      const idA = String(a.studentId || a.id || '')
+      const idB = String(b.studentId || b.id || '')
+      return idA.localeCompare(idB, undefined, { numeric: true })
+    })
 })
 
 // Assignments of current course
