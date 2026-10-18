@@ -395,32 +395,105 @@ app.post('/api/shop/direct', async (req, res) => {
     }
 });
 
-app.put('/api/shop/direct/:id', async (req, res) => {
+const handleDirectUpdate = async (req, res) => {
     try {
+        const targetId = req.query.id || req.body?.id || req.params[0] || req.params.id;
+        if (!targetId) {
+            return res.status(400).json({ error: 'Missing item id' });
+        }
         const payload = { ...req.body };
-        delete payload.isSale; // Field not in DB
+        delete payload.isSale;
+        delete payload.id;
+
+        let item = await prisma.directShopItem.findUnique({ where: { id: targetId } });
+        if (!item) {
+            try {
+                item = await prisma.directShopItem.findUnique({ where: { id: decodeURIComponent(targetId) } });
+            } catch (e) {}
+        }
+        if (!item) {
+            item = await prisma.directShopItem.findFirst({ where: { image: targetId } });
+        }
+        if (!item) {
+            const parts = targetId.split('/');
+            const filename = parts[parts.length - 1];
+            if (filename) {
+                item = await prisma.directShopItem.findFirst({
+                    where: {
+                        OR: [
+                            { id: { contains: filename } },
+                            { image: { contains: filename } }
+                        ]
+                    }
+                });
+            }
+        }
+
+        if (!item) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
 
         const updated = await prisma.directShopItem.update({
-            where: { id: req.params.id },
+            where: { id: item.id },
             data: payload
         });
         res.json(updated);
     } catch (err) {
+        console.error('Error updating direct item:', err);
         res.status(500).json({ error: err.message });
     }
-});
+};
 
-// Delete direct shop item
-app.delete('/api/shop/direct/:id', async (req, res) => {
+app.put('/api/shop/direct', handleDirectUpdate);
+app.put('/api/shop/direct/:id', handleDirectUpdate);
+
+const handleDirectDelete = async (req, res) => {
     try {
+        const targetId = req.query.id || req.body?.id || req.params.id;
+        if (!targetId) {
+            return res.status(400).json({ error: 'Missing item id' });
+        }
+
+        let item = await prisma.directShopItem.findUnique({ where: { id: targetId } });
+        if (!item) {
+            try {
+                item = await prisma.directShopItem.findUnique({ where: { id: decodeURIComponent(targetId) } });
+            } catch (e) {}
+        }
+        if (!item) {
+            item = await prisma.directShopItem.findFirst({ where: { image: targetId } });
+        }
+        if (!item) {
+            const parts = targetId.split('/');
+            const filename = parts[parts.length - 1];
+            if (filename) {
+                item = await prisma.directShopItem.findFirst({
+                    where: {
+                        OR: [
+                            { id: { contains: filename } },
+                            { image: { contains: filename } }
+                        ]
+                    }
+                });
+            }
+        }
+
+        if (!item) {
+            return res.status(404).json({ error: 'Item not found to delete' });
+        }
+
         await prisma.directShopItem.delete({
-            where: { id: req.params.id }
+            where: { id: item.id }
         });
-        res.json({ success: true });
+        res.json({ success: true, deletedId: item.id });
     } catch (err) {
+        console.error('Error deleting direct item:', err);
         res.status(500).json({ error: err.message });
     }
-});
+};
+
+app.delete('/api/shop/direct', handleDirectDelete);
+app.delete('/api/shop/direct/:id', handleDirectDelete);
 
 // Buy an item (direct shop)
 app.post('/api/shop/buy', async (req, res) => {
@@ -715,6 +788,7 @@ app.get('/api/shop/boxes', async (req, res) => {
         });
         const cleaned = boxes.map(b => ({
             ...b,
+            isSale: b.isSale !== false,
             image: fixAssetUrl(b.image),
             items: Array.isArray(b.items) ? b.items.map(it => ({
                 ...it,
@@ -729,32 +803,26 @@ app.get('/api/shop/boxes', async (req, res) => {
 
 app.post('/api/shop/boxes', async (req, res) => {
     try {
-        const { id, name, price, image, description, category, reqRank, purchaseLimit, badge, items } = req.body;
+        const { id, name, price, image, description, category, reqRank, purchaseLimit, badge, items, isSale } = req.body;
         const boxId = (id && String(id).trim()) ? String(id).trim() : `box-${Date.now()}`;
+        const boxData = {
+            name: name || 'กล่องสุ่มใหม่', 
+            price: Number(price) || 0, 
+            image: image || '', 
+            description: description || '', 
+            category: category || 'ทั่วไป', 
+            reqRank: reqRank || '', 
+            purchaseLimit: Number(purchaseLimit) || 0, 
+            badge: badge || '', 
+            items: items || [],
+            isSale: isSale !== undefined ? Boolean(isSale) : true
+        };
         const box = await prisma.mysteryBox.upsert({
             where: { id: boxId },
-            update: { 
-                name: name || 'กล่องสุ่มใหม่', 
-                price: Number(price) || 0, 
-                image: image || '', 
-                description: description || '', 
-                category: category || 'ทั่วไป', 
-                reqRank: reqRank || '', 
-                purchaseLimit: Number(purchaseLimit) || 0, 
-                badge: badge || '', 
-                items: items || [] 
-            },
+            update: boxData,
             create: { 
                 id: boxId, 
-                name: name || 'กล่องสุ่มใหม่', 
-                price: Number(price) || 0, 
-                image: image || '', 
-                description: description || '', 
-                category: category || 'ทั่วไป', 
-                reqRank: reqRank || '', 
-                purchaseLimit: Number(purchaseLimit) || 0, 
-                badge: badge || '', 
-                items: items || [] 
+                ...boxData
             }
         });
         res.json(box);
@@ -764,34 +832,46 @@ app.post('/api/shop/boxes', async (req, res) => {
     }
 });
 
-app.put('/api/shop/boxes/:id', async (req, res) => {
+const handleBoxUpdate = async (req, res) => {
     try {
-        const { id } = req.params;
+        const targetId = req.query.id || req.body?.id || req.params.id;
+        if (!targetId) return res.status(400).json({ error: 'Missing box id' });
+
         const data = { ...req.body };
         if (data.price !== undefined) data.price = Number(data.price);
         if (data.purchaseLimit !== undefined) data.purchaseLimit = Number(data.purchaseLimit);
+        if (data.isSale !== undefined) data.isSale = Boolean(data.isSale);
         delete data.id;
 
         const updated = await prisma.mysteryBox.update({
-            where: { id },
+            where: { id: targetId },
             data
         });
         res.json(updated);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-});
+};
 
-app.delete('/api/shop/boxes/:id', async (req, res) => {
+app.put('/api/shop/boxes', handleBoxUpdate);
+app.put('/api/shop/boxes/:id', handleBoxUpdate);
+
+const handleBoxDelete = async (req, res) => {
     try {
+        const targetId = req.query.id || req.body?.id || req.params.id;
+        if (!targetId) return res.status(400).json({ error: 'Missing box id' });
+
         await prisma.mysteryBox.delete({
-            where: { id: req.params.id }
+            where: { id: targetId }
         });
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-});
+};
+
+app.delete('/api/shop/boxes', handleBoxDelete);
+app.delete('/api/shop/boxes/:id', handleBoxDelete);
 
 // ==========================================
 // 5. SUBMISSIONS (ระบบส่งงาน)

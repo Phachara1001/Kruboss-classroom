@@ -8,7 +8,6 @@ import {
   Plus,
   Trophy,
   Flame,
-  RotateCcw,
   Coins,
   Info,
   Trash2,
@@ -21,7 +20,8 @@ import {
   SlidersHorizontal,
   X,
   ArrowDownAZ,
-  ArrowUpAZ
+  ArrowUpAZ,
+  EyeOff
 } from '@lucide/vue'
 import {
   boxesList,
@@ -35,14 +35,14 @@ import {
   getStudentItems,
   deleteMysteryBox,
   rarityConfig,
-  resetBoxesToDefault,
   directShopItems,
   buyDirectItemAPI,
   addDirectItem,
   editDirectItem,
   removeDirectItem,
   fetchDirectItems,
-  fetchBoxes
+  fetchBoxes,
+  toggleBoxSaleStatus
 } from '../data/shopStore'
 import { studentsList, isStudent } from '../data/studentsStore'
 import { authUser } from '../data/authStore'
@@ -85,6 +85,7 @@ const handleConfirm = () => {
 // Current active view tab: 'boxes' | 'inventory'
 const activeTab = ref('direct')
 const teacherItemFilter = ref('all') // 'all', 'on_sale', 'hidden'
+const teacherBoxFilter = ref('all') // 'all', 'on_sale', 'hidden'
 
 // Modals State
 const showAddModal = ref(false)
@@ -142,6 +143,19 @@ const sortedDirectItems = computed(() => {
     }
     return b.price - a.price
   })
+})
+
+const displayedBoxes = computed(() => {
+  let list = [...boxesList.value]
+  if (currentRole.value !== 'teacher') {
+    return list.filter(b => b.isSale !== false)
+  }
+  if (teacherBoxFilter.value === 'on_sale') {
+    return list.filter(b => b.isSale !== false)
+  } else if (teacherBoxFilter.value === 'hidden') {
+    return list.filter(b => b.isSale === false)
+  }
+  return list
 })
 
 const handlePreviewItem = (item) => {
@@ -204,6 +218,29 @@ const handleDeleteBox = (boxId) => {
   )
 }
 
+const handleToggleBoxSaleStatus = (box) => {
+  showConfirm(
+    box.isSale === false ? 'ยืนยันการเปิดขายกล่องสุ่ม' : 'ยืนยันการปิดการขายกล่องสุ่ม',
+    box.isSale === false
+      ? `คุณต้องการเปิดขายกล่องสุ่ม "${box.name}" ให้นักศึกษาเห็นและสุ่มได้ใช่หรือไม่?`
+      : `คุณต้องการปิดการขายกล่องสุ่ม "${box.name}" (ซ่อนจากหน้าร้านค้าของนักศึกษา) ใช่หรือไม่?`,
+    'confirm',
+    async () => {
+      try {
+        await toggleBoxSaleStatus(box)
+        showConfirm(
+          'สำเร็จ',
+          box.isSale !== false ? `เปิดขาย "${box.name}" เรียบร้อยแล้ว` : `ปิดการขาย (ซ่อน "${box.name}") เรียบร้อยแล้ว`,
+          'confirm',
+          null
+        )
+      } catch (err) {
+        showConfirm('เกิดข้อผิดพลาด', err.message || 'ไม่สามารถเปลี่ยนสถานะได้', 'alert', null)
+      }
+    }
+  )
+}
+
 const openRateInfo = (box) => {
   selectedBoxForRate.value = box
   showRateModal.value = true
@@ -250,17 +287,6 @@ const grantCoinsToStudent = () => {
   showGrantCoinModal.value = false
 }
 
-const handleResetAetheria = () => {
-  showConfirm(
-    'ยืนยันการรีเซ็ต',
-    'ต้องการรีเซ็ตและบันทึกกล่อง AETHERIA ลงฐานข้อมูลใช่หรือไม่?',
-    'danger',
-    async () => {
-      await resetBoxesToDefault()
-      await fetchBoxes()
-    }
-  )
-}
 
 // Buy Direct Item
 const handleBuyDirect = (item) => {
@@ -290,7 +316,14 @@ const handleRemoveDirectItem = (itemId) => {
     'ยืนยันการลบไอเทม',
     'คุณต้องการลบไอเทมนี้ออกจากร้านค้าแฟชั่นใช่หรือไม่?',
     'danger',
-    () => removeDirectItem(itemId)
+    async () => {
+      try {
+        await removeDirectItem(itemId)
+        showConfirm('สำเร็จ', 'ลบไอเทมเรียบร้อยแล้ว', 'confirm', null)
+      } catch (err) {
+        showConfirm('เกิดข้อผิดพลาด', err.message || 'ไม่สามารถลบไอเทมได้', 'alert', null)
+      }
+    }
   )
 }
 
@@ -308,23 +341,31 @@ const handleToggleSaleStatus = (item) => {
       ? `คุณต้องการเปิดขายไอเทม "${item.name}" ให้นักศึกษาเห็นใช่หรือไม่?`
       : `คุณต้องการปิดการขายไอเทม "${item.name}" (ซ่อนจากนักศึกษา) ใช่หรือไม่?`,
     'confirm',
-    () => {
-      // Toggle it via shopStore or manually mutate here and save
-      item.isSale = item.isSale === false ? true : false
-      editDirectItem(item)
+    async () => {
+      try {
+        item.isSale = item.isSale === false ? true : false
+        await editDirectItem(item)
+      } catch (err) {
+        showConfirm('เกิดข้อผิดพลาด', 'ไม่สามารถเปลี่ยนสถานะได้', 'alert', null)
+      }
     }
   )
 }
 
-const handleSaveDirectItem = (itemData) => {
-  if (itemToEdit.value && itemToEdit.value.id === itemData.id) {
-    editDirectItem(itemData)
-    showConfirm('สำเร็จ', 'แก้ไขไอเทมเรียบร้อยแล้ว', 'confirm', null)
-  } else {
-    addDirectItem(itemData)
-    showConfirm('สำเร็จ', 'เพิ่มไอเทมในร้านค้าแฟชั่นเรียบร้อยแล้ว', 'confirm', null)
+const handleSaveDirectItem = async (itemData) => {
+  try {
+    if (itemToEdit.value) {
+      await editDirectItem({ ...itemData, id: itemToEdit.value.id })
+      showConfirm('สำเร็จ', 'แก้ไขไอเทมเรียบร้อยแล้ว', 'confirm', null)
+    } else {
+      await addDirectItem(itemData)
+      showConfirm('สำเร็จ', 'เพิ่มไอเทมในร้านค้าแฟชั่นเรียบร้อยแล้ว', 'confirm', null)
+    }
+  } catch (err) {
+    showConfirm('เกิดข้อผิดพลาด', err.message || 'ไม่สามารถบันทึกข้อมูลได้', 'alert', null)
+  } finally {
+    itemToEdit.value = null
   }
-  itemToEdit.value = null
 }
 
 const TIERS = {
@@ -476,20 +517,36 @@ const resetTilt = (e) => {
         </button>
       </div>
 
-      <!-- Teacher Sub-filter Tabs -->
+      <!-- Teacher Sub-filter Tabs (Direct Items) -->
       <div v-if="currentRole === 'teacher' && activeTab === 'direct'" class="flex items-center gap-2">
         <button @click="teacherItemFilter = 'all'" :class="[
           'px-4 py-2 rounded-xl font-bold text-[11px] transition-all cursor-pointer',
           teacherItemFilter === 'all' ? 'bg-stone-800 text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-        ]">ทั้งหมด</button>
+        ]">ทั้งหมด ({{ directShopItems.length }})</button>
         <button @click="teacherItemFilter = 'on_sale'" :class="[
           'px-4 py-2 rounded-xl font-bold text-[11px] transition-all cursor-pointer',
           teacherItemFilter === 'on_sale' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-        ]">เปิดขายอยู่</button>
+        ]">เปิดขายอยู่ ({{ directShopItems.filter(i => i.isSale !== false).length }})</button>
         <button @click="teacherItemFilter = 'hidden'" :class="[
           'px-4 py-2 rounded-xl font-bold text-[11px] transition-all cursor-pointer',
           teacherItemFilter === 'hidden' ? 'bg-stone-500 text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-        ]">ปิดการขาย (ซ่อน)</button>
+        ]">ปิดการขาย ({{ directShopItems.filter(i => i.isSale === false).length }})</button>
+      </div>
+
+      <!-- Teacher Sub-filter Tabs (Mystery Boxes) -->
+      <div v-if="currentRole === 'teacher' && activeTab === 'boxes'" class="flex items-center gap-2">
+        <button @click="teacherBoxFilter = 'all'" :class="[
+          'px-4 py-2 rounded-xl font-bold text-[11px] transition-all cursor-pointer',
+          teacherBoxFilter === 'all' ? 'bg-stone-800 text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+        ]">ทั้งหมด ({{ boxesList.length }})</button>
+        <button @click="teacherBoxFilter = 'on_sale'" :class="[
+          'px-4 py-2 rounded-xl font-bold text-[11px] transition-all cursor-pointer',
+          teacherBoxFilter === 'on_sale' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+        ]">เปิดขายอยู่ ({{ boxesList.filter(b => b.isSale !== false).length }})</button>
+        <button @click="teacherBoxFilter = 'hidden'" :class="[
+          'px-4 py-2 rounded-xl font-bold text-[11px] transition-all cursor-pointer',
+          teacherBoxFilter === 'hidden' ? 'bg-stone-500 text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+        ]">ปิดการขาย ({{ boxesList.filter(b => b.isSale === false).length }})</button>
       </div>
     </div>
 
@@ -498,27 +555,25 @@ const resetTilt = (e) => {
     <!-- ============================================== -->
     <div v-if="activeTab === 'boxes'" class="space-y-6">
 
-      <div v-if="boxesList.length === 0"
+      <div v-if="displayedBoxes.length === 0"
         class="py-16 text-center bg-white rounded-3xl border border-stone-200 p-8 space-y-4 shadow-sm">
         <Package class="w-12 h-12 text-stone-400 mx-auto" />
-        <h4 class="text-base font-bold text-stone-800">ยังไม่มีกล่องสุ่มในร้านค้า</h4>
-        <p class="text-xs text-stone-500">คุณสามารถกดเพิ่มกล่องสุ่มใหม่เพื่อเริ่มเปิดให้บริการแก่นักศึกษา</p>
+        <h4 class="text-base font-bold text-stone-800">
+          {{ teacherBoxFilter === 'hidden' ? 'ไม่มีกล่องสุ่มที่ปิดการขาย' : 'ยังไม่มีกล่องสุ่มที่เปิดขาย' }}
+        </h4>
+        <p class="text-xs text-stone-500">
+          {{ currentRole === 'teacher' ? 'คุณสามารถสลับแท็บเพื่อดูกล่องสุ่มทั้งหมด หรือเพิ่มกล่องใหม่ได้' : 'โปรดติดตามกล่องสุ่มใหม่เร็วๆ นี้' }}
+        </p>
         <button v-if="currentRole === 'teacher'" @click="openAddBoxModal"
           class="px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-sm hover:bg-emerald-700 transition-all inline-flex items-center gap-2 cursor-pointer">
-          <Plus class="w-4 h-4" /> เพิ่มกล่องสุ่มกล่องแรก
+          <Plus class="w-4 h-4" /> เพิ่มกล่องสุ่มใหม่
         </button>
       </div>
 
       <div v-else class="space-y-6">
         <div class="flex items-center justify-end">
-          <!-- Add Box Button & Reset (Teacher) -->
+          <!-- Add Box Button (Teacher) -->
           <div v-if="currentRole === 'teacher'" class="flex items-center gap-2">
-            <button @click="handleResetAetheria"
-              class="px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs shadow-sm hover:bg-stone-50 transition-all flex items-center gap-2 cursor-pointer"
-              title="รีเซ็ตกล่องสุ่มให้ตรงกับโฟลเดอร์ public/img/Gacha/AETHERIA">
-              <RotateCcw class="w-4 h-4 text-amber-500" />
-              <span>รีเซ็ตเซ็ต AETHERIA</span>
-            </button>
             <button @click="openAddBoxModal"
               class="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-sm hover:bg-emerald-700 transition-all inline-flex items-center gap-2 cursor-pointer">
               <Plus class="w-4 h-4" /> เพิ่มกล่องสุ่มใหม่
@@ -528,8 +583,9 @@ const resetTilt = (e) => {
 
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-        <div v-for="box in boxesList" :key="box.id"
-          class="rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-black text-white border border-stone-800 shadow-xl overflow-hidden flex flex-col group hover:border-amber-400/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+        <div v-for="box in displayedBoxes" :key="box.id"
+          class="rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-black text-white border shadow-xl overflow-hidden flex flex-col group transition-all duration-300 hover:-translate-y-1"
+          :class="box.isSale === false ? 'border-stone-800 opacity-75 hover:border-stone-600' : 'border-stone-800 hover:border-amber-400/50 hover:shadow-2xl'">
           <!-- Box Header Banner & Image -->
           <div
             class="relative h-56 w-full p-4 flex items-center justify-center overflow-hidden bg-gradient-to-t from-stone-950 to-stone-900/60">
@@ -551,8 +607,15 @@ const resetTilt = (e) => {
                 <span>{{ box.price }} Coins</span>
               </div>
 
+              <!-- Box Hidden Badge -->
+              <div v-if="box.isSale === false"
+                class="px-2 py-0.5 rounded-md text-[9px] font-black tracking-wider uppercase shadow-md flex items-center gap-1 bg-stone-700 text-stone-300 border border-stone-600">
+                <EyeOff class="w-3 h-3 text-stone-400" />
+                <span>ปิดการขาย (ซ่อน)</span>
+              </div>
+
               <!-- Box Badge -->
-              <div v-if="box.badge"
+              <div v-if="box.badge && box.isSale !== false"
                 class="px-2 py-0.5 rounded-md text-[9px] font-black tracking-wider uppercase shadow-md flex items-center gap-1"
                 :class="{
                   'bg-rose-500 text-white border border-rose-400': box.badge === 'HOT',
@@ -571,14 +634,21 @@ const resetTilt = (e) => {
             </div>
 
             <!-- Teacher Admin Actions -->
-            <div v-if="currentRole === 'teacher'" class="absolute top-4 left-4 flex items-center gap-1.5">
+            <div v-if="currentRole === 'teacher'" class="absolute top-4 left-4 flex items-center gap-1.5 z-20">
               <button @click.stop="openEditBoxModal(box)"
-                class="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
+                class="w-7 h-7 rounded-lg bg-indigo-500/80 hover:bg-indigo-500 text-white flex items-center justify-center transition-colors cursor-pointer shadow-md"
                 title="แก้ไขกล่องนี้">
                 <Pencil class="w-3.5 h-3.5" />
               </button>
+              <button @click.stop="handleToggleBoxSaleStatus(box)"
+                class="w-7 h-7 rounded-lg text-white flex items-center justify-center transition-colors cursor-pointer shadow-md"
+                :class="box.isSale === false ? 'bg-stone-500/80 hover:bg-stone-500' : 'bg-emerald-500/80 hover:bg-emerald-500'"
+                :title="box.isSale === false ? 'ปิดการขายอยู่ (คลิกเพื่อเปิดขาย)' : 'เปิดขายอยู่ (คลิกเพื่อซ่อนจากนักศึกษา)'">
+                <Eye v-if="box.isSale !== false" class="w-3.5 h-3.5" />
+                <EyeOff v-else class="w-3.5 h-3.5" />
+              </button>
               <button @click.stop="handleDeleteBox(box.id)"
-                class="w-7 h-7 rounded-lg bg-red-500/30 hover:bg-red-500/50 text-red-300 flex items-center justify-center transition-colors cursor-pointer"
+                class="w-7 h-7 rounded-lg bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center transition-colors cursor-pointer shadow-md"
                 title="ลบกล่องนี้">
                 <Trash2 class="w-3.5 h-3.5" />
               </button>
@@ -644,8 +714,8 @@ const resetTilt = (e) => {
               <span>เปิดกล่องสุ่ม ({{ box.price }} Coins)</span>
             </button>
 
-            <!-- Test Open Button -->
-            <button @click="handleTestOpenBox(box)"
+            <!-- Test Open Button (Teacher Only) -->
+            <button v-if="currentRole === 'teacher'" @click="handleTestOpenBox(box)"
               class="w-full py-2.5 rounded-xl font-bold text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-2">
               <Eye class="w-3.5 h-3.5" />
               <span>ทดสอบเปิดกล่อง (ฟรี / ไม่เก็บเข้ากระเป๋า)</span>

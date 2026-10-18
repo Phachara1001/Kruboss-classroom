@@ -114,6 +114,7 @@ export async function fetchBoxes() {
       if (Array.isArray(data)) {
         const cleaned = data.map(b => ({
           ...b,
+          isSale: b.isSale !== false,
           image: fixAssetUrl(b.image),
           items: Array.isArray(b.items) ? b.items.map(it => ({
             ...it,
@@ -176,7 +177,7 @@ export async function addDirectItem(item) {
 
 export async function editDirectItem(updatedItem) {
   try {
-    const res = await fetch(`${API_BASE}/shop/direct/${encodeURIComponent(updatedItem.id)}`, {
+    const res = await fetch(`${API_BASE}/shop/direct?id=${encodeURIComponent(updatedItem.id)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedItem)
@@ -187,18 +188,27 @@ export async function editDirectItem(updatedItem) {
     if (idx !== -1) {
       directShopItems.value[idx] = { ...directShopItems.value[idx], ...data }
     }
+    return data
   } catch (e) {
-    console.error(e)
+    console.error('Failed to edit direct item:', e)
     throw e
   }
 }
 
 export async function removeDirectItem(itemId) {
   try {
-    await fetch(`${API_BASE}/shop/direct/${encodeURIComponent(itemId)}`, { method: 'DELETE' })
+    const res = await fetch(`${API_BASE}/shop/direct?id=${encodeURIComponent(itemId)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: itemId })
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Failed to delete item')
     directShopItems.value = directShopItems.value.filter(i => i.id !== itemId)
+    return true
   } catch (e) {
-    console.error(e)
+    console.error('Failed to remove direct item:', e)
+    throw e
   }
 }
 
@@ -620,6 +630,7 @@ export async function giveItemToStudent(studentId, item, boxName = 'เควส
 export async function saveMysteryBox(boxData) {
   const newBox = {
     ...boxData,
+    isSale: boxData.isSale !== undefined ? boxData.isSale : true,
     id: (boxData.id && String(boxData.id).trim()) || `box-${Date.now()}`
   }
 
@@ -649,11 +660,36 @@ export async function saveMysteryBox(boxData) {
   }
 }
 
+// Toggle box sale status (Role Teacher)
+export async function toggleBoxSaleStatus(box) {
+  const newStatus = box.isSale === false ? true : false
+  try {
+    const res = await fetch(`${API_BASE}/shop/boxes?id=${encodeURIComponent(box.id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isSale: newStatus })
+    })
+    if (!res.ok) {
+      throw new Error('Failed to update box sale status')
+    }
+    const idx = boxesList.value.findIndex(b => b.id === box.id)
+    if (idx !== -1) {
+      boxesList.value[idx].isSale = newStatus
+    }
+    return newStatus
+  } catch (e) {
+    console.error('Failed to toggle box sale status:', e)
+    throw e
+  }
+}
+
 // Delete a box (Role Teacher) - Direct to PostgreSQL Database
 export async function deleteMysteryBox(boxId) {
   try {
-    const res = await fetch(`${API_BASE}/shop/boxes/${encodeURIComponent(boxId)}`, {
-      method: 'DELETE'
+    const res = await fetch(`${API_BASE}/shop/boxes?id=${encodeURIComponent(boxId)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: boxId })
     })
     if (!res.ok) {
       throw new Error('Failed to delete mystery box from database')
@@ -671,6 +707,10 @@ export async function drawGacha(boxId, studentId) {
   const box = boxesList.value.find(b => b.id === boxId)
   if (!box) {
     return { success: false, message: 'ไม่พบกล่องสุ่มนี้ในระบบ' }
+  }
+
+  if (box.isSale === false && currentRole.value !== 'teacher') {
+    return { success: false, message: 'กล่องสุ่มนี้ปิดการขายชั่วคราว' }
   }
 
   // Check coins locally first

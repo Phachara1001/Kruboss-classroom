@@ -159,6 +159,7 @@ model MysteryBox {
   purchaseLimit Int      @default(0)
   badge         String?
   items         Json     // Array ของไอเทมทั้งหมดในกล่องรวมถึง % ออก (Rate)
+  isSale        Boolean  @default(true) // เปิดขาย/ปิดการขาย (ซ่อนจากร้านค้า)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -172,6 +173,7 @@ model DirectShopItem {
   category    String?
   itemType    String?
   rarity      String?
+  isSale      Boolean  @default(true) // เปิดขาย/ปิดการขาย (ซ่อนจากร้านค้า)
   createdAt   DateTime @default(now())
 }
 

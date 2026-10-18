@@ -10,14 +10,14 @@ import {
   AlertCircle, 
   Check, 
   Layers,
-  Wand2,
   Filter,
-  FolderOpen
+  FolderOpen,
+  Eye,
+  EyeOff
 } from '@lucide/vue'
 import { 
   saveMysteryBox, 
   rarityConfig, 
-  aetheriaBoxPreset, 
   gachaFolderAssets
 } from '../data/shopStore'
 import { API_UPLOAD_URL } from '@/config/api'
@@ -102,22 +102,6 @@ const handleFileUpload = async (event, targetType) => {
   }
 }
 
-const loadAetheriaTemplate = () => {
-  formData.value = {
-    id: formData.value.id || `box-aetheria-${Date.now()}`,
-    name: 'AETHERIA: Mystic Companions',
-    price: 50,
-    image: gachaFolderAssets.boxes[0]?.path || '',
-    description: 'กล่องสุ่มสัตว์เลี้ยงและภูติผู้พิทักษ์แห่งอาณาจักร Aetheria ลุ้นรับมังกรสวรรค์ Aetherwyrm ระดับ Secret!',
-    category: 'สัตว์เลี้ยงคู่หู',
-    reqRank: 'DISCOVERY',
-    purchaseLimit: 0,
-    badge: 'NEW',
-    items: JSON.parse(JSON.stringify(aetheriaBoxPreset.items))
-  }
-  errorMessage.value = ''
-}
-
 // Form State
 const formData = ref({
   id: '',
@@ -129,6 +113,7 @@ const formData = ref({
   reqRank: 'DISCOVERY',
   purchaseLimit: 0,
   badge: '',
+  isSale: true,
   items: []
 })
 
@@ -150,6 +135,7 @@ watch(() => props.isOpen, (newVal) => {
         reqRank: 'DISCOVERY',
         purchaseLimit: 0,
         badge: '',
+        isSale: true,
         items: []
       }
     }
@@ -328,17 +314,6 @@ const handleSubmit = async () => {
                 <h4 class="font-black text-sm text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
                   <Sparkles class="w-4 h-4" /> ข้อมูลทั่วไปของกล่องสุ่ม
                 </h4>
-
-                <!-- One-Click Preset Button -->
-                <button 
-                  type="button" 
-                  @click="loadAetheriaTemplate"
-                  class="px-3 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-400/40 text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-                  title="รีเซ็ตและดึงข้อมูลเซ็ตเริ่มต้นจากโฟลเดอร์ Gacha"
-                >
-                  <Wand2 class="w-3.5 h-3.5 text-purple-300" />
-                  <span>โหลดเซ็ต Gacha (13 ชิ้น)</span>
-                </button>
               </div>
 
               <!-- Box Name -->
@@ -474,6 +449,24 @@ const handleSubmit = async () => {
                     <option value="HOT">🔥 HOT (ยอดฮิต)</option>
                     <option value="LIMITED">⏳ LIMITED (จำกัดเวลา)</option>
                   </select>
+                </div>
+
+                <!-- Sale Status (เปิดขาย / ปิดการขาย) -->
+                <div class="sm:col-span-3 pt-3 border-t border-white/10 flex items-center justify-between">
+                  <div>
+                    <label class="block font-bold text-stone-200 text-xs">สถานะการขายในร้านค้า</label>
+                    <p class="text-[10px] text-stone-400">หากปิดการขาย กล่องนี้จะถูกซ่อนจากหน้าร้านค้าของนักศึกษา</p>
+                  </div>
+                  <button 
+                    type="button" 
+                    @click="formData.isSale = formData.isSale === false ? true : false"
+                    class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm border"
+                    :class="formData.isSale !== false ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-stone-800 text-stone-400 border-stone-700'"
+                  >
+                    <Eye v-if="formData.isSale !== false" class="w-4 h-4 text-emerald-300" />
+                    <EyeOff v-else class="w-4 h-4 text-stone-400" />
+                    <span>{{ formData.isSale !== false ? 'เปิดขายให้นักศึกษา' : 'ปิดการขาย (ซ่อนจากร้านค้า)' }}</span>
+                  </button>
                 </div>
               </div>
             </div>

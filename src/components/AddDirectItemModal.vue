@@ -62,8 +62,8 @@ const handleSave = () => {
     return
   }
 
-  // Use the image path as the exact ID for frames, so MyProfileModal can check inventory correctly
-  if (formData.value.itemType === 'frame') {
+  // Only for NEW frames, set id to image path. When editing, preserve the existing id!
+  if (!props.itemToEdit && formData.value.itemType === 'frame') {
     formData.value.id = formData.value.image
   }
 
