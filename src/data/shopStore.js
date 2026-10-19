@@ -520,18 +520,26 @@ export async function buyDirectItemAPI(studentId, itemId) {
 // -------------------------------------------------------------
 
 export function getStudentCoins(studentId) {
-  // Use id instead of studentId if studentId passed is actually the integer ID? 
-  // We use studentId (the boss string) mostly.
-  const student = studentsList.value.find(s => s.studentId === studentId) || (authUser.value?.studentId === studentId ? authUser.value : (authUser.value?.id === studentId ? authUser.value : null))
+  if (!studentId) return 0
+  const sIdStr = String(studentId).trim()
+  const student = studentsList.value.find(s => 
+    String(s.studentId).trim() === sIdStr || String(s.id).trim() === sIdStr
+  ) || (
+    (authUser.value?.studentId && String(authUser.value.studentId).trim() === sIdStr) ||
+    (authUser.value?.id && String(authUser.value.id).trim() === sIdStr)
+      ? authUser.value
+      : null
+  )
   if (student && student.coins !== undefined) {
-    return student.coins
+    return Number(student.coins) || 0
   }
-  return 0
+  return Number(studentCoins.value[studentId]) || 0
 }
 
 export async function addCoins(studentId, amount) {
   const current = getStudentCoins(studentId)
   const newCoins = Math.max(0, current + Number(amount))
+  const sIdStr = String(studentId).trim()
   
   try {
     const res = await fetch(`${API_BASE}/students/${studentId}`, {
@@ -541,10 +549,12 @@ export async function addCoins(studentId, amount) {
     })
     const updatedUser = await res.json()
     const targetCoins = updatedUser.coins !== undefined ? updatedUser.coins : newCoins
-    if (authUser.value?.studentId === studentId || authUser.value?.id === studentId) {
+    if (authUser.value && (String(authUser.value.studentId).trim() === sIdStr || String(authUser.value.id).trim() === sIdStr)) {
       updateAuthUser({ coins: targetCoins })
     }
-    const idx = studentsList.value.findIndex(s => s.studentId === studentId || s.id === studentId)
+    const idx = studentsList.value.findIndex(s => 
+      String(s.studentId).trim() === sIdStr || String(s.id).trim() === sIdStr
+    )
     if (idx !== -1) {
       studentsList.value[idx] = { ...studentsList.value[idx], coins: targetCoins }
     }

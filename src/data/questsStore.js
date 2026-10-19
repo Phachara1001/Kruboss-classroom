@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 import { addCoins, giveItemToStudent, directShopItems, boxesList } from './shopStore'
+import { authUser } from './authStore'
+import { studentsList } from './studentsStore'
 import { API_BASE_URL } from '@/config/api'
 
 export const questsList = ref([])
@@ -109,10 +111,15 @@ export function getStudentQuestCompletions(arg1, arg2) {
     const s1 = String(val1).trim()
     const s2 = String(val2).trim()
 
-    if (s1.startsWith('quest_') || questsList.value.some(q => q.id === s1)) {
+    const s1IsQuest = s1.startsWith('quest_') || questsList.value.some(q => q.id === s1)
+    const s2IsQuest = s2.startsWith('quest_') || questsList.value.some(q => q.id === s2)
+    const s1IsStudent = studentsList.value.some(s => String(s.studentId) === s1 || String(s.id) === s1)
+    const s2IsStudent = studentsList.value.some(s => String(s.studentId) === s2 || String(s.id) === s2)
+
+    if (s1IsQuest || s2IsStudent) {
       questId = s1
       studentId = s2
-    } else if (s2.startsWith('quest_') || questsList.value.some(q => q.id === s2)) {
+    } else if (s2IsQuest || s1IsStudent) {
       studentId = s1
       questId = s2
     } else {
@@ -124,17 +131,53 @@ export function getStudentQuestCompletions(arg1, arg2) {
     questId = String(val1).trim()
   }
 
-  // 1. If studentId is known, check allQuestProgress
+  // 1. If studentId is known, check ONLY this student's progress
   if (studentId && questId) {
-    const key = `${studentId}_${questId}`
-    if (allQuestProgress.value[key] !== undefined) {
-      return Number(allQuestProgress.value[key]) || 0
+    const sIdStr = String(studentId).trim()
+    const qIdStr = String(questId).trim()
+
+    // Direct key in allQuestProgress
+    if (allQuestProgress.value[`${sIdStr}_${qIdStr}`] !== undefined) {
+      return Number(allQuestProgress.value[`${sIdStr}_${qIdStr}`]) || 0
     }
+
+    // Check alternate id format (e.g. integer id vs studentId string)
+    const foundStudent = studentsList.value.find(s => 
+      String(s.studentId).trim() === sIdStr || String(s.id).trim() === sIdStr
+    )
+    if (foundStudent) {
+      if (foundStudent.studentId && allQuestProgress.value[`${foundStudent.studentId}_${qIdStr}`] !== undefined) {
+        return Number(allQuestProgress.value[`${foundStudent.studentId}_${qIdStr}`]) || 0
+      }
+      if (foundStudent.id && allQuestProgress.value[`${foundStudent.id}_${qIdStr}`] !== undefined) {
+        return Number(allQuestProgress.value[`${foundStudent.id}_${qIdStr}`]) || 0
+      }
+    }
+
+    // Only fallback to studentQuestProgress if studentId actually matches the current logged-in user
+    const currentMyId = authUser.value?.studentId || authUser.value?.id
+    if (currentMyId && (String(currentMyId).trim() === sIdStr || (foundStudent && (String(foundStudent.studentId) === String(currentMyId) || String(foundStudent.id) === String(currentMyId))))) {
+      if (studentQuestProgress.value[qIdStr] !== undefined) {
+        return Number(studentQuestProgress.value[qIdStr]) || 0
+      }
+    }
+
+    // If specific student was requested and not completed yet -> ALWAYS 0!
+    return 0
   }
 
-  // 2. Fallback to studentQuestProgress (current logged in student)
-  if (questId && studentQuestProgress.value[questId] !== undefined) {
-    return Number(studentQuestProgress.value[questId]) || 0
+  // 2. Fallback to studentQuestProgress (when NO studentId was passed, querying current logged in student)
+  if (questId) {
+    const qIdStr = String(questId).trim()
+    const currentMyId = authUser.value?.studentId || authUser.value?.id
+    if (currentMyId) {
+      if (allQuestProgress.value[`${currentMyId}_${qIdStr}`] !== undefined) {
+        return Number(allQuestProgress.value[`${currentMyId}_${qIdStr}`]) || 0
+      }
+    }
+    if (studentQuestProgress.value[qIdStr] !== undefined) {
+      return Number(studentQuestProgress.value[qIdStr]) || 0
+    }
   }
 
   return 0
@@ -145,7 +188,13 @@ export async function approveQuestForStudent(studentId, questId) {
   const quest = questsList.value.find(q => q.id === questId)
   if (!quest) return { success: false, message: 'ไม่พบภารกิจ' }
 
-  const currentCompletions = getStudentQuestCompletions(studentId, questId)
+  // Normalize studentId to student code
+  const foundStudent = studentsList.value.find(s => 
+    String(s.studentId) === String(studentId) || String(s.id) === String(studentId)
+  )
+  const actualStudentId = foundStudent?.studentId || studentId
+
+  const currentCompletions = getStudentQuestCompletions(actualStudentId, questId)
   if (quest.maxCompletions > 0 && currentCompletions >= quest.maxCompletions) {
     return { success: false, message: 'นักศึกษาทำภารกิจนี้ครบจำนวนครั้งแล้ว' }
   }
@@ -157,34 +206,53 @@ export async function approveQuestForStudent(studentId, questId) {
     const res = await fetch(`${API_BASE}/quests/progress`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ studentId, questId, increment: true })
+      body: JSON.stringify({ studentId: actualStudentId, questId, increment: true })
     })
     
     if (res.ok) {
       const data = await res.json()
       const savedCount = data?.completions !== undefined ? data.completions : nextCompletions
-      allQuestProgress.value[`${studentId}_${questId}`] = savedCount
-      studentQuestProgress.value[questId] = savedCount
+      allQuestProgress.value[`${actualStudentId}_${questId}`] = savedCount
+      if (foundStudent?.id) {
+        allQuestProgress.value[`${foundStudent.id}_${questId}`] = savedCount
+      }
+      
+      const currentMyId = authUser.value?.studentId || authUser.value?.id
+      if (currentMyId && String(currentMyId) === String(actualStudentId)) {
+        studentQuestProgress.value[questId] = savedCount
+      }
     } else {
-      allQuestProgress.value[`${studentId}_${questId}`] = nextCompletions
-      studentQuestProgress.value[questId] = nextCompletions
+      allQuestProgress.value[`${actualStudentId}_${questId}`] = nextCompletions
+      if (foundStudent?.id) {
+        allQuestProgress.value[`${foundStudent.id}_${questId}`] = nextCompletions
+      }
+      const currentMyId = authUser.value?.studentId || authUser.value?.id
+      if (currentMyId && String(currentMyId) === String(actualStudentId)) {
+        studentQuestProgress.value[questId] = nextCompletions
+      }
     }
   } catch (e) {
     console.error('Failed to update quest progress on backend', e)
     // Local fallback
-    allQuestProgress.value[`${studentId}_${questId}`] = nextCompletions
-    studentQuestProgress.value[questId] = nextCompletions
+    allQuestProgress.value[`${actualStudentId}_${questId}`] = nextCompletions
+    if (foundStudent?.id) {
+      allQuestProgress.value[`${foundStudent.id}_${questId}`] = nextCompletions
+    }
+    const currentMyId = authUser.value?.studentId || authUser.value?.id
+    if (currentMyId && String(currentMyId) === String(actualStudentId)) {
+      studentQuestProgress.value[questId] = nextCompletions
+    }
   }
 
   // 2. Distribute rewards
   if (Array.isArray(quest.rewards)) {
     for (const reward of quest.rewards) {
       if (reward.type === 'coin') {
-        await addCoins(studentId, Number(reward.amount) || 0)
+        await addCoins(actualStudentId, Number(reward.amount) || 0)
       } else if (reward.type === 'frame') {
         const item = directShopItems.value.find(i => i.id === reward.itemId)
         if (item) {
-          await giveItemToStudent(studentId, item, 'รางวัลภารกิจ', `quest_${quest.id}`)
+          await giveItemToStudent(actualStudentId, item, 'รางวัลภารกิจ', `quest_${quest.id}`)
         }
       } else if (reward.type === 'gacha') {
         const box = boxesList.value.find(b => b.id === reward.itemId)
@@ -196,7 +264,7 @@ export async function approveQuestForStudent(studentId, questId) {
             image: box.image,
             rarity: 'Special Collection'
           }
-          await giveItemToStudent(studentId, fakeItem, 'รางวัลภารกิจ', `quest_${quest.id}`)
+          await giveItemToStudent(actualStudentId, fakeItem, 'รางวัลภารกิจ', `quest_${quest.id}`)
         }
       }
     }
@@ -204,7 +272,7 @@ export async function approveQuestForStudent(studentId, questId) {
 
   return { 
     success: true, 
-    completions: allQuestProgress.value[`${studentId}_${questId}`] || nextCompletions,
+    completions: allQuestProgress.value[`${actualStudentId}_${questId}`] || nextCompletions,
     message: 'มอบรางวัลสำเร็จ' 
   }
 }
@@ -215,10 +283,11 @@ export async function batchApproveQuest(studentIds, questId) {
     return { success: false, message: 'ไม่ได้เลือกนักศึกษา' }
   }
 
+  const uniqueIds = [...new Set(studentIds)]
   let successCount = 0
   const errors = []
 
-  for (const sId of studentIds) {
+  for (const sId of uniqueIds) {
     const res = await approveQuestForStudent(sId, questId)
     if (res.success) {
       successCount++
@@ -230,7 +299,7 @@ export async function batchApproveQuest(studentIds, questId) {
   return {
     success: successCount > 0,
     count: successCount,
-    total: studentIds.length,
+    total: uniqueIds.length,
     errors
   }
 }

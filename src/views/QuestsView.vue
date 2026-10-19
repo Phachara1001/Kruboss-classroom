@@ -36,7 +36,10 @@ import {
   Users, 
   Sparkles, 
   RotateCcw,
-  Clock
+  Clock,
+  ChevronDown,
+  Circle,
+  GraduationCap
 } from '@lucide/vue'
 
 const isTeacher = computed(() => {
@@ -129,6 +132,20 @@ const selectedStudentIds = ref([])
 const studentSearchQuery = ref('')
 const selectedClassroomFilter = ref('all')
 const selectedStatusFilter = ref('all') // 'all' | 'not_started' | 'in_progress' | 'completed'
+const isClassroomDropdownOpen = ref(false)
+const isStatusDropdownOpen = ref(false)
+
+const statusOptions = [
+  { value: 'all', label: 'ทุกสถานะ', icon: Target, iconColor: 'text-emerald-600' },
+  { value: 'not_started', label: 'ยังไม่เคยรับ (0)', icon: Circle, iconColor: 'text-stone-400' },
+  { value: 'in_progress', label: 'กำลังทำ (ยังไม่ครบ)', icon: Clock, iconColor: 'text-amber-500' },
+  { value: 'completed', label: 'รับครบแล้ว (✓)', icon: CheckCircle, iconColor: 'text-emerald-600' }
+]
+
+const currentStatusOption = computed(() => {
+  return statusOptions.find(o => o.value === selectedStatusFilter.value) || statusOptions[0]
+})
+
 const isAwarding = ref(false)
 const awardMessage = ref('')
 const awardError = ref('')
@@ -192,6 +209,8 @@ const openAwardModal = async (quest) => {
   studentSearchQuery.value = ''
   selectedClassroomFilter.value = 'all'
   selectedStatusFilter.value = 'all'
+  isClassroomDropdownOpen.value = false
+  isStatusDropdownOpen.value = false
   awardMessage.value = ''
   awardError.value = ''
   await fetchAllQuestProgress()
@@ -266,10 +285,22 @@ const handleAwardQuest = async () => {
   try {
     const res = await batchApproveQuest(selectedStudentIds.value, awardingQuest.value.id)
     if (res.success) {
-      awardMessage.value = `ตรวจภารกิจและมอบรางวัลให้นักศึกษาสำเร็จ ${res.count} คน!`
+      if (res.count === res.total) {
+        awardMessage.value = `ตรวจภารกิจและมอบรางวัลให้นักศึกษาสำเร็จ ${res.count} คน!`
+      } else {
+        awardMessage.value = `ตรวจภารกิจและมอบรางวัลให้นักศึกษาสำเร็จ ${res.count}/${res.total} คน`
+        if (res.errors && res.errors.length > 0) {
+          awardError.value = res.errors.join(', ')
+        }
+      }
       selectedStudentIds.value = []
       await fetchAllQuestProgress()
       await fetchStudents()
+      setTimeout(() => {
+        if (awardMessage.value.startsWith('ตรวจภารกิจและมอบรางวัล')) {
+          awardMessage.value = ''
+        }
+      }, 3000)
     } else {
       awardError.value = res.errors?.[0] || 'เกิดข้อผิดพลาดในการมอบรางวัล'
     }
@@ -664,30 +695,100 @@ const getRewardImage = (reward) => {
                   </button>
                 </div>
 
-                <!-- Classroom Filter -->
+                <!-- Classroom Filter Custom Dropdown -->
                 <div class="sm:col-span-4 relative">
-                  <select 
-                    v-model="selectedClassroomFilter"
-                    class="w-full px-3 py-2 bg-stone-50 hover:bg-stone-100/70 focus:bg-white border border-stone-200 rounded-xl text-xs sm:text-sm font-bold text-stone-700 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer"
+                  <button 
+                    type="button"
+                    @click.stop="isClassroomDropdownOpen = !isClassroomDropdownOpen; isStatusDropdownOpen = false"
+                    class="w-full px-3 py-2 bg-stone-50 hover:bg-stone-100/70 focus:bg-white border border-stone-200 rounded-xl text-xs sm:text-sm font-bold text-stone-700 flex items-center justify-between gap-2 transition-all cursor-pointer shadow-2xs select-none"
+                    :class="{ 'ring-2 ring-emerald-500 bg-white border-emerald-400': isClassroomDropdownOpen }"
                   >
-                    <option value="all">🏫 ทุกห้องเรียน (ทั้งหมด)</option>
-                    <option v-for="room in availableClassrooms" :key="room" :value="room">
-                      ห้อง {{ room }}
-                    </option>
-                  </select>
+                    <div class="flex items-center gap-2 truncate">
+                      <School v-if="selectedClassroomFilter === 'all'" class="w-4 h-4 text-emerald-600 shrink-0" />
+                      <GraduationCap v-else class="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span class="truncate">
+                        {{ selectedClassroomFilter === 'all' ? 'ทุกห้องเรียน (ทั้งหมด)' : `ห้อง ${selectedClassroomFilter}` }}
+                      </span>
+                    </div>
+                    <ChevronDown class="w-4 h-4 text-stone-400 shrink-0 transition-transform duration-200" :class="{ 'rotate-180 text-emerald-600': isClassroomDropdownOpen }" />
+                  </button>
+
+                  <!-- Backdrop to close -->
+                  <div v-if="isClassroomDropdownOpen" @click="isClassroomDropdownOpen = false" class="fixed inset-0 z-20"></div>
+
+                  <!-- Dropdown Menu -->
+                  <div 
+                    v-if="isClassroomDropdownOpen"
+                    class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-stone-200 rounded-2xl shadow-xl py-1.5 z-30 max-h-60 overflow-y-auto no-scrollbar animate-[fadeIn_0.15s_ease-out]"
+                  >
+                    <button 
+                      type="button"
+                      @click="selectedClassroomFilter = 'all'; isClassroomDropdownOpen = false"
+                      class="w-full px-3.5 py-2 text-left text-xs sm:text-sm font-bold flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                      :class="selectedClassroomFilter === 'all' ? 'bg-emerald-50 text-emerald-800' : 'text-stone-700 hover:bg-stone-50'"
+                    >
+                      <div class="flex items-center gap-2.5">
+                        <School class="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>ทุกห้องเรียน (ทั้งหมด)</span>
+                      </div>
+                      <Check v-if="selectedClassroomFilter === 'all'" class="w-4 h-4 text-emerald-600 shrink-0" />
+                    </button>
+
+                    <button 
+                      v-for="room in availableClassrooms" 
+                      :key="room"
+                      type="button"
+                      @click="selectedClassroomFilter = room; isClassroomDropdownOpen = false"
+                      class="w-full px-3.5 py-2 text-left text-xs sm:text-sm font-bold flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                      :class="selectedClassroomFilter === room ? 'bg-emerald-50 text-emerald-800' : 'text-stone-700 hover:bg-stone-50'"
+                    >
+                      <div class="flex items-center gap-2.5">
+                        <GraduationCap class="w-4 h-4 text-stone-500 shrink-0" />
+                        <span>ห้อง {{ room }}</span>
+                      </div>
+                      <Check v-if="selectedClassroomFilter === room" class="w-4 h-4 text-emerald-600 shrink-0" />
+                    </button>
+                  </div>
                 </div>
 
-                <!-- Status Filter -->
+                <!-- Status Filter Custom Dropdown -->
                 <div class="sm:col-span-3 relative">
-                  <select 
-                    v-model="selectedStatusFilter"
-                    class="w-full px-3 py-2 bg-stone-50 hover:bg-stone-100/70 focus:bg-white border border-stone-200 rounded-xl text-xs sm:text-sm font-bold text-stone-700 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer"
+                  <button 
+                    type="button"
+                    @click.stop="isStatusDropdownOpen = !isStatusDropdownOpen; isClassroomDropdownOpen = false"
+                    class="w-full px-3 py-2 bg-stone-50 hover:bg-stone-100/70 focus:bg-white border border-stone-200 rounded-xl text-xs sm:text-sm font-bold text-stone-700 flex items-center justify-between gap-2 transition-all cursor-pointer shadow-2xs select-none"
+                    :class="{ 'ring-2 ring-emerald-500 bg-white border-emerald-400': isStatusDropdownOpen }"
                   >
-                    <option value="all">🎯 ทุกสถานะ</option>
-                    <option value="not_started">⚪ ยังไม่เคยรับ (0)</option>
-                    <option value="in_progress">🟡 กำลังทำ (ยังไม่ครบ)</option>
-                    <option value="completed">🟢 รับครบแล้ว (✓)</option>
-                  </select>
+                    <div class="flex items-center gap-2 truncate">
+                      <component :is="currentStatusOption.icon" class="w-4 h-4 shrink-0" :class="currentStatusOption.iconColor" />
+                      <span class="truncate">{{ currentStatusOption.label }}</span>
+                    </div>
+                    <ChevronDown class="w-4 h-4 text-stone-400 shrink-0 transition-transform duration-200" :class="{ 'rotate-180 text-emerald-600': isStatusDropdownOpen }" />
+                  </button>
+
+                  <!-- Backdrop to close -->
+                  <div v-if="isStatusDropdownOpen" @click="isStatusDropdownOpen = false" class="fixed inset-0 z-20"></div>
+
+                  <!-- Dropdown Menu -->
+                  <div 
+                    v-if="isStatusDropdownOpen"
+                    class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-stone-200 rounded-2xl shadow-xl py-1.5 z-30 overflow-hidden animate-[fadeIn_0.15s_ease-out]"
+                  >
+                    <button 
+                      v-for="opt in statusOptions"
+                      :key="opt.value"
+                      type="button"
+                      @click="selectedStatusFilter = opt.value; isStatusDropdownOpen = false"
+                      class="w-full px-3.5 py-2 text-left text-xs sm:text-sm font-bold flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                      :class="selectedStatusFilter === opt.value ? 'bg-emerald-50 text-emerald-800' : 'text-stone-700 hover:bg-stone-50'"
+                    >
+                      <div class="flex items-center gap-2.5">
+                        <component :is="opt.icon" class="w-4 h-4 shrink-0" :class="opt.iconColor" />
+                        <span>{{ opt.label }}</span>
+                      </div>
+                      <Check v-if="selectedStatusFilter === opt.value" class="w-4 h-4 text-emerald-600 shrink-0" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
