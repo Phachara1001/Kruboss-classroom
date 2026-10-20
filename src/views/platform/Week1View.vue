@@ -15,6 +15,7 @@ import PopQuiz from '@/components/games/PopQuiz.vue'
 import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
+import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 
 import { authUser } from '@/data/authStore'
 import { isStudent } from '@/data/studentsStore'
@@ -38,6 +39,7 @@ const grading = [
 
 // Modal & Game Config
 const showTeacherModal = ref(false)
+const showPdfModal = ref(false)
 const weekGames = [
   { id: 'game-1', name: 'มินิเกม 1 (แยกประเภทแบบเก่า vs DevOps)', maxScore: 6, isQuiz: false },
   { id: 'game-2', name: 'มินิเกม 2 (โยงคำศัพท์ Git & DevOps)', maxScore: 5, isQuiz: false },
@@ -187,23 +189,23 @@ const dragItemsData = [
   { id: 6, text: 'รับผิดชอบร่วมกันทั้งวงจร', type: 'devops' }
 ]
 const dragZonesData = [
-  { 
-    id: 'traditional', 
-    title: 'การทำงานแบบเก่า (Traditional)', 
-    wrapperClass: 'border-gray-400/50 hover:bg-black/40', 
-    titleClass: 'text-gray-300 border-gray-400/30', 
-    itemBgClass: 'bg-gray-600/50 border-gray-400', 
-    emptyTextClass: 'text-gray-200/50', 
-    emptyText: 'ลากลักษณะแบบเก่ามาที่นี่' 
+  {
+    id: 'traditional',
+    title: 'การทำงานแบบเก่า (Traditional)',
+    wrapperClass: 'border-gray-400/50 hover:bg-black/40',
+    titleClass: 'text-gray-300 border-gray-400/30',
+    itemBgClass: 'bg-gray-600/50 border-gray-400',
+    emptyTextClass: 'text-gray-200/50',
+    emptyText: 'ลากลักษณะแบบเก่ามาที่นี่'
   },
-  { 
-    id: 'devops', 
-    title: 'การทำงานแบบเดวอปส์ (DevOps)', 
-    wrapperClass: 'border-blue-400/50 hover:bg-black/40', 
-    titleClass: 'text-blue-300 border-blue-400/30', 
-    itemBgClass: 'bg-blue-600/50 border-blue-400', 
-    emptyTextClass: 'text-blue-200/50', 
-    emptyText: 'ลากลักษณะแบบ DevOps มาที่นี่' 
+  {
+    id: 'devops',
+    title: 'การทำงานแบบเดวอปส์ (DevOps)',
+    wrapperClass: 'border-blue-400/50 hover:bg-black/40',
+    titleClass: 'text-blue-300 border-blue-400/30',
+    itemBgClass: 'bg-blue-600/50 border-blue-400',
+    emptyTextClass: 'text-blue-200/50',
+    emptyText: 'ลากลักษณะแบบ DevOps มาที่นี่'
   }
 ]
 
@@ -279,7 +281,10 @@ const matchRightDefs = [
           </h4>
           <p
             class="text-gray-700 leading-relaxed text-lg bg-indigo-50 p-6 md:p-8 rounded-xl border border-indigo-100 shadow-inner">
-            ศึกษาและปฏิบัติเกี่ยวกับการดำเนินการพัฒนาซอฟต์แวร์แบบเดวอปส์ (DevOps) การควบคุมเวอร์ชัน (Version Control) สร้างพื้นที่เก็บข้อมูล (Repository) เก็บและการเรียกดูประวัติของแฟ้มข้อมูล หลักการพื้นฐานของกิต (GIT) การแยกสาขา (Branch) การรวมสาขา (Merge) การใช้งานคอนเทนเนอร์ (Containers) การสร้างการทำงานเป็นทีม และการจัดการสภาพแวดล้อมในการทำงานของระบบสารสนเทศเบื้องต้น
+            ศึกษาและปฏิบัติเกี่ยวกับการดำเนินการพัฒนาซอฟต์แวร์แบบเดวอปส์ (DevOps) การควบคุมเวอร์ชัน (Version Control)
+            สร้างพื้นที่เก็บข้อมูล (Repository) เก็บและการเรียกดูประวัติของแฟ้มข้อมูล หลักการพื้นฐานของกิต (GIT)
+            การแยกสาขา (Branch) การรวมสาขา (Merge) การใช้งานคอนเทนเนอร์ (Containers) การสร้างการทำงานเป็นทีม
+            และการจัดการสภาพแวดล้อมในการทำงานของระบบสารสนเทศเบื้องต้น
           </p>
         </div>
 
@@ -297,7 +302,8 @@ const matchRightDefs = [
             </div>
             <p
               class="text-gray-600 text-base leading-relaxed flex-1 bg-teal-50/50 p-4 rounded-lg border border-teal-100/50">
-              ใช้ระบบควบคุมเวอร์ชันในการสร้างการทำงานร่วมกันเป็นทีม และจัดการสภาพแวดล้อมในการทำงานของระบบสารสนเทศ ด้วยความละเอียดรอบคอบ รับผิดชอบ สื่อสาร คิดเชิงนวัตกรรมและทำงานเป็นทีม
+              ใช้ระบบควบคุมเวอร์ชันในการสร้างการทำงานร่วมกันเป็นทีม และจัดการสภาพแวดล้อมในการทำงานของระบบสารสนเทศ
+              ด้วยความละเอียดรอบคอบ รับผิดชอบ สื่อสาร คิดเชิงนวัตกรรมและทำงานเป็นทีม
             </p>
           </div>
 
@@ -314,7 +320,8 @@ const matchRightDefs = [
             <ol class="list-decimal pl-5 text-gray-600 space-y-3 text-base flex-1">
               <li>เข้าใจการพัฒนาซอฟต์แวร์ตามแนวคิดแบบเดวอปส์ (Devops)</li>
               <li>มีทักษะในการใช้ระบบควบคุมเวอร์ชันในการสร้างการทำงานเป็นทีม</li>
-              <li>มีเจตคติและกิจนิสัยที่ดีในการปฏิบัติงานด้วยความละเอียดรอบคอบ รับผิดชอบ สื่อสาร คิดเชิงนวัตกรรม และทำงานเป็นทีม</li>
+              <li>มีเจตคติและกิจนิสัยที่ดีในการปฏิบัติงานด้วยความละเอียดรอบคอบ รับผิดชอบ สื่อสาร คิดเชิงนวัตกรรม
+                และทำงานเป็นทีม</li>
               <li>มีความสามารถประยุกต์ใช้ระบบควบคุมเวอร์ชันในการสร้างการทำงานเป็นทีม</li>
             </ol>
           </div>
@@ -332,7 +339,8 @@ const matchRightDefs = [
             <ol class="list-decimal pl-5 text-gray-600 space-y-3 text-base flex-1">
               <li>แสดงความรู้เกี่ยวกับการพัฒนาซอฟต์แวร์ตามแนวคิดแบบเดวอปส์ (Devops) ตามหลักการ</li>
               <li>ใช้ระบบควบคุมเวอร์ชันในการสร้างการทำงานเป็นทีม</li>
-              <li>ประยุกต์ใช้ระบบควบคุมเวอร์ชันในการสร้างการทำงานเป็นทีมและจัดการสภาพแวดล้อม ในการทำงานของระบบสารสนเทศ</li>
+              <li>ประยุกต์ใช้ระบบควบคุมเวอร์ชันในการสร้างการทำงานเป็นทีมและจัดการสภาพแวดล้อม ในการทำงานของระบบสารสนเทศ
+              </li>
             </ol>
           </div>
         </div>
@@ -386,12 +394,16 @@ const matchRightDefs = [
 
         <!-- DevOps Animation Explainer -->
         <div>
-          <h3 class="text-2xl font-bold text-indigo-900 border-l-4 border-indigo-500 pl-4 mb-6">ส่วนที่ 1: แนะนำแนวคิด DevOps</h3>
+          <h3 class="text-2xl font-bold text-indigo-900 border-l-4 border-indigo-500 pl-4 mb-6">ส่วนที่ 1: แนะนำแนวคิด
+            DevOps</h3>
           <p class="mb-6">
-            DevOps มาจากการรวมคำว่า <strong>Development (การพัฒนา)</strong> และ <strong>Operations (การดูแลระบบ)</strong> 
-            เข้าด้วยกัน ไม่ใช่เพียงแค่เครื่องมือหรือซอฟต์แวร์ตัวใดตัวหนึ่ง แต่เป็น <strong>"วัฒนธรรมและปรัชญาการทำงาน"</strong> ที่มุ่งเน้นการทำลายกำแพง (Silo) ระหว่างทีมที่สร้างซอฟต์แวร์และทีมที่นำซอฟต์แวร์ไปให้บริการ
+            DevOps มาจากการรวมคำว่า <strong>Development (การพัฒนา)</strong> และ <strong>Operations
+              (การดูแลระบบ)</strong>
+            เข้าด้วยกัน ไม่ใช่เพียงแค่เครื่องมือหรือซอฟต์แวร์ตัวใดตัวหนึ่ง แต่เป็น
+            <strong>"วัฒนธรรมและปรัชญาการทำงาน"</strong> ที่มุ่งเน้นการทำลายกำแพง (Silo)
+            ระหว่างทีมที่สร้างซอฟต์แวร์และทีมที่นำซอฟต์แวร์ไปให้บริการ
           </p>
-          
+
           <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-6 mb-8">
             <h4 class="text-lg font-bold text-indigo-800 mb-3 flex items-center gap-2">
               <Info class="w-5 h-5" /> ทำไมเราถึงต้องมี DevOps? (The Wall of Confusion)
@@ -401,56 +413,83 @@ const matchRightDefs = [
               <li class="flex items-start gap-3">
                 <div class="bg-blue-100 p-2 rounded-lg text-blue-600 mt-1 flex-shrink-0"><Code class="w-5 h-5" /></div>
                 <div>
-                  <strong class="text-blue-800">ทีม Dev (นักพัฒนา):</strong> ต้องการสร้างฟีเจอร์ใหม่ๆ และปล่อยของใหม่ให้เร็วที่สุด มักเจอปัญหา <span class="italic text-gray-500">"ก็โค้ดรันบนเครื่องฉันได้ปกติ ทำไมไปรันบนเซิร์ฟเวอร์แล้วพัง?"</span>
+                  <strong class="text-blue-800">ทีม Dev (นักพัฒนา):</strong> ต้องการสร้างฟีเจอร์ใหม่ๆ
+                  และปล่อยของใหม่ให้เร็วที่สุด มักเจอปัญหา <span
+                    class="italic text-gray-500">"ก็โค้ดรันบนเครื่องฉันได้ปกติ ทำไมไปรันบนเซิร์ฟเวอร์แล้วพัง?"</span>
                 </div>
               </li>
               <li class="flex items-start gap-3">
-                <div class="bg-cyan-100 p-2 rounded-lg text-cyan-600 mt-1 flex-shrink-0"><Settings class="w-5 h-5" /></div>
+                <div class="bg-cyan-100 p-2 rounded-lg text-cyan-600 mt-1 flex-shrink-0">
+                  <Settings class="w-5 h-5" />
+                </div>
                 <div>
-                  <strong class="text-cyan-800">ทีม Ops (ผู้ดูแลระบบ):</strong> ต้องการความเสถียร (Stability) ไม่อยากให้ระบบล่ม จึงไม่อยากให้มีการเปลี่ยนแปลงระบบบ่อยๆ และต้องคอยตามแก้ปัญหาจากโค้ดที่ Dev ส่งมา
+                  <strong class="text-cyan-800">ทีม Ops (ผู้ดูแลระบบ):</strong> ต้องการความเสถียร (Stability)
+                  ไม่อยากให้ระบบล่ม จึงไม่อยากให้มีการเปลี่ยนแปลงระบบบ่อยๆ และต้องคอยตามแก้ปัญหาจากโค้ดที่ Dev ส่งมา
                 </div>
               </li>
             </ul>
             <p class="mt-5 text-gray-700 border-t border-indigo-200 pt-4">
-              <strong>กำแพงแห่งความไม่เข้าใจ</strong>นี้ทำให้การส่งมอบซอฟต์แวร์ล่าช้า DevOps จึงเข้ามาเปลี่ยนวิธีคิด ให้ทั้งสองทีมมีความรับผิดชอบร่วมกันตลอดทั้งวงจรชีวิตของการพัฒนาซอฟต์แวร์ (Software Development Lifecycle) โดยมีเป้าหมายหลักคือการส่งมอบซอฟต์แวร์ที่มีคุณภาพได้อย่างต่อเนื่องและรวดเร็ว
+              <strong>กำแพงแห่งความไม่เข้าใจ</strong>นี้ทำให้การส่งมอบซอฟต์แวร์ล่าช้า DevOps จึงเข้ามาเปลี่ยนวิธีคิด
+              ให้ทั้งสองทีมมีความรับผิดชอบร่วมกันตลอดทั้งวงจรชีวิตของการพัฒนาซอฟต์แวร์ (Software Development Lifecycle)
+              โดยมีเป้าหมายหลักคือการส่งมอบซอฟต์แวร์ที่มีคุณภาพได้อย่างต่อเนื่องและรวดเร็ว
             </p>
           </div>
-          
+
           <h4 class="text-xl font-bold text-indigo-900 mb-4">ประโยชน์หลักของการทำ DevOps</h4>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-green-300 transition-colors">
-              <div class="flex items-center gap-2 mb-2 text-green-600 font-bold"><RefreshCw class="w-5 h-5" /> Speed & Delivery</div>
-              <p class="text-sm text-gray-600">ส่งมอบซอฟต์แวร์และอัปเดตฟีเจอร์ใหม่ๆ ให้ลูกค้าได้รวดเร็วและบ่อยครั้งขึ้น ตอบสนองตลาดได้ทันที</p>
+            <div
+              class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-green-300 transition-colors">
+              <div class="flex items-center gap-2 mb-2 text-green-600 font-bold">
+                <RefreshCw class="w-5 h-5" /> Speed & Delivery
+              </div>
+              <p class="text-sm text-gray-600">ส่งมอบซอฟต์แวร์และอัปเดตฟีเจอร์ใหม่ๆ ให้ลูกค้าได้รวดเร็วและบ่อยครั้งขึ้น
+                ตอบสนองตลาดได้ทันที</p>
             </div>
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-blue-300 transition-colors">
-              <div class="flex items-center gap-2 mb-2 text-blue-600 font-bold"><Shield class="w-5 h-5" /> Reliability</div>
-              <p class="text-sm text-gray-600">ลดข้อผิดพลาดจากการทำด้วยมนุษย์ (Manual) ด้วยการใช้ระบบอัตโนมัติ (Automation) ทำให้ระบบมีความเสถียรสูง</p>
+            <div
+              class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-blue-300 transition-colors">
+              <div class="flex items-center gap-2 mb-2 text-blue-600 font-bold">
+                <Shield class="w-5 h-5" /> Reliability
+              </div>
+              <p class="text-sm text-gray-600">ลดข้อผิดพลาดจากการทำด้วยมนุษย์ (Manual) ด้วยการใช้ระบบอัตโนมัติ
+                (Automation) ทำให้ระบบมีความเสถียรสูง</p>
             </div>
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-purple-300 transition-colors">
-              <div class="flex items-center gap-2 mb-2 text-purple-600 font-bold"><Users class="w-5 h-5" /> Better Collaboration</div>
-              <p class="text-sm text-gray-600">ทีมงานสื่อสารกันมากขึ้น ทำงานเป็นน้ำหนึ่งใจเดียวกัน ทำลายวัฒนธรรมการโยนความผิดเมื่อเกิดปัญหา</p>
+            <div
+              class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-purple-300 transition-colors">
+              <div class="flex items-center gap-2 mb-2 text-purple-600 font-bold">
+                <Users class="w-5 h-5" /> Better Collaboration
+              </div>
+              <p class="text-sm text-gray-600">ทีมงานสื่อสารกันมากขึ้น ทำงานเป็นน้ำหนึ่งใจเดียวกัน
+                ทำลายวัฒนธรรมการโยนความผิดเมื่อเกิดปัญหา</p>
             </div>
           </div>
 
           <div class="bg-slate-900 text-slate-200 rounded-2xl p-8 shadow-xl overflow-hidden relative">
             <div class="text-center mb-8">
               <h4 class="text-2xl font-bold text-white mb-2">วัฏจักรการทำงานแบบ DevOps (The DevOps Infinity Loop)</h4>
-              <p class="text-slate-400">การทำงานเป็นวงจรที่ไม่สิ้นสุด (Continuous) ตั้งแต่การวางแผน เขียนโค้ด ไปจนถึงตรวจสอบระบบ</p>
+              <p class="text-slate-400">การทำงานเป็นวงจรที่ไม่สิ้นสุด (Continuous) ตั้งแต่การวางแผน เขียนโค้ด
+                ไปจนถึงตรวจสอบระบบ</p>
             </div>
-            
+
             <div class="flex flex-col md:flex-row items-center justify-center gap-4 relative py-10">
-              
+
               <!-- Dev Side -->
-              <div class="bg-blue-600/20 border border-blue-500/50 p-6 rounded-2xl w-full md:w-1/3 flex flex-col items-center z-10 hover:-translate-y-2 transition-transform shadow-[0_0_30px_rgba(37,99,235,0.2)]">
+              <div
+                class="bg-blue-600/20 border border-blue-500/50 p-6 rounded-2xl w-full md:w-1/3 flex flex-col items-center z-10 hover:-translate-y-2 transition-transform shadow-[0_0_30px_rgba(37,99,235,0.2)]">
                 <div class="bg-blue-600 p-4 rounded-full mb-4 animate-bounce">
                   <Code class="w-10 h-10 text-white" />
                 </div>
                 <h5 class="text-xl font-bold text-blue-400 mb-2">Development (Dev)</h5>
                 <ul class="text-sm text-left space-y-2 text-slate-300 w-full mt-4">
-                  <li class="flex items-start gap-2 border-b border-blue-500/30 pb-2"><strong class="text-blue-300 w-14 shrink-0">Plan:</strong> <span>รวบรวม Requirement และวางแผน</span></li>
-                  <li class="flex items-start gap-2 border-b border-blue-500/30 pb-2"><strong class="text-blue-300 w-14 shrink-0">Code:</strong> <span>เขียนโค้ดและทำ Version Control</span></li>
-                  <li class="flex items-start gap-2 border-b border-blue-500/30 pb-2"><strong class="text-blue-300 w-14 shrink-0">Build:</strong> <span>คอมไพล์และประกอบร่างโค้ด</span></li>
-                  <li class="flex items-start gap-2 pb-1"><strong class="text-blue-300 w-14 shrink-0">Test:</strong> <span>รัน Automated Testing หาบั๊ก</span></li>
+                  <li class="flex items-start gap-2 border-b border-blue-500/30 pb-2"><strong
+                      class="text-blue-300 w-14 shrink-0">Plan:</strong> <span>รวบรวม Requirement และวางแผน</span></li>
+                  <li class="flex items-start gap-2 border-b border-blue-500/30 pb-2"><strong
+                      class="text-blue-300 w-14 shrink-0">Code:</strong> <span>เขียนโค้ดและทำ Version Control</span>
+                  </li>
+                  <li class="flex items-start gap-2 border-b border-blue-500/30 pb-2"><strong
+                      class="text-blue-300 w-14 shrink-0">Build:</strong> <span>คอมไพล์และประกอบร่างโค้ด</span></li>
+                  <li class="flex items-start gap-2 pb-1"><strong class="text-blue-300 w-14 shrink-0">Test:</strong>
+                    <span>รัน Automated Testing หาบั๊ก</span>
+                  </li>
                 </ul>
               </div>
 
@@ -461,63 +500,99 @@ const matchRightDefs = [
               </div>
 
               <!-- Ops Side -->
-              <div class="bg-cyan-600/20 border border-cyan-500/50 p-6 rounded-2xl w-full md:w-1/3 flex flex-col items-center z-10 hover:-translate-y-2 transition-transform shadow-[0_0_30px_rgba(6,182,212,0.2)]">
+              <div
+                class="bg-cyan-600/20 border border-cyan-500/50 p-6 rounded-2xl w-full md:w-1/3 flex flex-col items-center z-10 hover:-translate-y-2 transition-transform shadow-[0_0_30px_rgba(6,182,212,0.2)]">
                 <div class="bg-cyan-600 p-4 rounded-full mb-4 animate-pulse">
                   <Settings class="w-10 h-10 text-white" />
                 </div>
                 <h5 class="text-xl font-bold text-cyan-400 mb-2">Operations (Ops)</h5>
                 <ul class="text-sm text-left space-y-2 text-slate-300 w-full mt-4">
-                  <li class="flex items-start gap-2 border-b border-cyan-500/30 pb-2"><strong class="text-cyan-300 w-16 shrink-0">Release:</strong> <span>เตรียมความพร้อมก่อนขึ้นระบบ</span></li>
-                  <li class="flex items-start gap-2 border-b border-cyan-500/30 pb-2"><strong class="text-cyan-300 w-16 shrink-0">Deploy:</strong> <span>ติดตั้งแอปพลิเคชันลงเซิร์ฟเวอร์</span></li>
-                  <li class="flex items-start gap-2 border-b border-cyan-500/30 pb-2"><strong class="text-cyan-300 w-16 shrink-0">Operate:</strong> <span>ดูแลรักษาระบบและเซิร์ฟเวอร์</span></li>
-                  <li class="flex items-start gap-2 pb-1"><strong class="text-cyan-300 w-16 shrink-0">Monitor:</strong> <span>เฝ้าระวังและเก็บ Log เพื่อปรับปรุง</span></li>
+                  <li class="flex items-start gap-2 border-b border-cyan-500/30 pb-2"><strong
+                      class="text-cyan-300 w-16 shrink-0">Release:</strong> <span>เตรียมความพร้อมก่อนขึ้นระบบ</span>
+                  </li>
+                  <li class="flex items-start gap-2 border-b border-cyan-500/30 pb-2"><strong
+                      class="text-cyan-300 w-16 shrink-0">Deploy:</strong> <span>ติดตั้งแอปพลิเคชันลงเซิร์ฟเวอร์</span>
+                  </li>
+                  <li class="flex items-start gap-2 border-b border-cyan-500/30 pb-2"><strong
+                      class="text-cyan-300 w-16 shrink-0">Operate:</strong> <span>ดูแลรักษาระบบและเซิร์ฟเวอร์</span>
+                  </li>
+                  <li class="flex items-start gap-2 pb-1"><strong class="text-cyan-300 w-16 shrink-0">Monitor:</strong>
+                    <span>เฝ้าระวังและเก็บ Log เพื่อปรับปรุง</span>
+                  </li>
                 </ul>
               </div>
             </div>
 
             <!-- Animated floating elements -->
             <Cloud class="absolute top-4 left-4 w-12 h-12 text-slate-700/50 animate-pulse" />
-            <Cloud class="absolute bottom-4 right-8 w-16 h-16 text-slate-700/50 animate-pulse" style="animation-delay: 1s;" />
+            <Cloud class="absolute bottom-4 right-8 w-16 h-16 text-slate-700/50 animate-pulse"
+              style="animation-delay: 1s;" />
           </div>
 
           <!-- Explanation of the 8 Phases -->
           <div class="mt-10 mb-6 px-4">
             <h4 class="text-xl font-bold text-indigo-900 mb-6">เจาะลึก 8 ขั้นตอนของ DevOps Lifecycle</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-gray-700">
-              <div class="space-y-4 relative before:absolute before:left-[11px] before:top-8 before:h-[calc(100%-2rem)] before:w-0.5 before:bg-blue-100">
+              <div
+                class="space-y-4 relative before:absolute before:left-[11px] before:top-8 before:h-[calc(100%-2rem)] before:w-0.5 before:bg-blue-100">
                 <div class="flex items-start gap-4">
-                  <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">1</div>
-                  <div><strong class="text-blue-800">Plan (วางแผน):</strong> กำหนดสิ่งที่ต้องทำ แผนงาน และประเมินเวลา (มักใช้ Agile/Scrum)</div>
+                  <div
+                    class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">
+                    1</div>
+                  <div><strong class="text-blue-800">Plan (วางแผน):</strong> กำหนดสิ่งที่ต้องทำ แผนงาน และประเมินเวลา
+                    (มักใช้ Agile/Scrum)</div>
                 </div>
                 <div class="flex items-start gap-4">
-                  <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">2</div>
-                  <div><strong class="text-blue-800">Code (พัฒนา):</strong> นักพัฒนาเริ่มเขียนโค้ดและแชร์กันด้วย Git (Version Control)</div>
+                  <div
+                    class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">
+                    2</div>
+                  <div><strong class="text-blue-800">Code (พัฒนา):</strong> นักพัฒนาเริ่มเขียนโค้ดและแชร์กันด้วย Git
+                    (Version Control)</div>
                 </div>
                 <div class="flex items-start gap-4">
-                  <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">3</div>
-                  <div><strong class="text-blue-800">Build (คอมไพล์):</strong> นำโค้ดของทุกคนมารวมกันและแปลงให้เป็นไฟล์โปรแกรมที่พร้อมใช้งาน (CI)</div>
+                  <div
+                    class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">
+                    3</div>
+                  <div><strong class="text-blue-800">Build (คอมไพล์):</strong>
+                    นำโค้ดของทุกคนมารวมกันและแปลงให้เป็นไฟล์โปรแกรมที่พร้อมใช้งาน (CI)</div>
                 </div>
                 <div class="flex items-start gap-4">
-                  <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">4</div>
-                  <div><strong class="text-blue-800">Test (ทดสอบ):</strong> ใช้สคริปต์อัตโนมัติทดสอบหาบั๊กและช่องโหว่ทันที</div>
+                  <div
+                    class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">
+                    4</div>
+                  <div><strong class="text-blue-800">Test (ทดสอบ):</strong>
+                    ใช้สคริปต์อัตโนมัติทดสอบหาบั๊กและช่องโหว่ทันที</div>
                 </div>
               </div>
-              <div class="space-y-4 relative before:absolute before:left-[11px] before:top-8 before:h-[calc(100%-2rem)] before:w-0.5 before:bg-cyan-100">
+              <div
+                class="space-y-4 relative before:absolute before:left-[11px] before:top-8 before:h-[calc(100%-2rem)] before:w-0.5 before:bg-cyan-100">
                 <div class="flex items-start gap-4">
-                  <div class="w-6 h-6 rounded-full bg-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">5</div>
-                  <div><strong class="text-cyan-800">Release (เตรียมพร้อม):</strong> นำซอฟต์แวร์ที่ผ่านการทดสอบมาเตรียมไว้สำหรับการขึ้นระบบจริง</div>
+                  <div
+                    class="w-6 h-6 rounded-full bg-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">
+                    5</div>
+                  <div><strong class="text-cyan-800">Release (เตรียมพร้อม):</strong>
+                    นำซอฟต์แวร์ที่ผ่านการทดสอบมาเตรียมไว้สำหรับการขึ้นระบบจริง</div>
                 </div>
                 <div class="flex items-start gap-4">
-                  <div class="w-6 h-6 rounded-full bg-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">6</div>
-                  <div><strong class="text-cyan-800">Deploy (ขึ้นระบบ):</strong> นำซอฟต์แวร์ไปติดตั้งบนเซิร์ฟเวอร์จริงให้ลูกค้าใช้งาน (CD)</div>
+                  <div
+                    class="w-6 h-6 rounded-full bg-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">
+                    6</div>
+                  <div><strong class="text-cyan-800">Deploy (ขึ้นระบบ):</strong>
+                    นำซอฟต์แวร์ไปติดตั้งบนเซิร์ฟเวอร์จริงให้ลูกค้าใช้งาน (CD)</div>
                 </div>
                 <div class="flex items-start gap-4">
-                  <div class="w-6 h-6 rounded-full bg-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">7</div>
-                  <div><strong class="text-cyan-800">Operate (ดูแล):</strong> ปรับแต่งค่าต่างๆ ควบคุมและบริหารเซิร์ฟเวอร์ให้รองรับผู้ใช้งาน</div>
+                  <div
+                    class="w-6 h-6 rounded-full bg-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">
+                    7</div>
+                  <div><strong class="text-cyan-800">Operate (ดูแล):</strong> ปรับแต่งค่าต่างๆ
+                    ควบคุมและบริหารเซิร์ฟเวอร์ให้รองรับผู้ใช้งาน</div>
                 </div>
                 <div class="flex items-start gap-4">
-                  <div class="w-6 h-6 rounded-full bg-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">8</div>
-                  <div><strong class="text-cyan-800">Monitor (เฝ้าระวัง):</strong> เก็บข้อมูลพฤติกรรมการใช้งาน และเฝ้าระวังระบบล่ม เพื่อนำกลับไปวางแผน (Plan) ใหม่ในรอบถัดไป</div>
+                  <div
+                    class="w-6 h-6 rounded-full bg-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 mt-1">
+                    8</div>
+                  <div><strong class="text-cyan-800">Monitor (เฝ้าระวัง):</strong> เก็บข้อมูลพฤติกรรมการใช้งาน
+                    และเฝ้าระวังระบบล่ม เพื่อนำกลับไปวางแผน (Plan) ใหม่ในรอบถัดไป</div>
                 </div>
               </div>
             </div>
@@ -526,60 +601,80 @@ const matchRightDefs = [
 
         <!-- Part 2 -->
         <div class="pt-8 border-t border-gray-100">
-          <h3 class="text-2xl font-bold text-indigo-900 border-l-4 border-indigo-500 pl-4 mb-6">ส่วนที่ 2: เครื่องมือสำหรับการทำงานร่วมกัน</h3>
+          <h3 class="text-2xl font-bold text-indigo-900 border-l-4 border-indigo-500 pl-4 mb-6">ส่วนที่ 2:
+            เครื่องมือสำหรับการทำงานร่วมกัน</h3>
           <p class="mb-6">
-            เพื่อให้ทีม Dev และทีม Ops หรือแม้นักพัฒนาหลายๆ คนสามารถทำงานร่วมกันได้อย่างราบรื่น จึงต้องมีระบบเข้ามารองรับ โดยพื้นฐานที่สุดคือ <strong>ระบบควบคุมเวอร์ชัน (Version Control System)</strong>
+            เพื่อให้ทีม Dev และทีม Ops หรือแม้นักพัฒนาหลายๆ คนสามารถทำงานร่วมกันได้อย่างราบรื่น
+            จึงต้องมีระบบเข้ามารองรับ โดยพื้นฐานที่สุดคือ <strong>ระบบควบคุมเวอร์ชัน (Version Control System)</strong>
           </p>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-base">
-            <div class="p-6 bg-white rounded-xl border border-indigo-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div
+              class="p-6 bg-white rounded-xl border border-indigo-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
               <div class="absolute top-0 left-0 w-full h-1 bg-indigo-500 group-hover:h-2 transition-all"></div>
               <GitCommit class="w-8 h-8 text-indigo-500 mb-3" />
               <h4 class="font-bold text-indigo-900 mb-2 text-lg">Git & History</h4>
-              <p class="text-gray-600">กิต (Git) เป็นระบบ Version Control ที่ได้รับความนิยมมากที่สุด บันทึกประวัติทุกการแก้ไขว่าใครทำอะไร เมื่อไหร่ และสามารถย้อนกลับได้เสมอ</p>
+              <p class="text-gray-600">กิต (Git) เป็นระบบ Version Control ที่ได้รับความนิยมมากที่สุด
+                บันทึกประวัติทุกการแก้ไขว่าใครทำอะไร เมื่อไหร่ และสามารถย้อนกลับได้เสมอ</p>
             </div>
 
-            <div class="p-6 bg-white rounded-xl border border-cyan-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div
+              class="p-6 bg-white rounded-xl border border-cyan-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
               <div class="absolute top-0 left-0 w-full h-1 bg-cyan-500 group-hover:h-2 transition-all"></div>
               <GitBranch class="w-8 h-8 text-cyan-500 mb-3" />
               <h4 class="font-bold text-cyan-900 mb-2 text-lg">Branching & Merging</h4>
-              <p class="text-gray-600">สามารถแยกสายการทำงานออกไปทำฟีเจอร์ใหม่ๆ พร้อมกันหลายคน (Branch) โดยไม่กระทบงานหลัก และนำกลับมารวมกันได้ (Merge)</p>
+              <p class="text-gray-600">สามารถแยกสายการทำงานออกไปทำฟีเจอร์ใหม่ๆ พร้อมกันหลายคน (Branch)
+                โดยไม่กระทบงานหลัก และนำกลับมารวมกันได้ (Merge)</p>
             </div>
 
-            <div class="p-6 bg-white rounded-xl border border-blue-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div
+              class="p-6 bg-white rounded-xl border border-blue-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
               <div class="absolute top-0 left-0 w-full h-1 bg-blue-500 group-hover:h-2 transition-all"></div>
               <Server class="w-8 h-8 text-blue-500 mb-3" />
               <h4 class="font-bold text-blue-900 mb-2 text-lg">Containers</h4>
-              <p class="text-gray-600">เทคโนโลยีจำลองสภาพแวดล้อม (เช่น Docker) เพื่อให้โค้ดรันได้เหมือนกันทุกที่ หมดปัญหา "เครื่องฉันรันได้ ทำไมเซิร์ฟเวอร์รันไม่ได้"</p>
+              <p class="text-gray-600">เทคโนโลยีจำลองสภาพแวดล้อม (เช่น Docker) เพื่อให้โค้ดรันได้เหมือนกันทุกที่
+                หมดปัญหา "เครื่องฉันรันได้ ทำไมเซิร์ฟเวอร์รันไม่ได้"</p>
             </div>
           </div>
         </div>
 
         <!-- Part 3 -->
         <div class="pt-8 border-t border-gray-100">
-          <h3 class="text-2xl font-bold text-indigo-900 border-l-4 border-indigo-500 pl-4 mb-6">ส่วนที่ 3: ระบบอัตโนมัติ (CI/CD)</h3>
+          <h3 class="text-2xl font-bold text-indigo-900 border-l-4 border-indigo-500 pl-4 mb-6">ส่วนที่ 3: ระบบอัตโนมัติ
+            (CI/CD)</h3>
           <p class="mb-6">
-            หัวใจสำคัญของการทำ DevOps คือความเร็วและความถูกต้อง ซึ่งเราไม่สามารถทำด้วยมนุษย์ตลอดเวลาได้ จึงเกิดสิ่งที่เรียกว่า <strong>CI/CD Pipeline</strong> ขึ้นมาเพื่อทำให้ทุกอย่างเป็นอัตโนมัติ
+            หัวใจสำคัญของการทำ DevOps คือความเร็วและความถูกต้อง ซึ่งเราไม่สามารถทำด้วยมนุษย์ตลอดเวลาได้
+            จึงเกิดสิ่งที่เรียกว่า <strong>CI/CD Pipeline</strong> ขึ้นมาเพื่อทำให้ทุกอย่างเป็นอัตโนมัติ
           </p>
 
           <div class="flex flex-col md:flex-row gap-6">
-            <div class="flex-1 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-indigo-100 shadow-sm">
+            <div
+              class="flex-1 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-indigo-100 shadow-sm">
               <div class="flex items-center gap-3 mb-4">
-                <div class="p-3 bg-blue-500 text-white rounded-xl shadow-md"><RefreshCw class="w-6 h-6" /></div>
+                <div class="p-3 bg-blue-500 text-white rounded-xl shadow-md">
+                  <RefreshCw class="w-6 h-6" />
+                </div>
                 <h4 class="text-xl font-bold text-indigo-900">Continuous Integration (CI)</h4>
               </div>
               <p class="text-gray-700 leading-relaxed text-sm">
-                การนำโค้ดของนักพัฒนาทุกคนมารวมกันที่ส่วนกลางอย่างสม่ำเสมอ (มักจะทำทุกวันหรือทุกครั้งที่มีการ Commit) ระบบ CI จะทำการ Build และรัน Automated Tests ทันที หากโค้ดมีปัญหา ระบบจะแจ้งเตือนให้นักพัฒนาทราบก่อนที่จะหลุดไปถึงเซิร์ฟเวอร์
+                การนำโค้ดของนักพัฒนาทุกคนมารวมกันที่ส่วนกลางอย่างสม่ำเสมอ (มักจะทำทุกวันหรือทุกครั้งที่มีการ Commit)
+                ระบบ CI จะทำการ Build และรัน Automated Tests ทันที หากโค้ดมีปัญหา
+                ระบบจะแจ้งเตือนให้นักพัฒนาทราบก่อนที่จะหลุดไปถึงเซิร์ฟเวอร์
               </p>
             </div>
-            
-            <div class="flex-1 bg-gradient-to-br from-cyan-50 to-teal-50 p-6 rounded-2xl border border-cyan-100 shadow-sm">
+
+            <div
+              class="flex-1 bg-gradient-to-br from-cyan-50 to-teal-50 p-6 rounded-2xl border border-cyan-100 shadow-sm">
               <div class="flex items-center gap-3 mb-4">
-                <div class="p-3 bg-cyan-500 text-white rounded-xl shadow-md"><Upload class="w-6 h-6" /></div>
+                <div class="p-3 bg-cyan-500 text-white rounded-xl shadow-md">
+                  <Upload class="w-6 h-6" />
+                </div>
                 <h4 class="text-xl font-bold text-cyan-900">Continuous Delivery/Deployment (CD)</h4>
               </div>
               <p class="text-gray-700 leading-relaxed text-sm">
-                ต่อเนื่องจาก CI เมื่อโค้ดผ่านการทดสอบแล้ว ระบบ CD จะเตรียมความพร้อมของซอฟต์แวร์นั้นเพื่อนำไปติดตั้ง (Deploy) สู่สภาพแวดล้อมจริง (Production) แบบอัตโนมัติ หรือเพียงแค่กดปุ่มคลิกเดียว ช่วยลดความผิดพลาดจากการติดตั้งด้วยมือ (Manual)
+                ต่อเนื่องจาก CI เมื่อโค้ดผ่านการทดสอบแล้ว ระบบ CD จะเตรียมความพร้อมของซอฟต์แวร์นั้นเพื่อนำไปติดตั้ง
+                (Deploy) สู่สภาพแวดล้อมจริง (Production) แบบอัตโนมัติ หรือเพียงแค่กดปุ่มคลิกเดียว
+                ช่วยลดความผิดพลาดจากการติดตั้งด้วยมือ (Manual)
               </p>
             </div>
           </div>
@@ -587,29 +682,62 @@ const matchRightDefs = [
 
         <!-- Part 4 -->
         <div class="pt-8 border-t border-gray-100">
-          <h3 class="text-2xl font-bold text-indigo-900 border-l-4 border-indigo-500 pl-4 mb-6">ส่วนที่ 4: ทักษะที่จำเป็นสำหรับ DevOps (DevOps Skills)</h3>
+          <h3 class="text-2xl font-bold text-indigo-900 border-l-4 border-indigo-500 pl-4 mb-6">ส่วนที่ 4:
+            ทักษะที่จำเป็นสำหรับ DevOps (DevOps Skills)</h3>
           <p class="mb-6">
-            หากนักเรียนสนใจสายงาน <strong>DevOps Engineer</strong> ซึ่งเป็นที่ต้องการสูงมากในตลาดแรงงาน จะต้องเตรียมความพร้อมในด้านใดบ้าง?
+            หากนักเรียนสนใจสายงาน <strong>DevOps Engineer</strong> ซึ่งเป็นที่ต้องการสูงมากในตลาดแรงงาน
+            จะต้องเตรียมความพร้อมในด้านใดบ้าง?
           </p>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-base">
             <div class="bg-white p-6 rounded-xl border-2 border-dashed border-gray-300">
-              <h4 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><Layers class="w-5 h-5 text-indigo-500" /> Hard Skills (ทักษะทางเทคนิค)</h4>
+              <h4 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Layers class="w-5 h-5 text-indigo-500" /> Hard Skills (ทักษะทางเทคนิค)
+              </h4>
               <ul class="space-y-3 text-sm text-gray-600">
-                <li class="flex items-start gap-2"><CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>ระบบปฏิบัติการ (OS):</strong> โดยเฉพาะ Linux และการใช้ Command Line</li>
-                <li class="flex items-start gap-2"><CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>Version Control:</strong> การใช้งาน Git อย่างคล่องแคล่ว</li>
-                <li class="flex items-start gap-2"><CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>Containers:</strong> การสร้างและจัดการสภาพแวดล้อมด้วย Docker / Kubernetes</li>
-                <li class="flex items-start gap-2"><CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>Cloud Computing:</strong> รู้จักบริการของ AWS, Azure หรือ Google Cloud</li>
-                <li class="flex items-start gap-2"><CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>Scripting:</strong> สามารถเขียนสคริปต์อัตโนมัติด้วย Bash, Python หรือ Go ได้</li>
+                <li class="flex items-start gap-2">
+                  <CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>ระบบปฏิบัติการ (OS):</strong>
+                  โดยเฉพาะ Linux และการใช้ Command Line
+                </li>
+                <li class="flex items-start gap-2">
+                  <CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>Version Control:</strong>
+                  การใช้งาน Git อย่างคล่องแคล่ว
+                </li>
+                <li class="flex items-start gap-2">
+                  <CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>Containers:</strong>
+                  การสร้างและจัดการสภาพแวดล้อมด้วย Docker / Kubernetes
+                </li>
+                <li class="flex items-start gap-2">
+                  <CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>Cloud Computing:</strong>
+                  รู้จักบริการของ AWS, Azure หรือ Google Cloud
+                </li>
+                <li class="flex items-start gap-2">
+                  <CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>Scripting:</strong>
+                  สามารถเขียนสคริปต์อัตโนมัติด้วย Bash, Python หรือ Go ได้
+                </li>
               </ul>
             </div>
             <div class="bg-white p-6 rounded-xl border-2 border-dashed border-gray-300">
-              <h4 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><Users class="w-5 h-5 text-indigo-500" /> Soft Skills (ทักษะทางสังคมและวิธีคิด)</h4>
+              <h4 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Users class="w-5 h-5 text-indigo-500" /> Soft Skills (ทักษะทางสังคมและวิธีคิด)
+              </h4>
               <ul class="space-y-3 text-sm text-gray-600">
-                <li class="flex items-start gap-2"><CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>การสื่อสาร (Communication):</strong> เป็นตัวกลางเชื่อมความเข้าใจระหว่างทีม Dev และ Ops</li>
-                <li class="flex items-start gap-2"><CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>การทำงานเป็นทีม (Teamwork):</strong> ส่งเสริมวัฒนธรรมแบบไม่โยนความผิด (Blameless)</li>
-                <li class="flex items-start gap-2"><CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>การแก้ปัญหา (Problem Solving):</strong> มองหาสาเหตุของปัญหาและป้องกันข้อผิดพลาดซ้ำ</li>
-                <li class="flex items-start gap-2"><CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>รักการเรียนรู้ (Continuous Learning):</strong> เทคโนโลยีใหม่ๆ เกิดขึ้นตลอดเวลา ต้องอัปเดตตัวเองเสมอ</li>
+                <li class="flex items-start gap-2">
+                  <CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>การสื่อสาร
+                    (Communication):</strong> เป็นตัวกลางเชื่อมความเข้าใจระหว่างทีม Dev และ Ops
+                </li>
+                <li class="flex items-start gap-2">
+                  <CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>การทำงานเป็นทีม
+                    (Teamwork):</strong> ส่งเสริมวัฒนธรรมแบบไม่โยนความผิด (Blameless)
+                </li>
+                <li class="flex items-start gap-2">
+                  <CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>การแก้ปัญหา (Problem
+                    Solving):</strong> มองหาสาเหตุของปัญหาและป้องกันข้อผิดพลาดซ้ำ
+                </li>
+                <li class="flex items-start gap-2">
+                  <CheckCircle class="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> <strong>รักการเรียนรู้ (Continuous
+                    Learning):</strong> เทคโนโลยีใหม่ๆ เกิดขึ้นตลอดเวลา ต้องอัปเดตตัวเองเสมอ
+                </li>
               </ul>
             </div>
           </div>
@@ -628,8 +756,10 @@ const matchRightDefs = [
             <Gamepad2 class="w-6 h-6" />
           </div>
           <div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน</h2>
-            <p class="text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน</p>
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน
+            </h2>
+            <p class="text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10
+              คะแนน</p>
           </div>
         </div>
 
@@ -645,23 +775,29 @@ const matchRightDefs = [
       <div class="rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
           <div>
-            <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่ 1</span>
+            <span
+              class="text-xs font-bold text-indigo-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่
+              1</span>
             <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
               <span>สถานะ:</span>
-              <span v-if="studentNorm.isAllCompleted" class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              <span v-if="studentNorm.isAllCompleted"
+                class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                 ✓ ทำครบทุกกิจกรรมแล้ว (3/3)
               </span>
-              <span v-else-if="studentNorm.completedCount > 0" class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+              <span v-else-if="studentNorm.completedCount > 0"
+                class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
                 ⏳ กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
               </span>
-              <span v-else class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
+              <span v-else
+                class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
                 ยังไม่ได้เริ่มทำ
               </span>
             </div>
           </div>
 
           <!-- Total Normalized Score (Scaled to 10) -->
-          <div class="flex items-center gap-3 bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-2.5 rounded-xl border border-indigo-100">
+          <div
+            class="flex items-center gap-3 bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-2.5 rounded-xl border border-indigo-100">
             <Trophy class="w-7 h-7 text-amber-500 shrink-0" />
             <div>
               <span class="text-xs text-indigo-900 font-semibold block">คะแนนรวมทั้งหมด (หารเฉลี่ยเต็ม 10)</span>
@@ -727,7 +863,8 @@ const matchRightDefs = [
         ]">
           <MousePointer2 class="w-4 h-4" />
           <span>มินิเกมที่ 1: แยกประเภท</span>
-          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
+          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
+            บันทึกแล้ว</span>
         </button>
 
         <button @click="activeGame = 'order'" :class="[
@@ -736,7 +873,8 @@ const matchRightDefs = [
         ]">
           <ListOrdered class="w-4 h-4" />
           <span>มินิเกมที่ 2: โยงคำศัพท์</span>
-          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
+          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
+            บันทึกแล้ว</span>
         </button>
 
         <button @click="activeGame = 'quiz'" :class="[
@@ -745,66 +883,45 @@ const matchRightDefs = [
         ]">
           <FileQuestion class="w-4 h-4" />
           <span>🎯 แบบทดสอบหลังเรียน (4 ชอยส์ 10 ข้อ)</span>
-          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
+          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
+            บันทึกแล้ว</span>
         </button>
       </div>
 
       <!-- Game 1: Drag & Drop (examMode: true) -->
-      <DragDropGame v-if="activeGame === 'sort'" 
-        title="มินิเกมที่ 1: วัฒนธรรมองค์กร แบบเก่า vs DevOps"
+      <DragDropGame v-if="activeGame === 'sort'" title="มินิเกมที่ 1: วัฒนธรรมองค์กร แบบเก่า vs DevOps"
         subtitle="ลากลักษณะการทำงานไปใส่กล่องที่ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
-        gameId="game-1"
-        :courseId="currentCourseId"
-        :week="currentWeek"
-        :initialItems="dragItemsData"
-        :zones="dragZonesData"
-      />
+        gameId="game-1" :courseId="currentCourseId" :week="currentWeek" :initialItems="dragItemsData"
+        :zones="dragZonesData" />
 
       <!-- Game 2: Matching (examMode: true) -->
-      <MatchingGame v-if="activeGame === 'order'"
-        title="มินิเกมที่ 2: เครื่องมือและคำศัพท์ Git & DevOps"
+      <MatchingGame v-if="activeGame === 'order'" title="มินิเกมที่ 2: เครื่องมือและคำศัพท์ Git & DevOps"
         subtitle="จับคู่คำศัพท์กับการทำงาน ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
-        gameId="game-2"
-        :courseId="currentCourseId"
-        :week="currentWeek"
-        :initialLeftTerms="matchLeftTerms"
-        :initialRightDefs="matchRightDefs"
-      />
+        gameId="game-2" :courseId="currentCourseId" :week="currentWeek" :initialLeftTerms="matchLeftTerms"
+        :initialRightDefs="matchRightDefs" />
 
       <!-- Game 3: Final Post-test (4 choices, 10 questions) -->
-      <PopQuiz v-if="activeGame === 'quiz'" 
-        title="แบบทดสอบหลังเรียน (Post-test): บทนำสู่ DevOps"
+      <PopQuiz v-if="activeGame === 'quiz'" title="แบบทดสอบหลังเรียน (Post-test): บทนำสู่ DevOps"
         subtitle="แบบทดสอบ 4 ตัวเลือก 10 ข้อ วัดผลความรู้หลังเรียน ตอบให้ครบแล้วกดส่งคำตอบ (ทำได้ครั้งเดียวเท่านั้น)"
-        gameId="quiz"
-        :courseId="currentCourseId"
-        :week="currentWeek"
-        :questions="quizQuestions"
-      />
+        gameId="quiz" :courseId="currentCourseId" :week="currentWeek" :questions="quizQuestions" />
 
       <!-- Teacher Scoreboard Modal -->
-      <TeacherScoreboardModal
-        :show="showTeacherModal"
-        :courseId="currentCourseId"
-        courseName="การพัฒนาระบบร่วมกันด้วยแพลตฟอร์ม"
-        :week="currentWeek"
-        weekTitle="สัปดาห์ที่ 1: บทนำสู่ DevOps"
-        :games="weekGames"
-        @close="showTeacherModal = false"
-      />
+      <TeacherScoreboardModal :show="showTeacherModal" :courseId="currentCourseId"
+        courseName="การพัฒนาระบบร่วมกันด้วยแพลตฟอร์ม" :week="currentWeek" weekTitle="สัปดาห์ที่ 1: บทนำสู่ DevOps"
+        :games="weekGames" @close="showTeacherModal = false" />
     </section>
 
     <!-- Assignment Section -->
-    <AssignmentSection
-      course-id="21901-2012"
-      assignment-id="asm-1"
-      assignment-title="ใบงานที่ 1: สรุปหลักการ DevOps และวงจรการพัฒนาซอฟต์แวร์"
-      :max-score="10"
-    >
+    <AssignmentSection course-id="21901-2012" assignment-id="asm-1"
+      assignment-title="ใบงานที่ 1: สรุปหลักการ DevOps และวงจรการพัฒนาซอฟต์แวร์" :max-score="10">
       <template #number>1</template>
       <template #description>
         <div>
           <p class="text-base text-gray-700 leading-relaxed mb-4">
-            ให้นักศึกษาศึกษาเนื้อหาในบทเรียนสัปดาห์ที่ 1 เรื่อง <strong>"บทนำสู่ DevOps"</strong> แล้วจัดทำใบงานสรุปความรู้ความเข้าใจลงในเอกสาร (พิมพ์เป็นไฟล์ PDF หรือเขียนลงกระดาษสมุดรายงานแล้วสแกน/ถ่ายภาพรวมเป็นไฟล์ PDF) เพื่อประเมินผลความรู้รวบยอด ก่อนเริ่มลงมือปฏิบัติด้านเครื่องมือ Git Version Control ในสัปดาห์ถัดไป
+            ให้นักศึกษาศึกษาเนื้อหาในบทเรียนสัปดาห์ที่ 1 เรื่อง <strong>"บทนำสู่ DevOps"</strong>
+            แล้วจัดทำใบงานสรุปความรู้ความเข้าใจลงในเอกสาร (พิมพ์เป็นไฟล์ PDF
+            หรือเขียนลงกระดาษสมุดรายงานแล้วสแกน/ถ่ายภาพรวมเป็นไฟล์ PDF) เพื่อประเมินผลความรู้รวบยอด
+            ก่อนเริ่มลงมือปฏิบัติด้านเครื่องมือ Git Version Control ในสัปดาห์ถัดไป
           </p>
 
           <!-- Objectives Box -->
@@ -836,69 +953,275 @@ const matchRightDefs = [
       </template>
 
       <template #tasks>
-        <div class="space-y-4">
-          <!-- Part 1 -->
-          <div class="p-4 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 transition-all shadow-xs">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-indigo-900 text-sm flex items-center gap-2">
-                <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-md text-xs font-black">ตอนที่ 1</span>
-                <span>กำแพงแห่งความสับสน (The Wall of Confusion) และแนวคิด DevOps</span>
-              </span>
-              <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">3 คะแนน</span>
-            </div>
-            <p class="text-xs text-gray-600 leading-relaxed">
-              ให้อธิบายว่า ในกระบวนการพัฒนาซอฟต์แวร์แบบดั้งเดิม ทีม <strong>Dev (Development)</strong> และทีม <strong>Ops (Operations)</strong> มีเป้าหมายในการทำงานที่ขัดแย้งกันอย่างไร มักพบปัญหาคลาสสิกอะไรบ้าง (เช่น <em>"Works on my machine"</em>) และแนวคิดแบบ <strong>DevOps</strong> เข้ามาช่วยแก้ปัญหาเหล่านี้ด้วยวัฒนธรรมการทำงานแบบใด
-            </p>
-          </div>
-
-          <!-- Part 2 -->
-          <div class="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 transition-all shadow-xs">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-blue-900 text-sm flex items-center gap-2">
-                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md text-xs font-black">ตอนที่ 2</span>
-                <span>เจาะลึกวงจร DevOps Infinity Loop ทั้ง 8 ขั้นตอน</span>
-              </span>
-              <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">4 คะแนน</span>
-            </div>
-            <p class="text-xs text-gray-600 leading-relaxed mb-2">
-              ให้เขียนอธิบายสรุปขั้นตอนทั้ง 8 ขั้นตอนของ DevOps Infinity Loop โดยสรุปหน้าที่และกิจกรรมสำคัญของแต่ละขั้นตอน 1-2 บรรทัด ได้แก่:
-            </p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-              <div class="text-blue-800">
-                <strong>• ฝั่ง Dev:</strong> 1. Plan, 2. Code, 3. Build, 4. Test
-              </div>
-              <div class="text-cyan-800">
-                <strong>• ฝั่ง Ops:</strong> 5. Release, 6. Deploy, 7. Operate, 8. Monitor
-              </div>
+        <div class="space-y-6">
+          <!-- Intro notice -->
+          <div
+            class="p-4 bg-indigo-50/60 rounded-xl border border-indigo-100 flex items-start gap-3 text-sm text-indigo-900">
+            <Lightbulb class="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+            <div>
+              <strong class="font-bold block mb-1">คำชี้แจงสำหรับนักศึกษา:</strong>
+              ใบงานนี้เน้น <strong>การคิด วิเคราะห์ และแก้ปัญหา</strong> จากสถานการณ์จริงของการทำงานด้านซอฟต์แวร์
+              มิใช่การคัดลอกนิยามความหมาย ให้นักศึกษาตอบคำถามทั้ง 4 ข้อให้ครบถ้วนตามโครงร่างที่กำหนด (คะแนนเต็ม 10
+              คะแนน)
             </div>
           </div>
 
-          <!-- Part 3 -->
-          <div class="p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 transition-all shadow-xs">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-emerald-900 text-sm flex items-center gap-2">
-                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-md text-xs font-black">ตอนที่ 3</span>
-                <span>การสำรวจทักษะและการเตรียมความพร้อมส่วนบุคคลสำหรับสัปดาห์หน้า</span>
+          <!-- Question 1 -->
+          <div class="p-5 bg-white rounded-2xl border border-gray-200 hover:border-indigo-300 transition-all shadow-xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <span class="font-bold text-indigo-950 text-base flex items-center gap-2">
+                <span class="px-2.5 py-1 bg-indigo-100 text-indigo-800 rounded-lg text-xs font-black">ข้อที่ 1</span>
+                <span>วัฒนธรรมการทำงานแบบไม่โยนความผิด (Blameless Culture & Shared Responsibility)</span>
               </span>
-              <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">3 คะแนน</span>
+              <span
+                class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200 self-start sm:self-auto">2.5
+                คะแนน</span>
             </div>
-            <ul class="text-xs text-gray-600 space-y-1.5 list-disc pl-5">
-              <li>จากทักษะ Hard Skills และ Soft Skills ที่จำเป็นของ DevOps นักศึกษาคิดว่าตนเองต้องพัฒนาทักษะด้านใดมากที่สุด เพราะเหตุใด?</li>
-              <li>เตรียมความพร้อมสำหรับ <strong>สัปดาห์ที่ 2</strong> โดยระบุ <strong>Email</strong> (อีเมลมหาวิทยาลัยหรืออีเมลส่วนตัว) ที่ตนเองสามารถจำรหัสผ่านได้ พร้อมใช้งานสำหรับสมัครบัญชี <strong>GitHub</strong> ในสัปดาห์ถัดไป</li>
-            </ul>
+
+            <div
+              class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 mb-3 text-xs text-slate-700 leading-relaxed">
+              <span class="font-bold text-slate-900 block mb-1">📌 สถานการณ์สมมติ:</span>
+              ทีมพัฒนาซอฟต์แวร์ปล่อยฟีเจอร์ใหม่ขึ้นระบบจริง (Production) ในเย็นวันศุกร์ ปรากฏว่าระบบล่มทันที
+              ลูกค้าเข้าใช้งานไม่ได้ ฝ่ายดูแลระบบ (Ops) ต่อว่าทีม Dev ว่าส่งโค้ดมีบั๊กมาให้ ส่วนทีม Dev
+              โต้เถียงกลับว่าโค้ดทดสอบบนเครื่องตนเองผ่านฉลุย เป็นความผิดของ Ops ที่ตั้งค่าเซิร์ฟเวอร์ไม่ดี
+              เกิดการโต้เถียงและโยนความผิดกันไปมา
+            </div>
+
+            <div class="space-y-2 text-xs text-gray-700">
+              <div class="flex items-start gap-2">
+                <span class="font-bold text-indigo-600 shrink-0">1.1</span>
+                <span>หากนักศึกษาเป็นหัวหน้าทีม และต้องการนำ <strong>"วัฒนธรรม DevOps"</strong> เข้ามาปฏิรูปทีมนี้
+                  นักศึกษาจะมีวิธีจัดการแก้ไขความขัดแย้งในเหตุการณ์นี้อย่างไร และจะสร้าง <strong>Shared Responsibility
+                    (ความรับผิดชอบร่วมกัน)</strong> ให้เกิดขึ้นจริงได้อย่างไร?</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="font-bold text-indigo-600 shrink-0">1.2</span>
+                <span>ทำไมหลักการ <strong>"Blameless Post-Mortem"
+                    (การค้นหาสาเหตุของปัญหาโดยไม่มุ่งชี้ตัวลงโทษคนผิด)</strong>
+                  จึงเป็นหัวใจสำคัญที่ทำให้ระบบซอฟต์แวร์และทีมงานพัฒนาได้อย่างมั่นคงและยั่งยืน?</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Question 2 -->
+          <div class="p-5 bg-white rounded-2xl border border-gray-200 hover:border-blue-300 transition-all shadow-xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <span class="font-bold text-blue-950 text-base flex items-center gap-2">
+                <span class="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-black">ข้อที่ 2</span>
+                <span>การวิเคราะห์จุดวิกฤตและความเสี่ยงใน DevOps Infinity Loop</span>
+              </span>
+              <span
+                class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200 self-start sm:self-auto">2.5
+                คะแนน</span>
+            </div>
+
+            <p class="text-xs text-gray-600 mb-3 leading-relaxed">
+              ในวงจร DevOps Infinity Loop ทั้ง 8 ขั้นตอน (<strong>Plan ➔ Code ➔ Build ➔ Test ➔ Release ➔ Deploy ➔
+                Operate ➔ Monitor</strong>) แต่ละขั้นตอนมีความเชื่อมโยงกันอย่างต่อเนื่อง
+            </p>
+
+            <div class="space-y-2 text-xs text-gray-700">
+              <div class="flex items-start gap-2">
+                <span class="font-bold text-blue-600 shrink-0">2.1</span>
+                <span>ให้นักศึกษาเลือก <strong>1 รอยต่อระหว่างขั้นตอน</strong> ที่คิดว่า
+                  <strong>"มีความเสี่ยงที่จะเกิดความผิดพลาดหรือเป็นคอขวด (Bottleneck) มากที่สุด"</strong> (เช่น
+                  รอยต่อระหว่าง Test ไป Release หรือระหว่าง Deploy ไป Operate)</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="font-bold text-blue-600 shrink-0">2.2</span>
+                <span>วิเคราะห์อธิบายเหตุผลว่าเพราะเหตุใดจึงเลือกรอยต่อคู่นี้? และหากเกิดข้อผิดพลาดขึ้นที่จุดนี้
+                  จะส่งผลกระทบต่อเนื่อง (Chain Reaction) ไปยังขั้นตอนอื่น ๆ และส่งผลต่อผู้ใช้งานจริงอย่างไรบ้าง?</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Question 3 -->
+          <div class="p-5 bg-white rounded-2xl border border-gray-200 hover:border-amber-300 transition-all shadow-xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <span class="font-bold text-amber-950 text-base flex items-center gap-2">
+                <span class="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg text-xs font-black">ข้อที่ 3</span>
+                <span>การเปรียบเทียบความคุ้มค่า: ทำด้วยมือ (Manual) vs ระบบอัตโนมัติ (CI/CD)</span>
+              </span>
+              <span
+                class="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 self-start sm:self-auto">2.5
+                คะแนน</span>
+            </div>
+
+            <p class="text-xs text-gray-600 mb-3 leading-relaxed">
+              การติดตั้งและวางระบบ CI/CD Pipeline อัตโนมัติ ต้องใช้ทั้งเวลา องค์ความรู้
+              และทรัพยากรสูงมากในช่วงเริ่มต้นโครงการ
+            </p>
+
+            <div class="space-y-2 text-xs text-gray-700">
+              <div class="flex items-start gap-2">
+                <span class="font-bold text-amber-600 shrink-0">3.1</span>
+                <span>ให้วิเคราะห์ว่า <strong>เพราะเหตุใดองค์กรยุคใหม่จึงยอมลงทุนสร้างระบบอัตโนมัติ (CI/CD)
+                    แทนที่จะให้นักพัฒนาคัดลอกไฟล์ขึ้นเซิร์ฟเวอร์ด้วยตนเอง (Manual Deploy)?</strong>
+                  (ยกตัวอย่างเปรียบเทียบผลกระทบอย่างน้อย 2 มิติ เช่น มิติความเสี่ยงจาก Human Error,
+                  ความเร็วในการกู้คืนระบบ หรือความต่อเนื่องของธุรกิจ)</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="font-bold text-amber-600 shrink-0">3.2</span>
+                <span>ในกระบวนการ Continuous Integration (CI) ทำไมจึงต้องบังคับให้มีขั้นตอน <strong>Automated Testing
+                    (ทดสอบอัตโนมัติ)</strong> ทุกครั้งที่มีการ Commit รวมโค้ดเข้าสู่ส่วนกลาง?
+                  หากละเลยขั้นตอนนี้เพื่อความรวดเร็ว จะเกิดผลเสียร้ายแรงอย่างไรในระยะยาว?</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document Skeleton / PDF Preview Button Card -->
+          <div
+            class="p-5 rounded-2xl bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg border border-indigo-700/50">
+            <div class="flex items-center gap-3.5">
+              <div
+                class="w-12 h-12 rounded-xl bg-red-600 flex items-center justify-center font-black text-xs shrink-0 shadow-md">
+                PDF
+              </div>
+              <div>
+                <h4 class="font-bold text-white text-base flex items-center gap-2">
+                  <span>ตัวอย่างโครงสร้างรูปเล่มใบงาน (Official PDF Preview)</span>
+                  <span
+                    class="text-[11px] bg-indigo-500/30 text-indigo-200 px-2.5 py-0.5 rounded-full border border-indigo-400/30">ขนาดมาตรฐาน
+                    A4</span>
+                </h4>
+                <p class="text-xs text-slate-300 mt-0.5">
+                  คลิกเปิดดูแบบฟอร์มเอกสารจำลอง ขนาด A4 แสดงโครงสร้างการจัดวางหัวข้อ 1-4 ก่อนลงมือทำจริง
+                </p>
+              </div>
+            </div>
+
+            <button @click="showPdfModal = true" type="button"
+              class="px-5 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2 shrink-0 cursor-pointer border border-indigo-300/30">
+              <FileText class="w-4 h-4 text-amber-300" />
+              <span>เปิดดูตัวอย่างใบงาน (PDF Preview)</span>
+            </button>
           </div>
 
           <!-- Submission Guidelines -->
-          <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
-            <Info class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div class="p-4 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
+            <Info class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div>
-              <strong class="block mb-0.5 font-bold">ข้อกำหนดการส่งงาน:</strong>
-              จัดทำเป็นไฟล์เอกสาร <strong>PDF</strong> อัปโหลดขึ้น Google Drive หรือ OneDrive ของตนเอง (ตั้งค่าสิทธิ์ให้ <em>"ทุกคนที่มีลิงก์สามารถดูได้"</em>) แล้วนำลิงก์ (URL) มาส่งที่ปุ่ม <strong>ส่งงานด้วยลิงก์ (Submit)</strong> ด้านล่าง
+              <strong class="block mb-1 font-bold text-sm">ข้อกำหนดการจัดทำและส่งงาน:</strong>
+              <ul class="list-disc pl-4 space-y-1 text-amber-800">
+                <li>พิมพ์หรือเขียนตามโครงร่างข้างต้น แล้วบันทึก/ส่งออกเป็นไฟล์ <strong>.PDF</strong></li>
+                <li>อัปโหลดไฟล์ PDF ขึ้น Google Drive หรือ OneDrive ส่วนตัว (ตั้งค่าสิทธิ์แชร์เป็น
+                  <em>"ทุกคนที่มีลิงก์สามารถดูได้"</em>)
+                </li>
+                <li>นำลิงก์ (URL) มาส่งผ่านปุ่ม <strong>ส่งงานด้วยลิงก์ (Submit)</strong> ด้านล่างนี้</li>
+              </ul>
             </div>
           </div>
         </div>
       </template>
     </AssignmentSection>
+
+    <!-- Assignment PDF Modal for Week 1 (A4 Skeleton Preview) -->
+    <AssignmentPdfModal v-model="showPdfModal" title="ใบงานที่_1_สรุปหลักการDevOpsและวงจรการพัฒนาซอฟต์แวร์_ปวช.pdf"
+      subtitle="แบบฟอร์มเอกสารทางการ ขนาด A4 (1 หน้า)"
+      footer-text="แบบฟอร์มใบงานมาตรฐานขนาด A4 • รายวิชาการพัฒนาระบบร่วมกันด้วยแพลตฟอร์ม (21901-2012)"
+      :show-print="true">
+      <!-- Official Worksheet Header -->
+      <div class="border-b-2 border-black pb-3 text-center space-y-1">
+        <h2 class="text-base sm:text-lg font-bold text-black uppercase tracking-wide">
+          ใบงานที่ 1: สรุปหลักการ DevOps และวงจรการพัฒนาซอฟต์แวร์
+        </h2>
+      </div>
+
+      <!-- Student Meta Line -->
+      <div
+        class="py-2 text-xs sm:text-sm text-gray-900 flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-2.5">
+        <span><strong>ชื่อ-นามสกุล</strong> ..........[นาย/นางสาว นักศึกษา]............</span>
+        <span><strong>รหัสนักศึกษา</strong> .....[รหัสประจำตัว]........</span>
+        <span><strong>ระดับชั้น/กลุ่ม</strong> .....ปวช. [กลุ่มเรียน].........</span>
+      </div>
+
+      <!-- Instructions Box -->
+      <div class="bg-gray-100 p-2.5 rounded border border-gray-300 text-xs text-gray-800 leading-relaxed">
+        <strong>คำชี้แจง:</strong> ให้นักศึกษาตอบคำถามเชิงวิเคราะห์และแก้ปัญหาจากสถานการณ์จริงทั้ง 4 ตอนให้ครบถ้วน
+        โดยพิมพ์หรือเขียนลงในกระบวนการจัดทำรายงานตามโครงสร้างหัวข้อนี้
+      </div>
+
+      <!-- Section 1 -->
+      <div class="space-y-1.5 pt-2">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-1">
+          <h4 class="font-bold text-gray-900 text-xs sm:text-sm">
+            ตอนที่ 1: การวิเคราะห์วัฒนธรรมการทำงานและ Blameless Post-Mortem
+          </h4>
+          <span class="text-[11px] text-gray-500 font-semibold">(2.5 คะแนน)</span>
+        </div>
+        <div class="text-xs text-gray-800 space-y-2 pl-2">
+          <div>
+            <p class="font-semibold text-gray-900">1.1 แนวทางการแก้ปัญหาข้อขัดแย้งและการสร้าง Shared Responsibility
+              ในทีม:
+            </p>
+            <p class="text-gray-500 italic bg-gray-50 p-2 rounded border border-dashed border-gray-300">
+              [พื้นที่ตอบ]: วิเคราะห์บทบาทการเป็นผู้นำในการปรับเปลี่ยนทัศนคติของทีม Dev และ Ops จากการกล่าวโทษกัน
+              ให้มาร่วมมือกันดูแลความสำเร็จของระบบทั้งวงจร...
+            </p>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-900">1.2 ความสำคัญของวัฒนธรรม Blameless Culture ต่อความมั่นคงของระบบ:</p>
+            <p class="text-gray-500 italic bg-gray-50 p-2 rounded border border-dashed border-gray-300">
+              [พื้นที่ตอบ]: อธิบายว่าเพราะเหตุใดการวิเคราะห์ระบบโดยมุ่งหาสาเหตุที่แท้จริง (Root Cause) แทนการลงโทษคน
+              จึงช่วยให้ทีมกล้าเปิดเผยปัญหาและป้องกันข้อผิดพลาดซ้ำได้ดีกว่า...
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2 -->
+      <div class="space-y-1.5 pt-2">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-1">
+          <h4 class="font-bold text-gray-900 text-xs sm:text-sm">
+            ตอนที่ 2: การวิเคราะห์จุดวิกฤตและความเสี่ยงใน DevOps Infinity Loop
+          </h4>
+          <span class="text-[11px] text-gray-500 font-semibold">(2.5 คะแนน)</span>
+        </div>
+        <div class="text-xs text-gray-800 space-y-2 pl-2">
+          <div>
+            <p class="font-semibold text-gray-900">2.1 รอยต่อของขั้นตอนที่เลือกวิเคราะห์:</p>
+            <p class="text-gray-700 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200 inline-block">
+              รอยต่อระหว่าง: [ระบุ เช่น Test ➔ Release หรือ Deploy ➔ Operate]
+            </p>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-900">2.2 การวิเคราะห์ความเสี่ยงและผลกระทบต่อเนื่อง (Chain Reaction):</p>
+            <p class="text-gray-500 italic bg-gray-50 p-2 rounded border border-dashed border-gray-300">
+              [พื้นที่ตอบ]: อธิบายเหตุผลที่รอยต่อนี้เป็นคอขวดหรือจุดเสี่ยง พร้อมจำลองสถานการณ์ผลเสียหากขั้นตอนนี้ล้มเหลว
+              จะส่งผลต่อเนื่องต่อทีมและผู้ใช้งานจริงอย่างไร...
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3 -->
+      <div class="space-y-1.5 pt-2">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-1">
+          <h4 class="font-bold text-gray-900 text-xs sm:text-sm">
+            ตอนที่ 3: การเปรียบเทียบความคุ้มค่า: ทำด้วยมือ (Manual) vs ระบบอัตโนมัติ (CI/CD)
+          </h4>
+          <span class="text-[11px] text-gray-500 font-semibold">(2.5 คะแนน)</span>
+        </div>
+        <div class="text-xs text-gray-800 space-y-2 pl-2">
+          <div>
+            <p class="font-semibold text-gray-900">3.1 มิติเปรียบเทียบเหตุผลที่องค์กรยอมลงทุนสร้าง CI/CD แทน Manual
+              Deployment:</p>
+            <p class="text-gray-500 italic bg-gray-50 p-2 rounded border border-dashed border-gray-300">
+              [พื้นที่ตอบ]: วิเคราะห์เปรียบเทียบในมิติด้านความเสี่ยงจาก Human Error, ความเร็วในการส่งมอบฟีเจอร์
+              และความต่อเนื่องทางธุรกิจ...
+            </p>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-900">3.2 ความจำเป็นของขั้นตอน Automated Testing ในกระบวนการ Continuous
+              Integration (CI):</p>
+            <p class="text-gray-500 italic bg-gray-50 p-2 rounded border border-dashed border-gray-300">
+              [พื้นที่ตอบ]: อธิบายผลกระทบและความเสียหายที่จะเกิดขึ้น
+              หากตัดขั้นตอนการทดสอบอัตโนมัติออกไปเพื่อเร่งเวลาส่งมอบ...
+            </p>
+          </div>
+        </div>
+      </div>
+    </AssignmentPdfModal>
   </div>
 </template>
 
@@ -906,10 +1229,12 @@ const matchRightDefs = [
 .animate-spin-slow {
   animation: spin 8s linear infinite;
 }
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
