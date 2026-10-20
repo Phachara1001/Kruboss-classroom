@@ -797,30 +797,106 @@ const matchRightDefs = [
     <AssignmentSection
       course-id="21901-2012"
       assignment-id="asm-1"
-      assignment-title="ใบงานที่ 1: เตรียมความพร้อมสู่วิถี DevOps"
+      assignment-title="ใบงานที่ 1: สรุปหลักการ DevOps และวงจรการพัฒนาซอฟต์แวร์"
       :max-score="10"
     >
       <template #number>1</template>
       <template #description>
-        ให้นักศึกษาเตรียมสภาพแวดล้อมบนคอมพิวเตอร์ของตนเองให้พร้อมสำหรับการเรียนในสัปดาห์ถัดไป
+        <div>
+          <p class="text-base text-gray-700 leading-relaxed mb-4">
+            ให้นักศึกษาศึกษาเนื้อหาในบทเรียนสัปดาห์ที่ 1 เรื่อง <strong>"บทนำสู่ DevOps"</strong> แล้วจัดทำใบงานสรุปความรู้ความเข้าใจลงในเอกสาร (พิมพ์เป็นไฟล์ PDF หรือเขียนลงกระดาษสมุดรายงานแล้วสแกน/ถ่ายภาพรวมเป็นไฟล์ PDF) เพื่อประเมินผลความรู้รวบยอด ก่อนเริ่มลงมือปฏิบัติด้านเครื่องมือ Git Version Control ในสัปดาห์ถัดไป
+          </p>
+
+          <!-- Objectives Box -->
+          <div class="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-200">
+            <h4 class="font-bold text-indigo-950 text-sm mb-2 flex items-center gap-2">
+              <CheckCircle class="w-4 h-4 text-indigo-600" />
+              จุดประสงค์การเรียนรู้ประจำใบงาน (เมื่อทำใบงานนี้เสร็จ ผู้เรียนสามารถ):
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-indigo-900">
+              <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                <span>1. อธิบายความหมายและแนวคิดสำคัญของวัฒนธรรม DevOps ได้</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                <span>2. วิเคราะห์สาเหตุของปัญหา Wall of Confusion ระหว่างทีม Dev และ Ops ได้</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                <span>3. สรุปขั้นตอนทั้ง 8 ลำดับของ DevOps Infinity Loop ได้ถูกต้อง</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                <span>4. สำรวจทักษะและความพร้อมของตนเองเพื่อเตรียมใช้งาน Git ในสัปดาห์หน้าได้</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </template>
+
       <template #tasks>
-        <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
-          <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span>ดาวน์โหลดและติดตั้งโปรแกรม <strong>Visual Studio Code</strong> และ <strong>Git</strong> ตามคู่มือในหน้า <a href="#" @click.prevent="router.push(`/course/${route.params.id}/tools`)" class="text-blue-600 font-bold hover:underline">เครื่องมือเรียน</a></span>
-        </li>
-        <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
-          <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span>สมัครบัญชี <strong>GitHub</strong> (github.com) โดยใช้ Email ของมหาวิทยาลัยหรือ Email ส่วนตัวให้เรียบร้อย</span>
-        </li>
-        <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
-          <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span>จับภาพหน้าจอ (Screenshot) <strong>หน้าต่างโปรแกรม VS Code</strong> และ <strong>หน้าโปรไฟล์ GitHub</strong> ของตนเอง (รวม 2 ภาพ)</span>
-        </li>
-        <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
-          <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span>นำลิงก์ (URL) ของไฟล์รูปภาพที่อัปโหลดขึ้น Drive แล้ว มาส่งที่ปุ่ม <strong>ส่งงานด้วยลิงก์</strong> ด้านล่าง</span>
-        </li>
+        <div class="space-y-4">
+          <!-- Part 1 -->
+          <div class="p-4 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 transition-all shadow-xs">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-indigo-900 text-sm flex items-center gap-2">
+                <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-md text-xs font-black">ตอนที่ 1</span>
+                <span>กำแพงแห่งความสับสน (The Wall of Confusion) และแนวคิด DevOps</span>
+              </span>
+              <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">3 คะแนน</span>
+            </div>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              ให้อธิบายว่า ในกระบวนการพัฒนาซอฟต์แวร์แบบดั้งเดิม ทีม <strong>Dev (Development)</strong> และทีม <strong>Ops (Operations)</strong> มีเป้าหมายในการทำงานที่ขัดแย้งกันอย่างไร มักพบปัญหาคลาสสิกอะไรบ้าง (เช่น <em>"Works on my machine"</em>) และแนวคิดแบบ <strong>DevOps</strong> เข้ามาช่วยแก้ปัญหาเหล่านี้ด้วยวัฒนธรรมการทำงานแบบใด
+            </p>
+          </div>
+
+          <!-- Part 2 -->
+          <div class="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 transition-all shadow-xs">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-blue-900 text-sm flex items-center gap-2">
+                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md text-xs font-black">ตอนที่ 2</span>
+                <span>เจาะลึกวงจร DevOps Infinity Loop ทั้ง 8 ขั้นตอน</span>
+              </span>
+              <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">4 คะแนน</span>
+            </div>
+            <p class="text-xs text-gray-600 leading-relaxed mb-2">
+              ให้เขียนอธิบายสรุปขั้นตอนทั้ง 8 ขั้นตอนของ DevOps Infinity Loop โดยสรุปหน้าที่และกิจกรรมสำคัญของแต่ละขั้นตอน 1-2 บรรทัด ได้แก่:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              <div class="text-blue-800">
+                <strong>• ฝั่ง Dev:</strong> 1. Plan, 2. Code, 3. Build, 4. Test
+              </div>
+              <div class="text-cyan-800">
+                <strong>• ฝั่ง Ops:</strong> 5. Release, 6. Deploy, 7. Operate, 8. Monitor
+              </div>
+            </div>
+          </div>
+
+          <!-- Part 3 -->
+          <div class="p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 transition-all shadow-xs">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-emerald-900 text-sm flex items-center gap-2">
+                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-md text-xs font-black">ตอนที่ 3</span>
+                <span>การสำรวจทักษะและการเตรียมความพร้อมส่วนบุคคลสำหรับสัปดาห์หน้า</span>
+              </span>
+              <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">3 คะแนน</span>
+            </div>
+            <ul class="text-xs text-gray-600 space-y-1.5 list-disc pl-5">
+              <li>จากทักษะ Hard Skills และ Soft Skills ที่จำเป็นของ DevOps นักศึกษาคิดว่าตนเองต้องพัฒนาทักษะด้านใดมากที่สุด เพราะเหตุใด?</li>
+              <li>เตรียมความพร้อมสำหรับ <strong>สัปดาห์ที่ 2</strong> โดยระบุ <strong>Email</strong> (อีเมลมหาวิทยาลัยหรืออีเมลส่วนตัว) ที่ตนเองสามารถจำรหัสผ่านได้ พร้อมใช้งานสำหรับสมัครบัญชี <strong>GitHub</strong> ในสัปดาห์ถัดไป</li>
+            </ul>
+          </div>
+
+          <!-- Submission Guidelines -->
+          <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
+            <Info class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <strong class="block mb-0.5 font-bold">ข้อกำหนดการส่งงาน:</strong>
+              จัดทำเป็นไฟล์เอกสาร <strong>PDF</strong> อัปโหลดขึ้น Google Drive หรือ OneDrive ของตนเอง (ตั้งค่าสิทธิ์ให้ <em>"ทุกคนที่มีลิงก์สามารถดูได้"</em>) แล้วนำลิงก์ (URL) มาส่งที่ปุ่ม <strong>ส่งงานด้วยลิงก์ (Submit)</strong> ด้านล่าง
+            </div>
+          </div>
+        </div>
       </template>
     </AssignmentSection>
   </div>
