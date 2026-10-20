@@ -37,7 +37,8 @@ import {
   batchCheckInClassroom,
   submissionsStore,
   fetchAllCourseData,
-  formatExternalUrl
+  formatExternalUrl,
+  checkInSessionsStore
 } from '../data/gradesStore'
 import { addCoins, deductCoins, getStudentCoins } from '../data/shopStore'
 import { authUser } from '../data/authStore'
@@ -171,7 +172,17 @@ const getSubmission = (studentId, assignmentId) => {
 // Quick attendance status for a student in selectedWeek
 const getAttendanceRecord = (studentId, week) => {
   const key = `${selectedCourseId.value}_${studentId}_${week}`
-  return attendanceStore.value[key] || { status: 'none', checkedAt: '-', note: 'ยังไม่ได้เช็คอิน' }
+  const rec = attendanceStore.value[key]
+  if (rec) return rec
+
+  // If the check-in session for this week is closed and student didn't check in -> absent
+  const sessionKey = `${selectedCourseId.value}_${week}`
+  const session = checkInSessionsStore.value?.[sessionKey]
+  if (session && session.endTime && !session.isOpen) {
+    return { status: 'absent', checkedAt: '-', note: 'หมดเวลาเช็คชื่อ (ขาดเรียน)' }
+  }
+
+  return { status: 'none', checkedAt: '-', note: 'ยังไม่ได้เช็คอิน' }
 }
 
 // Stats computed

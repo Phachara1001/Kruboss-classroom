@@ -446,6 +446,7 @@ export const openCheckInSession = async (courseId, week) => {
   checkInSessionsStore.value[`${courseId}_${week}`] = {
     isOpen: true,
     startTime,
+    endTime: null,
   };
 
   try {
@@ -457,6 +458,7 @@ export const openCheckInSession = async (courseId, week) => {
         week,
         isOpen: true,
         startTime,
+        endTime: null,
       }),
     });
   } catch (e) {
@@ -477,6 +479,28 @@ export const closeCheckInSession = async (courseId, week) => {
     };
   }
 
+  // Automatically mark enrolled students who have not checked in as 'absent'
+  const enrolledStudents = studentsList.value.filter(
+    (s) => isStudentInCourse(s, courseId) && isStudent(s)
+  );
+
+  const absentBatch = [];
+  enrolledStudents.forEach((s) => {
+    const key = `${courseId}_${s.studentId}_${week}`;
+    if (!attendanceStore.value[key]) {
+      const rec = {
+        courseId,
+        studentId: s.studentId,
+        week,
+        status: "absent",
+        checkedAt: "-",
+        note: "หมดเวลาเช็คชื่อ (ขาดเรียน)",
+      };
+      attendanceStore.value[key] = rec;
+      absentBatch.push(rec);
+    }
+  });
+
   try {
     await fetch(`${API_BASE_URL}/attendance/session`, {
       method: "POST",
@@ -488,6 +512,18 @@ export const closeCheckInSession = async (courseId, week) => {
         endTime,
       }),
     });
+
+    if (absentBatch.length > 0) {
+      await fetch(`${API_BASE_URL}/attendance/batch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseId,
+          week,
+          records: absentBatch,
+        }),
+      });
+    }
   } catch (e) {
     console.error("Failed to close check-in session via API:", e);
   }
