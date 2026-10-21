@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { X, CheckCircle2, Search, Link as LinkIcon, User, RefreshCw, Save, Sparkles, Coins } from '@lucide/vue'
+import { X, CheckCircle2, Search, Link as LinkIcon, User, RefreshCw, Save, Sparkles, Coins, FlaskConical } from '@lucide/vue'
 import { studentsList, isStudentInCourse, isStudent, fetchStudents } from '@/data/studentsStore'
 import { addCoins, getStudentCoins } from '@/data/shopStore'
 import { 
@@ -11,6 +11,7 @@ import {
   fetchGrades,
   formatExternalUrl
 } from '@/data/gradesStore'
+import { triggerTestReward } from '@/data/rewardNotificationStore'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -192,6 +193,16 @@ const saveAllScores = async () => {
     isSaving.value = false
   }
 }
+
+const handleTestRewardModal = () => {
+  triggerTestReward({
+    coins: Math.round((props.maxScore || 10) * 4),
+    assignmentTitle: props.assignmentTitle || 'ใบงานที่ตรวจ',
+    courseName: props.courseId || 'รายวิชา',
+    score: props.maxScore || 10,
+    maxScore: props.maxScore || 10
+  })
+}
 </script>
 
 <template>
@@ -214,6 +225,17 @@ const saveAllScores = async () => {
           <p class="text-indigo-200 text-sm mt-1">คะแนนเต็ม {{ maxScore }} คะแนน</p>
         </div>
         <div class="flex items-center gap-2">
+          <!-- Test Reward Modal button -->
+          <button 
+            type="button"
+            @click="handleTestRewardModal"
+            class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 border border-amber-300/40 font-bold text-xs transition-colors cursor-pointer mr-1"
+            title="ทดสอบดูหน้าต่างแจ้งเตือนเหรียญรางวัลที่จะแสดงให้นักเรียนเห็น"
+          >
+            <FlaskConical class="w-3.5 h-3.5 text-amber-300" />
+            <span>ทดสอบ Modal เหรียญ</span>
+          </button>
+
           <!-- Quick button to fill full scores -->
           <button 
             type="button"

@@ -2,13 +2,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  Laptop, ExternalLink, CheckCircle, Globe, ShieldCheck, Code2, Cpu,
+  ExternalLink, CheckCircle, Globe, ShieldCheck, Code2, Cpu,
   UserPlus, MousePointerClick, Cable, FileCode2, Play, Lightbulb,
   AlertTriangle, Zap, ToggleRight, SlidersHorizontal, LayoutGrid, Terminal,
   Info, PieChart, Book, FileText, Target, Award, Layers, Sliders, Radio,
   RefreshCw, Gamepad2, MousePointer2, ListOrdered, FileQuestion, ChevronRight,
   Activity, Sun, Thermometer, Volume2, ArrowDownToLine, ArrowUpFromLine,
-  Trophy, Lock, FileSpreadsheet
+  Trophy, Lock, FileSpreadsheet, Box, Disc
 } from '@lucide/vue'
 
 import DragDropGame from '@/components/games/DragDropGame.vue'
@@ -17,6 +17,7 @@ import PopQuiz from '@/components/games/PopQuiz.vue'
 import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
+import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 
 import { authUser } from '@/data/authStore'
 import { isStudent } from '@/data/studentsStore'
@@ -26,6 +27,7 @@ import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/da
 const currentCourseId = '21901-2007'
 const currentWeek = 1
 const showTeacherModal = ref(false)
+const showPdfModal = ref(false)
 
 // Week Games Config
 const weekGames = [
@@ -61,65 +63,6 @@ const grading = [
   { name: 'สอบปลายภาคและโครงงาน IoT (Final)', score: 20, color: 'bg-red-700' }
 ]
 
-// Tinkercad Section Data
-const quickFacts = [
-  { icon: Globe, label: 'ใช้ฟรี', desc: 'ผ่านเว็บเบราว์เซอร์' },
-  { icon: ShieldCheck, label: 'ปลอดภัย', desc: 'ไม่มีอุปกรณ์เสียหาย' },
-  { icon: Code2, label: 'Blocks + C++', desc: 'เขียนโค้ดได้ 2 แบบ' },
-  { icon: Cpu, label: 'Arduino Uno', desc: 'จำลองบอร์ดจริง' }
-]
-
-const reasons = [
-  {
-    icon: Globe, color: 'cyan',
-    title: 'ใช้งานได้ฟรีผ่าน Web Browser',
-    desc: 'ไม่ต้องดาวน์โหลดหรือติดตั้งโปรแกรม รองรับทั้ง Windows, Mac, iPad และ Chromebook เพียงสมัครบัญชี Autodesk ฟรีก็เริ่มได้ทันที',
-    note: 'เหมาะกับห้องเรียนที่คอมพิวเตอร์มีสเปกจำกัด'
-  },
-  {
-    icon: ShieldCheck, color: 'emerald',
-    title: 'ปลอดภัย 100% ไม่ต้องกลัวอุปกรณ์ไหม้',
-    desc: 'หากต่อสายผิด ช็อต หรือลืมต่อตัวต้านทาน (Resistor) ระบบจะจำลองควันหรือ LED แตกเตือนทันที โดยไม่มีอุปกรณ์จริงเสียหาย',
-    note: 'ล้มเหลวได้ไม่จำกัด เรียนรู้จากข้อผิดพลาดได้เต็มที่'
-  },
-  {
-    icon: Code2, color: 'violet',
-    title: 'เขียนโค้ดได้ทั้งแบบ Blocks และ Text (C++)',
-    desc: 'สลับดูโค้ด C++ ควบคู่กับบล็อกคำสั่งได้ทันที ช่วยให้เข้าใจตรรกะโปรแกรมก่อนก้าวไปสู่การเขียนโค้ดเต็มรูปแบบ',
-    note: 'มีโหมด Blocks + Text แสดงสองแบบพร้อมกัน'
-  },
-  {
-    icon: Terminal, color: 'amber',
-    title: 'มี Serial Monitor ให้ตรวจสอบค่า',
-    desc: 'ใช้ Serial.println() เพื่อดูค่าจากเซ็นเซอร์หรือสถานะของโปรแกรมแบบเรียลไทม์ ช่วยดีบักได้เหมือนการทำงานกับบอร์ดจริง',
-    note: 'ฝึกทักษะดีบักที่ใช้ได้จริงในอนาคต'
-  }
-]
-
-const steps = [
-  { icon: UserPlus, title: 'สมัครและเข้าสู่ระบบ', desc: 'ไปที่ tinkercad.com สมัครบัญชี Autodesk ฟรี หรือเข้าสู่ระบบด้วยบัญชีที่มีอยู่' },
-  { icon: MousePointerClick, title: 'สร้างวงจรใหม่', desc: 'เลือกเมนู Circuits แล้วกด Create new Circuit เพื่อเปิดพื้นที่ทำงานเปล่า' },
-  { icon: Cable, title: 'ลากอุปกรณ์และต่อสาย', desc: 'ลาก Arduino, Breadboard, LED และ Resistor จากแถบด้านขวา แล้วคลิกที่ขาอุปกรณ์เพื่อลากสาย' },
-  { icon: FileCode2, title: 'เขียนโปรแกรม', desc: 'กดปุ่ม Code เลือกโหมด Blocks, Text หรือ Blocks + Text แล้วเขียนคำสั่งควบคุมบอร์ด' },
-  { icon: Play, title: 'กด Start Simulation', desc: 'ทดสอบวงจรและโค้ดได้ทันที หากผิดพลาดให้ตรวจสายและแก้โค้ดแล้วรันใหม่' }
-]
-
-const parts = [
-  { icon: Cpu, name: 'Arduino Uno R3', desc: 'สมองของวงจร ประมวลผลคำสั่งที่เราเขียน' },
-  { icon: LayoutGrid, name: 'Breadboard', desc: 'แผงต่อวงจรโดยไม่ต้องบัดกรี' },
-  { icon: Lightbulb, name: 'LED', desc: 'หลอดไฟแสดงผล ต้องต่ออนุกรมกับ Resistor' },
-  { icon: Zap, name: 'Resistor 220 Ω', desc: 'จำกัดกระแสเพื่อป้องกัน LED ไหม้' },
-  { icon: ToggleRight, name: 'Pushbutton', desc: 'ปุ่มกดสำหรับรับค่าอินพุตดิจิทัล' },
-  { icon: SlidersHorizontal, name: 'Potentiometer', desc: 'ตัวต้านทานปรับค่าได้ ใช้อ่านค่าอนาล็อก' }
-]
-
-const colorMap = {
-  cyan: 'bg-cyan-100 text-cyan-700',
-  emerald: 'bg-emerald-100 text-emerald-700',
-  violet: 'bg-violet-100 text-violet-700',
-  amber: 'bg-amber-100 text-amber-700'
-}
-
 // 8 Key Components of Arduino Uno R3 matching /img/Arduino.png
 const arduinoComponents = [
   {
@@ -144,7 +87,7 @@ const arduinoComponents = [
     eng: 'USB Type-B Female Connector',
     color: 'border-cyan-500/40 bg-cyan-950/20 text-cyan-300',
     badgeColor: 'bg-cyan-500 text-stone-950',
-    icon: Laptop,
+    icon: Zap,
     desc: 'ช่องทางหลักในการเชื่อมต่อบอร์ด Arduino Uno R3 เข้ากับคอมพิวเตอร์ ทำหน้าที่สำคัญ 3 อย่างพร้อมกัน',
     bullets: [
       'อัปโหลดโปรแกรม (Code Upload): ถ่ายโอนโค้ดที่คอมไพล์แล้วลงสู่หน่วยความจำ Flash',
@@ -279,13 +222,63 @@ const scenarios = [
   }
 ]
 
-// Arduino Devices Showcase (At least 3 for Digital & 3 for Analog)
+// Basic Hardware Components Data
+const basicComponents = [
+  {
+    name: 'Breadboard (แผงทดลองวงจร)',
+    role: 'ตัวกลางเชื่อมต่อวงจร',
+    category: 'อุปกรณ์พื้นฐาน',
+    badge: 'Prototyping',
+    badgeColor: 'bg-amber-100 text-amber-800',
+    icon: LayoutGrid,
+    image: 'https://th.element14.com/productimages/large/en_US/56T0249-40.jpg',
+    desc: 'แผงเสียบวงจรที่ช่วยให้เราทดลองต่ออุปกรณ์ได้โดยไม่ต้องบัดกรี (Solderless) ภายในมีรางโลหะนำไฟฟ้าเชื่อมถึงกัน',
+    keyPoints: [
+      'รางจ่ายไฟด้านข้าง (+ / -): เชื่อมต่อกันในแนวตั้งตลอดแนวยาว ใช้จ่ายไฟ 5V/3.3V และ GND',
+      'รูเสียบตรงกลาง (Terminal Strips): เชื่อมต่อกันในแนวนอนแถวละ 5 รู (A-E และ F-J แยกกัน)',
+      'ร่องตรงกลาง (Center Divider): ใช้สำหรับคร่อมไอซี (IC) หรือแยกวงจรสองฝั่งออกจากกัน'
+    ]
+  },
+  {
+    name: 'Resistor (ตัวต้านทาน)',
+    role: 'จำกัดกระแสไฟฟ้า (Current Limiting)',
+    category: 'ชิ้นส่วนอิเล็กทรอนิกส์',
+    badge: 'Protection',
+    badgeColor: 'bg-rose-100 text-rose-800',
+    icon: Zap,
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQCKK9_fbF9CElWBkV_bYTskud1Ygq9laj6V_PdA66pSKkJsE9H8HEgb8a9&s=10',
+    desc: 'อุปกรณ์ลดแรงดันและจำกัดปริมาณกระแสไฟฟ้าที่ไหลผ่านวงจร หน่วยเป็นโอห์ม (Ω) เพื่อป้องกันอุปกรณ์เสียหาย',
+    keyPoints: [
+      'ตัวต้านทาน 220 Ω / 330 Ω: ใช้ต่ออนุกรมกับหลอดไฟ LED เสมอ เพื่อป้องกัน LED ไหม้จากกระแสเกิน',
+      'ตัวต้านทาน 10 kΩ: นิยมใช้เป็นตัวต้านทาน Pull-up หรือ Pull-down สำหรับสวิตช์ปุ่มกด',
+      'ไม่มีขั้ว: สามารถต่อสลับด้านได้อย่างอิสระโดยไม่ต้องกังวลเรื่องขั้วบวก/ลบ'
+    ]
+  },
+  {
+    name: 'LED (ไดโอดเปล่งแสง)',
+    role: 'อุปกรณ์แสดงผลสถานะ (Display)',
+    category: 'Digital Output',
+    badge: 'Output',
+    badgeColor: 'bg-blue-100 text-blue-800',
+    icon: Lightbulb,
+    image: 'https://inwfile.com/s-da/rvtpo6.jpg',
+    desc: 'อุปกรณ์สารกึ่งตัวนำที่เปล่งแสงเมื่อมีกระแสไฟฟ้าไหลผ่านในทิศทางที่ถูกต้อง มี 2 ขาที่ต้องต่อให้ถูกขั้ว',
+    keyPoints: [
+      'ขาแอโนด (Anode / ขั้วบวก): ขายาว ต่อเข้ากับพินสัญญาณของบอร์ด (ผ่านตัวต้านทาน)',
+      'ขาแคโทด (Cathode / ขั้วลบ): ขาสั้นและขอบบากเรียบ ต่อกลับไปยังกราวด์ (GND)',
+      'ห้ามต่อตรงกับไฟ 5V โดยไม่มีตัวต้านทาน เพราะจะทำให้หลอดขาดทันที'
+    ]
+  }
+]
+
+// Digital & Analog Devices Showcase
 const digitalDevices = [
   {
     name: 'Pushbutton (สวิตช์ปุ่มกด)',
     type: 'Digital Input',
     badge: 'Input',
     badgeColor: 'bg-emerald-100 text-emerald-800',
+    image: 'https://shop.sirichaielectric.com/image/menu/PUSHBUTTON-SWITCH-TN2-TEND.jpg',
     desc: 'สำหรับรับคำสั่งกดปุ่มจากผู้ใช้ เช่น ปุ่มเริ่มทำงานหรือปุ่มหยุด กดปุ่มคืนค่า 1 (HIGH) ปล่อยปุ่มคืนค่า 0 (LOW)',
     command: 'digitalRead(pin)'
   },
@@ -294,6 +287,7 @@ const digitalDevices = [
     type: 'Digital Input',
     badge: 'Input',
     badgeColor: 'bg-emerald-100 text-emerald-800',
+    image: 'https://inwfile.com/s-i/9wqk1b.jpg',
     desc: 'ตรวจจับรังสีอินฟราเรดความร้อนจากร่างกายมนุษย์ เมื่อมีคนเดินผ่านส่งสัญญาณ HIGH (1) และเมื่อไม่มีคนส่ง LOW (0)',
     command: 'digitalRead(pin)'
   },
@@ -302,6 +296,7 @@ const digitalDevices = [
     type: 'Digital Output',
     badge: 'Output',
     badgeColor: 'bg-blue-100 text-blue-800',
+    image: 'https://inwfile.com/s-da/rvtpo6.jpg',
     desc: 'อุปกรณ์แสดงผลสถานะพื้นฐาน เปล่งแสงเมื่อสั่งจ่ายไฟ 5V (HIGH) และดับลงเมื่อสั่งจ่ายไฟ 0V (LOW)',
     command: 'digitalWrite(pin, HIGH/LOW)'
   },
@@ -310,6 +305,7 @@ const digitalDevices = [
     type: 'Digital Output',
     badge: 'Output',
     badgeColor: 'bg-blue-100 text-blue-800',
+    image: 'https://static.cytron.io/image/cache/catalog/products/BB-RELAY-5V-02/BB-RELAY-5V-02-800x800.png',
     desc: 'ใช้สัญญาณดิจิทัล 5V ควบคุมการเปิด-ปิดเครื่องใช้ไฟฟ้าแรงดันสูง 220V เช่น หลอดไฟบ้าน พัดลม หรือปั๊มน้ำ',
     command: 'digitalWrite(pin, HIGH/LOW)'
   },
@@ -318,6 +314,7 @@ const digitalDevices = [
     type: 'Digital Output',
     badge: 'Output',
     badgeColor: 'bg-blue-100 text-blue-800',
+    image: 'https://inwfile.com/s-i/r3ao3y.jpg',
     desc: 'สร้างเสียง Beep เตือนภัยทันทีเมื่อบอร์ดส่งสถานะ HIGH (5V) และหยุดส่งเสียงเมื่อส่ง LOW (0V)',
     command: 'digitalWrite(pin, HIGH/LOW)'
   }
@@ -329,6 +326,7 @@ const analogDevices = [
     type: 'Analog Input',
     badge: 'Input (A0-A5)',
     badgeColor: 'bg-purple-100 text-purple-800',
+    image: 'data:image/webp;base64,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',
     desc: 'หมุนแกนปรับแรงดัน 0V ถึง 5V คืนค่าตัวเลข 0 ถึง 1023 สำหรับปรับระดับเสียง ความเร็วรอบ หรือตั้งค่าเวลา',
     command: 'analogRead(A0)'
   },
@@ -337,6 +335,7 @@ const analogDevices = [
     type: 'Analog Input',
     badge: 'Input (A0-A5)',
     badgeColor: 'bg-purple-100 text-purple-800',
+    image: 'https://www.ai-corporation.net/wp-content/uploads/2021/11/chto-takoe-fotorezistory-9-e1636345173290.jpg',
     desc: 'ความต้านทานเปลี่ยนแปลงตามความสว่างของแสง ยิ่งสว่างแรงดันยิ่งเปลี่ยน คืนค่า 0 ถึง 1023 สำหรับระบบไฟถนนเปิดอัตโนมัติ',
     command: 'analogRead(A1)'
   },
@@ -345,6 +344,7 @@ const analogDevices = [
     type: 'Analog Input',
     badge: 'Input (A0-A5)',
     badgeColor: 'bg-purple-100 text-purple-800',
+    image: 'https://images.theengineeringprojects.com/image/main/2019/01/lm35-pinout.jpg',
     desc: 'จ่ายแรงดันแปรผันตามอุณหภูมิ (เช่น 10 mV ต่อ 1°C) นำค่า 0-1023 มาแปลงเป็นองศาเซลเซียสได้ละเอียด',
     command: 'analogRead(A2)'
   },
@@ -353,6 +353,7 @@ const analogDevices = [
     type: 'Analog Input',
     badge: 'Input (A0-A5)',
     badgeColor: 'bg-purple-100 text-purple-800',
+    image: 'https://inwfile.com/s-j/wic7gi.jpg',
     desc: 'วัดความชื้นในดินจากการนำไฟฟ้าของน้ำ คืนค่า 0 (ดินแห้งแล้ง) ถึง 1023 (ดินเปียกชุ่ม) สำหรับระบบสมาร์ตฟาร์ม',
     command: 'analogRead(A3)'
   },
@@ -361,63 +362,11 @@ const analogDevices = [
     type: 'Analog (PWM) Output',
     badge: 'PWM Output (~)',
     badgeColor: 'bg-orange-100 text-orange-800',
+    image: 'https://www.circuits-diy.com/wp-content/uploads/2022/10/dc-motor-speed-control-circuit.png',
     desc: 'ใช้ขา PWM (มีสัญลักษณ์ ~) ส่งความถี่ Duty Cycle 0 ถึง 255 ควบคุมความเร็วรอบมอเตอร์หรือความสว่างของหลอดไฟอย่างนุ่มนวล',
     command: 'analogWrite(pin, 0-255)'
   }
 ]
-
-// Interactive Pin Explorer State
-const selectedPinGroup = ref('digital')
-
-const pinGroupDetails = {
-  digital: {
-    title: 'Digital I/O Pins (ขา 0 ถึง 13)',
-    badge: '14 พินดิจิทัล',
-    color: 'border-amber-400 bg-amber-50 text-amber-950',
-    desc: 'ใช้สำหรับรับหรือส่งสัญญาณแบบดิจิทัลที่มีเพียง 2 สถานะ คือ HIGH (5V หรือ ลอจิก 1) และ LOW (0V หรือ ลอจิก 0) เช่น สั่งเปิด-ปิดหลอดไฟ LED, รับค่าจากสวิตช์ปุ่มกด',
-    details: [
-      { pin: 'พิน 0 (RX) & 1 (TX)', func: 'ใช้สำหรับสื่อสารข้อมูลแบบอนุกรม (Serial Communication) กับคอมพิวเตอร์ ห้ามนำไปต่ออุปกรณ์อื่นขณะอัปโหลดโค้ด' },
-      { pin: 'พิน 13 (Built-in LED)', func: 'มีไฟ LED สีส้มขนาดเล็กต่อพ่วงอยู่บนบอร์ด สามารถสั่งทดสอบเปิด/ปิดไฟได้ทันทีโดยไม่ต้องต่ออุปกรณ์ภายนอก' },
-      { pin: 'กระแสสูงสุดต่อพิน', func: 'ไม่ควรจ่ายกระแสเกิน 20-40 mA ต่อหนึ่งพิน (หากต่อมอเตอร์ต้องใช้รีเลย์หรือทรานซิสเตอร์ช่วยขับ)' }
-    ]
-  },
-  pwm: {
-    title: 'PWM Pins (Pulse Width Modulation - มีสัญลักษณ์ ~)',
-    badge: '6 พินพิเศษ (~3, ~5, ~6, ~9, ~10, ~11)',
-    color: 'border-orange-400 bg-orange-50 text-orange-950',
-    desc: 'พินดิจิทัลที่มีสัญลักษณ์ตัวหนอน (~) อยู่ด้านหน้า สามารถจำลองการปล่อยแรงดันแบบแอนะล็อกได้ โดยใช้วิธีเปิด/ปิดสัญญาณความถี่สูง สลับสัดส่วนช่วงเวลา (Duty Cycle)',
-    details: [
-      { pin: 'คำสั่งที่ใช้', func: 'ใช้คำสั่ง analogWrite(pin, value) โดย value มีค่าตั้งแต่ 0 (0V) ถึง 255 (5V)' },
-      { pin: 'การประยุกต์ใช้งาน', func: 'ใช้สำหรับหรี่-เพิ่มความสว่างของหลอดไฟ LED, ควบคุมความเร็วมอเตอร์ DC, ควบคุมองศาเซอร์โวมอเตอร์' },
-      { pin: 'ความถี่สัญญาณ', func: 'พิน 5, 6 ทำงานที่ความถี่ประมาณ 980 Hz ส่วนพิน 3, 9, 10, 11 ทำงานที่ 490 Hz' }
-    ]
-  },
-  analog: {
-    title: 'Analog In Pins (ขา A0 ถึง A5)',
-    badge: '6 ช่องรับสัญญาณแอนะล็อก',
-    color: 'border-emerald-400 bg-emerald-50 text-emerald-950',
-    desc: 'ใช้สำหรับ "รับสัญญาณ" แรงดันไฟฟ้าที่มีการเปลี่ยนแปลงต่อเนื่องตั้งแต่ 0 ถึง 5 โวลต์ โดยภายในมีวงจร ADC (Analog-to-Digital Converter) ขนาด 10 บิต',
-    details: [
-      { pin: 'การแปลงค่า (ADC)', func: 'แปลงแรงดัน 0V - 5V ให้เป็นตัวเลขจำนวนเต็ม 0 ถึง 1023 (ความละเอียด 10-bit ละเอียด 4.9 mV ต่อ 1 ระดับ)' },
-      { pin: 'คำสั่งที่ใช้', func: 'ใช้คำสั่ง analogRead(pin) เช่น int sensorValue = analogRead(A0);' },
-      { pin: 'อุปกรณ์ที่ต่อ', func: 'เซนเซอร์วัดระดับความสว่าง (LDR), เซนเซอร์วัดอุณหภูมิ, วอลลุ่มปรับค่า (Potentiometer), เซนเซอร์วัดความชื้น' }
-    ]
-  },
-  power: {
-    title: 'Power & Ground Pins (แถวควบคุมพลังงาน)',
-    badge: 'พินจ่ายไฟและกราวด์',
-    color: 'border-rose-400 bg-rose-50 text-rose-950',
-    desc: 'กลุ่มพินสำหรับจ่ายพลังงานเลี้ยงวงจรและอ้างอิงแรงดันไฟฟ้าระหว่างบอร์ดกับอุปกรณ์ต่อพ่วง',
-    details: [
-      { pin: '5V', func: 'จ่ายไฟเลี้ยงกระแสตรงคงที่ 5 โวลต์ (รับไฟมาจาก USB หรือตัวควบคุมแรงดันบนบอร์ด)' },
-      { pin: '3.3V', func: 'จ่ายไฟเลี้ยง 3.3 โวลต์ (กระแสสูงสุด 50 mA) สำหรับเซนเซอร์รุ่นใหม่ที่ใช้ไฟ 3.3V' },
-      { pin: 'GND (Ground)', func: 'ขั้วลบหรือกราวด์ของวงจร (มีทั้งหมด 3 พินบนบอร์ด) อุปกรณ์ทุกชิ้นต้องมีสายกราวด์ต่อร่วมกัน' },
-      { pin: 'Vin (Voltage In)', func: 'ช่องรับไฟเลี้ยงจากภายนอก 7-12V เช่น ต่อจากแบตเตอรี่ 9V เข้าสู่ตัวคุมไฟของบอร์ดโดยตรง' },
-      { pin: 'RESET', func: 'หากนำสายไปแตะกับ GND ชั่วขณะ บอร์ดจะเริ่มรันโปรแกรมใหม่ตั้งแต่ต้นเหมือนกดปุ่ม Reset' },
-      { pin: 'IOREF', func: 'จ่ายแรงดันอ้างอิงของระบบ I/O (สำหรับบอร์ด Uno R3 คือ 5.0V)' }
-    ]
-  }
-}
 
 // Mini-game State
 const activeGame = ref('sort') // 'sort', 'match', 'quiz'
@@ -488,7 +437,7 @@ const matchRightDefs = [
   { id: 'r5', text: 'พินดิจิทัลพิเศษที่ส่งสัญญาณความถี่ Duty Cycle จำลองแรงดันหรี่ไฟหรือเร่งมอเตอร์ได้' }
 ]
 
-// Game 3: แบบทดสอบหลังเรียน (Post-test 10 ข้อ 4 ตัวเลือก)
+// Game 3: แบบทดสอบหลังเรียน Week 1 (Post-test 10 ข้อ 4 ตัวเลือก เน้นคอนเซปต์ Embed, IoT, บอร์ด และอุปกรณ์)
 const quizQuestions = [
   {
     id: 1,
@@ -525,14 +474,14 @@ const quizQuestions = [
   },
   {
     id: 4,
-    question: 'ข้อใดอธิบายความแตกต่างระหว่างฟังก์ชัน void setup() และ void loop() ในโค้ด Arduino ได้ถูกต้องที่สุด?',
+    question: 'ข้อใดอธิบายความหมายของระบบสมองกลฝังตัว (Embedded System) ได้ถูกต้องที่สุด?',
     options: [
-      { id: 'a', text: 'setup() ทำงานวนซ้ำเรื่อยๆ ส่วน loop() ทำงานเพียงครั้งเดียว', isCorrect: false },
-      { id: 'b', text: 'setup() ทำงานเพียงครั้งเดียวตอนเปิดเครื่องเพื่อกำหนดค่าเริ่มต้น ส่วน loop() ทำงานวนซ้ำต่อเนื่องไม่รู้จบ', isCorrect: true },
-      { id: 'c', text: 'ทั้งสองฟังก์ชันทำงานพร้อมกันแบบมัลติทาสก์ตลอดเวลา', isCorrect: false },
-      { id: 'd', text: 'setup() ใช้เขียนเฉพาะภาษาบล็อก ส่วน loop() ใช้เขียน C++', isCorrect: false }
+      { id: 'a', text: 'คอมพิวเตอร์ทั่วไปสำหรับพิมพ์งาน ท่องเว็บ และเล่นเกม', isCorrect: false },
+      { id: 'b', text: 'ระบบคอมพิวเตอร์ขนาดเล็กที่ออกแบบมาเพื่อทำงาน "เฉพาะทาง" บรรจุฝังอยู่ในอุปกรณ์เครื่องใช้ต่างๆ', isCorrect: true },
+      { id: 'c', text: 'เซิร์ฟเวอร์ขนาดใหญ่ในห้องศูนย์ข้อมูลคลาวด์', isCorrect: false },
+      { id: 'd', text: 'โปรแกรมตัดต่อภาพยนตร์ความละเอียดสูง', isCorrect: false }
     ],
-    explanation: 'void setup() จะรันครั้งเดียวเมื่อบอร์ดเริ่มทำงาน เพื่อตั้งค่าโหมดพิน เช่น pinMode() ส่วน void loop() จะรันวนซ้ำไปเรื่อยๆ จนกว่าจะตัดไฟ'
+    explanation: 'Embedded System คือระบบคอมพิวเตอร์ขนาดเล็กที่มีไมโครโปรเซสเซอร์/ไมโครคอนโทรลเลอร์ ฝังตัวอยู่ในอุปกรณ์เพื่อทำงานเฉพาะด้าน เช่น ระบบแอร์ เบรก ABS ตู้เย็น'
   },
   {
     id: 5,
@@ -547,7 +496,7 @@ const quizQuestions = [
   },
   {
     id: 6,
-    question: 'หากต้องการอ่านค่าความเข้มแสงจากเซนเซอร์ LDR (Photoresistor) ผ่านขา A0 ของ Arduino ต้องใช้คำสั่งใดในโค้ด C++?',
+    question: 'หากต้องการอ่านค่าความเข้มแสงจากเซนเซอร์ LDR (Photoresistor) ผ่านขา A0 ของ Arduino ต้องใช้คำสั่งใด?',
     options: [
       { id: 'a', text: 'digitalRead(A0);', isCorrect: false },
       { id: 'b', text: 'analogRead(A0);', isCorrect: true },
@@ -558,14 +507,14 @@ const quizQuestions = [
   },
   {
     id: 7,
-    question: 'จุดเด่นสำคัญที่สุดของการทดลองวงจรบนซอฟต์แวร์จำลอง Autodesk Tinkercad Circuits คือข้อใด?',
+    question: 'ข้อใดอธิบายแนวคิดหลักของ Internet of Things (IoT) ได้ถูกต้องที่สุด?',
     options: [
-      { id: 'a', text: 'ใช้งานฟรีผ่านเว็บ ปลอดภัย 100% ล้มเหลวและทดลองได้เต็มที่โดยไม่มีอุปกรณ์เสียหายจริง', isCorrect: true },
-      { id: 'b', text: 'ใช้งานได้เฉพาะตอนเชื่อมต่อบอร์ดจริงผ่านสาย USB เท่านั้น', isCorrect: false },
-      { id: 'c', text: 'ต้องซื้อลิขสิทธิ์รายเดือนราคาแพง', isCorrect: false },
-      { id: 'd', text: 'ไม่รองรับการเขียนโค้ดภาษา C++', isCorrect: false }
+      { id: 'a', text: 'การนำระบบสมองกลฝังตัวและเซนเซอร์มาเชื่อมต่อเข้าสู่โครงข่ายอินเทอร์เน็ต เพื่อส่งข้อมูลขึ้นคลาวด์และควบคุมสั่งการได้จากระยะไกล', isCorrect: true },
+      { id: 'b', text: 'การต่อสายแลนระหว่างคอมพิวเตอร์ตั้งโต๊ะสองเครื่อง', isCorrect: false },
+      { id: 'c', text: 'การดาวน์โหลดเพลงจากอินเทอร์เน็ตมาเก็บไว้ในแฟลชไดรฟ์', isCorrect: false },
+      { id: 'd', text: 'การซ่อมแซมหน้าจอโทรศัพท์มือถือที่แตก', isCorrect: false }
     ],
-    explanation: 'Tinkercad Circuits จำลองการทำงานของ Arduino, เซนเซอร์, และวงจรอิเล็กทรอนิกส์บนเว็บเบราว์เซอร์ ช่วยให้ทดลองได้โดยไม่ต้องกลัววงจรช็อตหรืออุปกรณ์ไหม้'
+    explanation: 'IoT คือการขยายขีดความสามารถของระบบสมองกลฝังตัวให้สามารถสื่อสารผ่านอินเทอร์เน็ต ทำให้ส่งข้อมูลเซนเซอร์ขึ้นคลาวด์และสั่งการจากที่ไหนก็ได้ในโลก'
   },
   {
     id: 8,
@@ -591,14 +540,14 @@ const quizQuestions = [
   },
   {
     id: 10,
-    question: 'หากต้องการให้บอร์ด Arduino หน่วงเวลาหยุดรอเป็นเวลา 2 วินาที ก่อนจะทำคำสั่งถัดไป ต้องเขียนคำสั่งอย่างไร?',
+    question: 'ขาพิน GND (Ground) บนบอร์ด Arduino มีความสำคัญอย่างไรในวงจรอิเล็กทรอนิกส์?',
     options: [
-      { id: 'a', text: 'delay(2);', isCorrect: false },
-      { id: 'b', text: 'delay(200);', isCorrect: false },
-      { id: 'c', text: 'delay(2000);', isCorrect: true },
-      { id: 'd', text: 'wait(20);', isCorrect: false }
+      { id: 'a', text: 'เป็นพินที่จ่ายไฟแรงดันสูง 220V', isCorrect: false },
+      { id: 'b', text: 'เป็นจุดอ้างอิงแรงดัน 0V (ขั้วลบ) ของวงจร อุปกรณ์ทุกตัวต้องมีสายต่อร่วมกันเพื่อให้กระแสไหลครบวงจร', isCorrect: true },
+      { id: 'c', text: 'ใช้รับสัญญาณวิทยุจากเสาอากาศ', isCorrect: false },
+      { id: 'd', text: 'ใช้ปรับสัญญาณนาฬิกาของซีพียู', isCorrect: false }
     ],
-    explanation: 'ฟังก์ชัน delay(ms) รับค่าหน่วยเป็นมิลลิวินาที (Milliseconds) ดังนั้น 2 วินาที = 2,000 มิลลิวินาที -> delay(2000);'
+    explanation: 'GND (Ground) คือขั้วลบหรือจุดอ้างอิง 0V หากไม่ต่อสายกราวด์ร่วมกัน (Common Ground) กระแสจะไม่สามารถไหลครบวงจรและอุปกรณ์จะไม่ทำงาน'
   }
 ]
 </script>
@@ -606,7 +555,7 @@ const quizQuestions = [
 <template>
   <div class="w-full space-y-10 pb-10 px-4 md:px-8">
 
-    <!-- Page Header (Standardized with other courses) -->
+    <!-- Page Header (Standardized with course theme) -->
     <div
       class="bg-white rounded-2xl p-8 md:p-12 border border-amber-100 shadow-sm relative overflow-hidden flex flex-col justify-center min-h-[250px]">
       <div class="absolute right-0 top-0 opacity-10 pointer-events-none text-amber-600">
@@ -622,9 +571,10 @@ const quizQuestions = [
           <span class="text-3xl text-amber-700">(Introduction to Embedded Systems & IoT)</span>
         </h1>
         <p class="text-gray-600 text-xl leading-relaxed">
-          ทำความรู้จักกับรายวิชา เกณฑ์การให้คะแนน และเจาะลึกระบบสมองกลฝังตัว (Embedded System), อินเทอร์เน็ตของสรรพสิ่ง
-          (IoT), กายวิภาคบอร์ด Arduino Uno R3 และการจำลองวงจรบน Autodesk Tinkercad เนื้อหาบรรยายและฝึกปฏิบัติ 2
-          ชั่วโมงเต็ม
+          ทำความรู้จักกับรายวิชา เกณฑ์การให้คะแนน และเจาะลึกแนวคิดระบบสมองกลฝังตัว (Embedded System),
+          อินเทอร์เน็ตของสรรพสิ่ง
+          (IoT), กายวิภาคและส่วนประกอบสำคัญของบอร์ด Arduino Uno R3, ระบบสัญญาณดิจิทัลและแอนะล็อก
+          พร้อมแนะนำอุปกรณ์และเซนเซอร์พื้นฐาน
         </p>
       </div>
     </div>
@@ -684,8 +634,8 @@ const quizQuestions = [
             </div>
             <ol class="list-decimal pl-5 text-gray-600 space-y-3 text-base flex-1">
               <li>เข้าใจหลักการทำงานของระบบสมองกลฝังตัวและระบบไอโอที (IoT)</li>
-              <li>มีทักษะในการออกแบบ จำลองวงจรอิเล็กทรอนิกส์ และเขียนโปรแกรมควบคุมบอร์ด</li>
-              <li>สามารถใช้งานโปรแกรมจำลอง Autodesk Tinkercad Circuits ได้อย่างถูกต้อง</li>
+              <li>เข้าใจกายวิภาคและหน้าที่ของส่วนประกอบต่างๆ บนบอร์ดไมโครคอนโทรลเลอร์</li>
+              <li>จำแนกประเภทสัญญาณดิจิทัล สัญญาณแอนะล็อก และอุปกรณ์เซนเซอร์พื้นฐานได้อย่างถูกต้อง</li>
               <li>มีเจตคติและกิจนิสัยที่ดีในการปฏิบัติงาน มีความรับผิดชอบ และคำนึงถึงความปลอดภัย</li>
             </ol>
           </div>
@@ -702,7 +652,7 @@ const quizQuestions = [
             </div>
             <ol class="list-decimal pl-5 text-gray-600 space-y-3 text-base flex-1">
               <li>แสดงความรู้เกี่ยวกับโครงสร้างและหลักการทำงานของระบบสมองกลฝังตัวและบอร์ดไมโครคอนโทรลเลอร์</li>
-              <li>จำลอง ต่อวงจร และเขียนคำสั่งควบคุมอุปกรณ์ Digital, PWM และ Analog ตามที่กำหนด</li>
+              <li>จำแนกและอธิบายหลักการทำงานของอุปกรณ์ Digital, PWM และ Analog ตามที่กำหนด</li>
               <li>ประยุกต์ใช้เทคโนโลยีสมองกลฝังตัวและ IoT ในการสร้างสรรค์นวัตกรรมแก้ไขปัญหา</li>
             </ol>
           </div>
@@ -719,8 +669,8 @@ const quizQuestions = [
             </div>
             <p
               class="text-gray-600 text-base leading-relaxed flex-1 bg-teal-50/50 p-4 rounded-lg border border-teal-100/50">
-              วิเคราะห์ความต้องการ ออกแบบวงจรไมโครคอนโทรลเลอร์ และพัฒนาโปรแกรมสั่งการระบบสมองกลฝังตัวและไอโอทีผ่าน
-              Tinkercad พร้อมนำไปปฏิบัติจริงได้อย่างเป็นระบบและมีประสิทธิภาพ
+              วิเคราะห์ความต้องการ ออกแบบสถาปัตยกรรมระบบสมองกลฝังตัวและไอโอที เลือกใช้อุปกรณ์และเซนเซอร์ที่เหมาะสม
+              พร้อมนำไปพัฒนาโครงงานประยุกต์ใช้งานจริงได้อย่างเป็นระบบและมีประสิทธิภาพ
             </p>
           </div>
         </div>
@@ -855,157 +805,53 @@ const quizQuestions = [
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Part 2: Tinkercad Simulator (Hands-on Lab) -->
-        <div class="pt-8 border-t border-gray-100">
-          <div class="rounded-3xl bg-white border border-gray-200/80 shadow-sm overflow-hidden">
-            <!-- Header band -->
-            <div class="relative p-6 sm:p-8 bg-gradient-to-br from-cyan-600 via-cyan-700 to-sky-800 text-white">
-              <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
-              <div class="relative flex items-start justify-between flex-wrap gap-5">
-                <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center">
-                    <Laptop class="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-cyan-100">Hands-on Lab</span>
-                    <h2 class="text-2xl sm:text-3xl font-black leading-tight">2. เครื่องมือฝึกปฏิบัติ: Autodesk
-                      Tinkercad Circuits</h2>
-                    <p class="text-sm text-cyan-50/90 mt-1">ห้องแล็บอิเล็กทรอนิกส์และจำลองบอร์ด Arduino
-                      เสมือนจริงบนเว็บเบราว์เซอร์</p>
-                  </div>
+          <!-- 3 Pillars of IoT Diagram -->
+          <div class="mt-8 p-6 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80">
+            <h4 class="text-lg font-bold text-amber-950 mb-4 flex items-center gap-2">
+              <Layers class="w-5 h-5 text-amber-600" /> 3 องค์ประกอบหลักของระบบสมองกลฝังตัวและไอโอที (Three Core Stages)
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div class="p-4 rounded-xl bg-white border border-amber-200 space-y-2">
+                <div class="flex items-center gap-2 text-emerald-700 font-bold">
+                  <ArrowDownToLine class="w-5 h-5" />
+                  <span>1. ตรวจจับข้อมูล (Sensors / Input)</span>
                 </div>
-                <a href="https://www.tinkercad.com/circuits" target="_blank" rel="noopener noreferrer"
-                  class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-cyan-800 font-bold text-sm shadow-lg hover:bg-cyan-50 hover:-translate-y-0.5 transition-all">
-                  เข้าสู่ Tinkercad.com
-                  <ExternalLink class="w-4 h-4" />
-                </a>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                  รับสัญญาณการเปลี่ยนแปลงทางกายภาพรอบตัว เช่น แสง, อุณหภูมิ, การเคลื่อนไหว, ความชื้น
+                  แปลงเป็นสัญญาณไฟฟ้าส่งให้สมองกล
+                </p>
               </div>
 
-              <!-- Quick facts -->
-              <div class="relative mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div v-for="f in quickFacts" :key="f.label"
-                  class="flex items-center gap-3 p-3 rounded-2xl bg-white/10 border border-white/15 backdrop-blur">
-                  <component :is="f.icon" class="w-5 h-5 shrink-0 text-cyan-100" />
-                  <div class="leading-tight">
-                    <p class="text-sm font-bold">{{ f.label }}</p>
-                    <p class="text-[11px] text-cyan-100/90">{{ f.desc }}</p>
-                  </div>
+              <div class="p-4 rounded-xl bg-white border border-amber-200 space-y-2">
+                <div class="flex items-center gap-2 text-amber-700 font-bold">
+                  <Cpu class="w-5 h-5" />
+                  <span>2. ประมวลผลและตัดสินใจ (Processing)</span>
                 </div>
-              </div>
-            </div>
-
-            <div class="p-6 sm:p-8 space-y-10">
-              <!-- Intro + preview -->
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                <figure class="overflow-hidden rounded-2xl border border-gray-200 shadow-md group bg-gray-50">
-                  <img src="/img/tinkercad_circuits_preview.jpg" alt="Autodesk Tinkercad Circuits Simulator Preview"
-                    class="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <figcaption class="p-3 border-t border-gray-100 text-center text-xs text-gray-500">
-                    จำลองการต่อวงจรและเขียนโปรแกรมควบคุม Arduino เสมือนจริง 100% บน Autodesk Tinkercad
-                  </figcaption>
-                </figure>
-
-                <div class="space-y-4">
-                  <h3 class="text-xl font-black text-gray-900">Tinkercad Circuits คืออะไร?</h3>
-                  <p class="text-sm text-gray-600 leading-relaxed">
-                    Tinkercad Circuits เป็นโปรแกรมจำลองวงจรอิเล็กทรอนิกส์ออนไลน์จาก Autodesk
-                    ที่ให้เราลากอุปกรณ์มาวางบนพื้นที่ทำงาน ต่อสายด้วยเมาส์ และเขียนโปรแกรมควบคุมบอร์ด Arduino
-                    ได้เหมือนทำงานกับอุปกรณ์จริง
-                    โดยสามารถกดจำลองการทำงานเพื่อดูผลลัพธ์ได้ทันที
-                  </p>
-                  <p class="text-sm text-gray-600 leading-relaxed">
-                    เครื่องมือนี้เหมาะกับผู้เริ่มต้น เพราะลดอุปสรรคเรื่องค่าอุปกรณ์ ความเสี่ยงที่อุปกรณ์เสียหาย
-                    และการติดตั้งโปรแกรม ทำให้เรามีเวลาโฟกัสกับ <span
-                      class="font-bold text-gray-900">ตรรกะของวงจรและโปรแกรม</span> อย่างเต็มที่
-                  </p>
-                </div>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                  ไมโครคอนโทรลเลอร์ (Arduino / ESP32) นำข้อมูลที่ได้มาคำนวณตามตรรกะโค้ด
+                  และส่งข้อมูลผ่านเครือข่ายอินเทอร์เน็ตขึ้นสู่ระบบคลาวด์
+                </p>
               </div>
 
-              <!-- Why Tinkercad -->
-              <div class="space-y-4">
-                <h3 class="text-xl font-black text-gray-900">ทำไมเราจึงใช้ Tinkercad ในการเริ่มต้นเรียนรู้?</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div v-for="r in reasons" :key="r.title"
-                    class="p-5 rounded-2xl bg-gray-50 border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all space-y-3">
-                    <div class="flex items-center gap-3">
-                      <div :class="['w-10 h-10 rounded-xl flex items-center justify-center', colorMap[r.color]]">
-                        <component :is="r.icon" class="w-5 h-5" />
-                      </div>
-                      <p class="font-bold text-gray-900 text-sm">{{ r.title }}</p>
-                    </div>
-                    <p class="text-xs text-gray-600 leading-relaxed">{{ r.desc }}</p>
-                    <p class="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
-                      <CheckCircle class="w-3.5 h-3.5" /> {{ r.note }}
-                    </p>
-                  </div>
+              <div class="p-4 rounded-xl bg-white border border-amber-200 space-y-2">
+                <div class="flex items-center gap-2 text-blue-700 font-bold">
+                  <ArrowUpFromLine class="w-5 h-5" />
+                  <span>3. สั่งการและแสดงผล (Actuators / Output)</span>
                 </div>
-              </div>
-
-              <!-- Workflow -->
-              <div class="space-y-4">
-                <h3 class="text-xl font-black text-gray-900">ขั้นตอนการใช้งานเบื้องต้น</h3>
-                <ol class="relative space-y-3">
-                  <li v-for="(s, i) in steps" :key="s.title"
-                    class="flex items-start gap-4 p-4 rounded-2xl border border-gray-100 bg-white hover:bg-cyan-50/40 transition-colors">
-                    <div
-                      class="w-9 h-9 shrink-0 rounded-full bg-cyan-600 text-white font-black text-sm flex items-center justify-center">
-                      {{ i + 1 }}
-                    </div>
-                    <div class="flex-1">
-                      <p class="font-bold text-gray-900 text-sm">{{ s.title }}</p>
-                      <p class="text-xs text-gray-600 mt-0.5 leading-relaxed">{{ s.desc }}</p>
-                    </div>
-                    <component :is="s.icon" class="w-5 h-5 text-cyan-600 shrink-0 hidden sm:block mt-1" />
-                  </li>
-                </ol>
-              </div>
-
-              <!-- Components -->
-              <div class="space-y-4">
-                <h3 class="text-xl font-black text-gray-900">อุปกรณ์พื้นฐานที่ควรรู้จัก</h3>
-                <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                  <div v-for="p in parts" :key="p.name"
-                    class="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-2 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                    <component :is="p.icon" class="w-6 h-6 text-cyan-700" />
-                    <p class="font-bold text-gray-900 text-sm">{{ p.name }}</p>
-                    <p class="text-[11px] text-gray-500 leading-relaxed">{{ p.desc }}</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Tips -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="p-5 rounded-2xl bg-emerald-50 border border-emerald-100 space-y-2">
-                  <p class="flex items-center gap-2 font-bold text-emerald-800 text-sm">
-                    <Lightbulb class="w-4 h-4" /> เคล็ดลับ
-                  </p>
-                  <ul class="text-xs text-emerald-900/80 space-y-1.5 list-disc pl-4 leading-relaxed">
-                    <li>กด Ctrl+S หรือรอระบบบันทึกอัตโนมัติ และตั้งชื่อวงจรให้สื่อความหมาย</li>
-                    <li>เปลี่ยนสีสายไฟ (แดง = 5V, ดำ = GND) เพื่อให้ตรวจวงจรง่ายขึ้น</li>
-                    <li>ทดลองเปลี่ยนค่าใน delay() เพื่อดูว่า LED กะพริบเร็วหรือช้าลง</li>
-                  </ul>
-                </div>
-                <div class="p-5 rounded-2xl bg-amber-50 border border-amber-100 space-y-2">
-                  <p class="flex items-center gap-2 font-bold text-amber-800 text-sm">
-                    <AlertTriangle class="w-4 h-4" /> ข้อควรระวัง
-                  </p>
-                  <ul class="text-xs text-amber-900/80 space-y-1.5 list-disc pl-4 leading-relaxed">
-                    <li>แม้ในโปรแกรมจำลองจะไม่เสียหาย แต่ควรฝึกต่อ Resistor ให้ถูกต้องเหมือนวงจรจริง</li>
-                    <li>ตรวจสอบขาบวก (ขายาว) และขาลบ (ขาสั้น) ของ LED ก่อนต่อวงจรเสมอ</li>
-                    <li>เมื่อแก้ไขวงจรให้หยุดการจำลองก่อน แล้วค่อยเริ่มรันใหม่</li>
-                  </ul>
-                </div>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                  ส่งคำสั่งควบคุมไปยังอุปกรณ์ขับเคลื่อนจริง เช่น สั่งเปิดรีเลย์สวิตช์ไฟ, หมุนมอเตอร์ปั๊มน้ำ,
+                  ขับเสียงเตือนไซเรน หรือแสดงผลบนหน้าจอ
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Part 3: Arduino Uno R3 Anatomy & Diagram (User Requested Image & 8 Components) -->
+        <!-- Part 2: Arduino Uno R3 Anatomy & Diagram -->
         <div class="pt-8 border-t border-gray-100">
           <h3 class="text-2xl font-bold text-amber-900 border-l-4 border-amber-500 pl-4 mb-6">
-            ส่วนที่ 3: กายวิภาคและส่วนประกอบของบอร์ด Arduino Uno R3
+            ส่วนที่ 2: กายวิภาคและส่วนประกอบของบอร์ด Arduino Uno R3
           </h3>
 
           <div class="bg-stone-900 rounded-3xl p-6 md:p-8 text-white shadow-xl space-y-6">
@@ -1062,11 +908,11 @@ const quizQuestions = [
           </div>
         </div>
 
-        <!-- Part 4: Digital vs Analog Pin Deep Dive -->
+        <!-- Part 3: Digital vs Analog Pin Deep Dive -->
         <div class="pt-8 border-t border-gray-100 space-y-8">
           <div>
             <h3 class="text-2xl font-bold text-amber-900 border-l-4 border-amber-500 pl-4 mb-2">
-              ส่วนที่ 4: ความแตกต่างระหว่าง Digital Pin และ Analog Pin (Digital vs Analog Deep Dive)
+              ส่วนที่ 3: ความแตกต่างระหว่าง Digital Pin และ Analog Pin (Digital vs Analog Deep Dive)
             </h3>
             <p class="text-base text-gray-600">
               ทำความเข้าใจความแตกต่างของสัญญาณทางกายภาพ รูปแบบคำสั่งการใช้งาน Input/Output การเปรียบเทียบในสถานการณ์จริง
@@ -1228,13 +1074,63 @@ const quizQuestions = [
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Arduino Devices & Sensors Showcase (At least 3 for Digital & 3 for Analog) -->
-          <div class="space-y-6 pt-4">
+        <!-- Part 4: Basic Hardware Components & Devices Introduction -->
+        <div class="pt-8 border-t border-gray-100 space-y-8">
+          <div>
+            <h3 class="text-2xl font-bold text-amber-900 border-l-4 border-amber-500 pl-4 mb-2">
+              ส่วนที่ 4: แนะนำอุปกรณ์และชิ้นส่วนอิเล็กทรอนิกส์พื้นฐาน (Basic Hardware & Components)
+            </h3>
+            <p class="text-base text-gray-600">
+              ทำความรู้จักอุปกรณ์พื้นฐานที่จำเป็นในการประกอบวงจรสมองกลฝังตัว เช่น แผงต่อวงจร Breadboard, ตัวต้านทาน
+              Resistor, หลอดไฟ LED พร้อมจำแนกเซนเซอร์และอุปกรณ์ตรวจวัดยอดนิยม
+            </p>
+          </div>
+
+          <!-- Basic Circuit Components (Breadboard, Resistor, LED) -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div v-for="comp in basicComponents" :key="comp.name"
+              class="p-5 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-4 hover:border-amber-400 hover:shadow-md transition-all flex flex-col justify-between">
+
+              <div>
+                <!-- Image Container with fixed W & H, object-cover, overflow-hidden -->
+                <div
+                  class="w-full h-64 sm:h-72 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative group/img mb-3">
+                  <img :src="comp.image" :alt="comp.name"
+                    class="w-full h-full object-cover object-center transition-transform duration-300 group-hover/img:scale-105"
+                    loading="lazy" />
+                </div>
+
+                <div class="flex items-center justify-between mb-2">
+                  <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+                    <component :is="comp.icon" class="w-5 h-5" />
+                  </div>
+                  <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full" :class="comp.badgeColor">
+                    {{ comp.badge }}
+                  </span>
+                </div>
+
+                <h4 class="font-black text-gray-900 text-base">{{ comp.name }}</h4>
+                <p class="text-xs text-amber-700 font-medium mb-1.5">{{ comp.role }}</p>
+                <p class="text-xs text-gray-600 leading-relaxed">{{ comp.desc }}</p>
+              </div>
+
+              <div class="pt-3 border-t border-gray-100 space-y-1.5 text-[11px] text-gray-600">
+                <p v-for="(pt, ptIdx) in comp.keyPoints" :key="ptIdx" class="flex items-start gap-1.5">
+                  <span class="text-amber-500 font-bold shrink-0">•</span>
+                  <span>{{ pt }}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arduino Devices & Sensors Showcase (Digital & Analog) -->
+          <div class="space-y-6 pt-2">
             <div>
               <h4 class="text-xl font-black text-gray-900 flex items-center gap-2">
                 <Cpu class="w-5 h-5 text-amber-600" />
-                ตัวอย่างอุปกรณ์ Arduino ที่ใช้พินแต่ละประเภท
+                ตัวอย่างอุปกรณ์และเซนเซอร์ที่ใช้งานร่วมกับบอร์ด Arduino
               </h4>
               <p class="text-xs text-gray-500 mt-1">
                 จำแนกอุปกรณ์ยอดนิยมในการสร้างโครงงาน ทั้งฝั่งดิจิทัล (Input/Output) และฝั่งแอนะล็อก (Sensors/PWM)
@@ -1247,19 +1143,29 @@ const quizQuestions = [
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                 อุปกรณ์ที่ใช้ Digital Pin (พิน 0 ถึง 13)
               </h5>
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div v-for="d in digitalDevices" :key="d.name"
-                  class="p-4 rounded-2xl bg-white border border-gray-200 shadow-2xs space-y-2 hover:border-amber-400 hover:shadow-xs transition-all">
-                  <div class="flex items-start justify-between gap-2">
-                    <span class="font-bold text-gray-900 text-xs">{{ d.name }}</span>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" :class="d.badgeColor">
-                      {{ d.badge }}
-                    </span>
+                  class="p-4 rounded-2xl bg-white border border-gray-200 shadow-2xs space-y-3 hover:border-amber-400 hover:shadow-xs transition-all flex flex-col justify-between">
+                  <div>
+                    <!-- Image Container with fixed W & H, object-cover, overflow-hidden -->
+                    <div
+                      class="w-full h-56 sm:h-60 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative group/img mb-2.5">
+                      <img :src="d.image" :alt="d.name"
+                        class="w-full h-full object-cover object-center transition-transform duration-300 group-hover/img:scale-105"
+                        loading="lazy" />
+                    </div>
+
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                      <span class="font-bold text-gray-900 text-xs">{{ d.name }}</span>
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" :class="d.badgeColor">
+                        {{ d.badge }}
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-gray-600 leading-relaxed">{{ d.desc }}</p>
                   </div>
-                  <p class="text-[11px] text-gray-600 leading-relaxed">{{ d.desc }}</p>
                   <div
-                    class="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-400 font-mono">
-                    <span>คำสั่ง:</span>
+                    class="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-400 font-mono">
+                    <span>คำสั่งที่เกี่ยวข้อง:</span>
                     <code class="text-amber-800 bg-amber-50 px-1 rounded">{{ d.command }}</code>
                   </div>
                 </div>
@@ -1272,103 +1178,69 @@ const quizQuestions = [
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                 อุปกรณ์ที่ใช้ Analog Pin (พิน A0 ถึง A5 และ PWM ~)
               </h5>
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div v-for="d in analogDevices" :key="d.name"
-                  class="p-4 rounded-2xl bg-white border border-gray-200 shadow-2xs space-y-2 hover:border-emerald-400 hover:shadow-xs transition-all">
-                  <div class="flex items-start justify-between gap-2">
-                    <span class="font-bold text-gray-900 text-xs">{{ d.name }}</span>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" :class="d.badgeColor">
-                      {{ d.badge }}
-                    </span>
+                  class="p-4 rounded-2xl bg-white border border-gray-200 shadow-2xs space-y-3 hover:border-emerald-400 hover:shadow-xs transition-all flex flex-col justify-between">
+                  <div>
+                    <!-- Image Container with fixed W & H, object-cover, overflow-hidden -->
+                    <div
+                      class="w-full h-56 sm:h-60 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative group/img mb-2.5">
+                      <img :src="d.image" :alt="d.name"
+                        class="w-full h-full object-cover object-center transition-transform duration-300 group-hover/img:scale-105"
+                        loading="lazy" />
+                    </div>
+
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                      <span class="font-bold text-gray-900 text-xs">{{ d.name }}</span>
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" :class="d.badgeColor">
+                        {{ d.badge }}
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-gray-600 leading-relaxed">{{ d.desc }}</p>
                   </div>
-                  <p class="text-[11px] text-gray-600 leading-relaxed">{{ d.desc }}</p>
                   <div
-                    class="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-400 font-mono">
-                    <span>คำสั่ง:</span>
+                    class="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-400 font-mono">
+                    <span>คำสั่งที่เกี่ยวข้อง:</span>
                     <code class="text-emerald-800 bg-emerald-50 px-1 rounded">{{ d.command }}</code>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Part 5: Programming Language (C/C++ & Structure) -->
-        <div class="pt-8 border-t border-gray-100 space-y-6">
-          <h3 class="text-2xl font-bold text-indigo-900 border-l-4 border-indigo-500 pl-4 mb-2">
-            ส่วนที่ 5: ภาษาที่ใช้ในการเขียนโปรแกรม Arduino (C/C++)
-          </h3>
-          <p class="text-base text-gray-600">
-            โปรแกรมควบคุมบอร์ด Arduino เขียนด้วยภาษา C/C++ โดยโปรแกรมทุกตัวจะมีโครงสร้างพื้นฐาน 2
-            ฟังก์ชันหลักที่ต้องมีเสมอ:
-          </p>
-
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Left: Code Structure -->
-            <div
-              class="p-6 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-lg space-y-4 font-mono text-xs">
-              <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-                <span class="text-amber-400 font-bold">// โครงสร้างหลักของไฟล์ .ino (Arduino Code)</span>
-                <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400">C/C++ Syntax</span>
-              </div>
-
-              <div class="space-y-3">
-                <div class="p-3.5 rounded-xl bg-slate-950/80 border border-amber-500/30">
-                  <span class="text-pink-400 font-bold">void</span> <span
-                    class="text-yellow-300 font-bold">setup</span>() {<br />
-                  &nbsp;&nbsp;<span class="text-slate-500">// 1. ทำงานเพียง "ครั้งเดียว" ตอนเปิดบอร์ด</span><br />
-                  &nbsp;&nbsp;<span class="text-cyan-300">pinMode</span>(<span class="text-orange-400">13</span>, <span
-                    class="text-emerald-400">OUTPUT</span>); <span class="text-slate-500">// กำหนดให้พิน 13
-                    เป็นเอาต์พุต</span><br />
-                  }
-                </div>
-
-                <div class="p-3.5 rounded-xl bg-slate-950/80 border border-teal-500/30">
-                  <span class="text-pink-400 font-bold">void</span> <span
-                    class="text-yellow-300 font-bold">loop</span>() {<br />
-                  &nbsp;&nbsp;<span class="text-slate-500">// 2. ทำงาน "วนซ้ำตลอดเวลา" ไม่รู้จบ</span><br />
-                  &nbsp;&nbsp;<span class="text-cyan-300">digitalWrite</span>(<span class="text-orange-400">13</span>,
-                  <span class="text-emerald-400">HIGH</span>); <span class="text-slate-500">// สั่งเปิดไฟ</span><br />
-                  &nbsp;&nbsp;<span class="text-cyan-300">delay</span>(<span
-                    class="text-orange-400">1000</span>);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
-                    class="text-slate-500">// หน่วงเวลา 1 วินาที</span><br />
-                  &nbsp;&nbsp;<span class="text-cyan-300">digitalWrite</span>(<span class="text-orange-400">13</span>,
-                  <span class="text-emerald-400">LOW</span>);&nbsp;&nbsp;<span class="text-slate-500">//
-                    สั่งดับไฟ</span><br />
-                  &nbsp;&nbsp;<span class="text-cyan-300">delay</span>(<span
-                    class="text-orange-400">1000</span>);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
-                    class="text-slate-500">// หน่วงเวลา 1 วินาที</span><br />
-                  }
-                </div>
-              </div>
-            </div>
-
-            <!-- Right: Explanation of Code Mode in Tinkercad -->
-            <div class="p-6 rounded-3xl bg-white border border-gray-200 shadow-sm space-y-4">
-              <h4 class="text-lg font-black text-gray-900">รูปแบบการเขียนโค้ดบน Tinkercad Circuits</h4>
-
-              <div class="space-y-3 text-xs text-gray-600">
-                <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
-                  <p class="font-bold text-amber-900 mb-1">🧱 1. Blocks Mode (บล็อกลากวาง)</p>
-                  <p>เหมาะสำหรับผู้เริ่มต้น ลากบล็อกคำสั่ง เช่น <span
-                      class="font-mono bg-white px-1.5 py-0.5 rounded border">set built-in LED to HIGH</span>
-                    มาต่อกันเหมือนตัวต่อเลโก้</p>
-                </div>
-
-                <div class="p-3.5 rounded-xl bg-indigo-50 border border-indigo-200">
-                  <p class="font-bold text-indigo-900 mb-1">💻 2. Text Mode (C/C++ Code)</p>
-                  <p>เหมาะสำหรับนักศึกษาสายไอที/คอมพิวเตอร์ เขียนโค้ดภาษา C/C++ ด้วยมือจริง ช่วยให้เข้าใจการทำงานลึกซึ้ง
-                    และนำไปใช้งานกับบอร์ดจริงในแล็บได้ 100%</p>
-                </div>
-
-                <div class="p-3.5 rounded-xl bg-teal-50 border border-teal-200">
-                  <p class="font-bold text-teal-900 mb-1">🔄 3. Blocks + Text Mode</p>
-                  <p>โหมดแนะนำในสัปดาห์ที่ 1 ลากบล็อกทางซ้าย แล้วดูโค้ดภาษา C++
-                    ที่ถูกสร้างขึ้นมาอัตโนมัติทางขวาเพื่อเปรียบเทียบคำสั่ง</p>
-                </div>
-              </div>
+          <!-- Summary Matrix Table -->
+          <div class="p-6 rounded-2xl bg-slate-900 text-white space-y-4">
+            <h4 class="text-lg font-black flex items-center gap-2 text-amber-400">
+              <LayoutGrid class="w-5 h-5" /> ตารางสรุปการจำแนกประเภทอุปกรณ์ (Hardware Matrix)
+            </h4>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left text-slate-300">
+                <thead class="text-amber-300 uppercase bg-slate-800 text-[11px]">
+                  <tr>
+                    <th class="px-4 py-3 rounded-l-lg">ประเภทสัญญาณ</th>
+                    <th class="px-4 py-3">โหมดรับค่า (Input)</th>
+                    <th class="px-4 py-3">โหมดส่งค่า (Output)</th>
+                    <th class="px-4 py-3 rounded-r-lg">ช่วงค่า / ระดับแรงดัน</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr class="hover:bg-slate-800/50">
+                    <td class="px-4 py-3 font-bold text-amber-400">Digital</td>
+                    <td class="px-4 py-3">Pushbutton, PIR Sensor, Limit Switch</td>
+                    <td class="px-4 py-3">LED, Active Buzzer, Relay Module</td>
+                    <td class="px-4 py-3 font-mono text-cyan-300">0 หรือ 1 (0V หรือ 5V)</td>
+                  </tr>
+                  <tr class="hover:bg-slate-800/50">
+                    <td class="px-4 py-3 font-bold text-emerald-400">Analog</td>
+                    <td class="px-4 py-3">Potentiometer, LDR, LM35 Temp Sensor</td>
+                    <td class="px-4 py-3">LED Fade (PWM), DC Motor Speed (~Pins)</td>
+                    <td class="px-4 py-3 font-mono text-emerald-300">0-1023 (In) / 0-255 (PWM Out)</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
+
         </div>
 
       </div>
@@ -1382,8 +1254,10 @@ const quizQuestions = [
             <Gamepad2 class="w-6 h-6" />
           </div>
           <div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน</h2>
-            <p class="text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน</p>
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน
+            </h2>
+            <p class="text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10
+              คะแนน</p>
           </div>
         </div>
 
@@ -1399,23 +1273,28 @@ const quizQuestions = [
       <div class="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
           <div>
-            <span class="text-xs font-bold text-amber-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่ 1</span>
+            <span class="text-xs font-bold text-amber-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่
+              1</span>
             <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
               <span>สถานะ:</span>
-              <span v-if="studentNorm.isAllCompleted" class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              <span v-if="studentNorm.isAllCompleted"
+                class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                 ✓ ทำครบทุกกิจกรรมแล้ว (3/3)
               </span>
-              <span v-else-if="studentNorm.completedCount > 0" class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+              <span v-else-if="studentNorm.completedCount > 0"
+                class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
                 ⏳ กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
               </span>
-              <span v-else class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
+              <span v-else
+                class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
                 ยังไม่ได้เริ่มทำ
               </span>
             </div>
           </div>
 
           <!-- Total Normalized Score (Scaled to 10) -->
-          <div class="flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-2.5 rounded-xl border border-amber-100">
+          <div
+            class="flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-2.5 rounded-xl border border-amber-100">
             <Trophy class="w-7 h-7 text-amber-500 shrink-0" />
             <div>
               <span class="text-xs text-amber-900 font-semibold block">คะแนนรวมทั้งหมด (หารเฉลี่ยเต็ม 10)</span>
@@ -1473,7 +1352,7 @@ const quizQuestions = [
         </div>
       </div>
 
-      <!-- Game Tabs (มินิเกม -> มินิเกม -> สุดท้ายคือแบบทดสอบหลังเรียน) -->
+      <!-- Game Tabs -->
       <div class="flex flex-wrap gap-3">
         <button @click="activeGame = 'sort'" :class="[
           activeGame === 'sort' ? 'bg-amber-600 text-white shadow-lg scale-105' : 'bg-white text-amber-700 hover:bg-amber-50 border border-amber-200',
@@ -1481,7 +1360,8 @@ const quizQuestions = [
         ]">
           <MousePointer2 class="w-4 h-4" />
           <span>มินิเกมที่ 1: จำแนกพิน Arduino</span>
-          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
+          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
+            บันทึกแล้ว</span>
         </button>
 
         <button @click="activeGame = 'match'" :class="[
@@ -1490,7 +1370,8 @@ const quizQuestions = [
         ]">
           <ListOrdered class="w-4 h-4" />
           <span>มินิเกมที่ 2: จับคู่คำศัพท์สมองกล</span>
-          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
+          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
+            บันทึกแล้ว</span>
         </button>
 
         <button @click="activeGame = 'quiz'" :class="[
@@ -1499,44 +1380,29 @@ const quizQuestions = [
         ]">
           <FileQuestion class="w-4 h-4" />
           <span>กิจกรรมสุดท้าย: แบบทดสอบหลังเรียน (Post-test 10 ข้อ)</span>
-          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
+          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
+            บันทึกแล้ว</span>
         </button>
       </div>
 
       <!-- Game 1: Drag & Drop -->
-      <DragDropGame v-if="activeGame === 'sort'"
-        :course-id="currentCourseId"
-        :week="currentWeek"
-        game-id="game-1"
-        game-title="เกมลากวาง: จำแนกประเภทพิน Arduino Uno R3"
-        title="จำแนกประเภทพินและช่องเสียบของบอร์ด Arduino Uno R3"
-        subtitle="ลากชื่อพินและหน้าที่ไปใส่ในหมวดหมู่ที่ถูกต้องให้ครบ!"
-        :initialItems="dragItemsData"
-        :zones="dragZonesData"
-      />
+      <DragDropGame v-if="activeGame === 'sort'" :course-id="currentCourseId" :week="currentWeek" game-id="game-1"
+        game-title="เกมลากวาง: จำแนกประเภทพิน Arduino Uno R3" title="จำแนกประเภทพินและช่องเสียบของบอร์ด Arduino Uno R3"
+        subtitle="ลากชื่อพินและหน้าที่ไปใส่ในหมวดหมู่ที่ถูกต้องให้ครบ!" :initialItems="dragItemsData"
+        :zones="dragZonesData" />
 
       <!-- Game 2: Matching -->
-      <MatchingGame v-if="activeGame === 'match'"
-        :course-id="currentCourseId"
-        :week="currentWeek"
-        game-id="game-2"
-        game-title="เกมจับคู่: คำศัพท์และหน้าที่สำคัญของระบบสมองกล"
-        title="คำศัพท์และหน้าที่สำคัญของระบบสมองกล"
+      <MatchingGame v-if="activeGame === 'match'" :course-id="currentCourseId" :week="currentWeek" game-id="game-2"
+        game-title="เกมจับคู่: คำศัพท์และหน้าที่สำคัญของระบบสมองกล" title="คำศัพท์และหน้าที่สำคัญของระบบสมองกล"
         subtitle="จับคู่คำศัพท์ด้านซ้ายกับความหมายและหน้าที่ด้านขวาให้ถูกต้องครบทั้ง 5 คู่"
-        :initialLeftTerms="matchLeftTerms"
-        :initialRightDefs="matchRightDefs"
-      />
+        :initialLeftTerms="matchLeftTerms" :initialRightDefs="matchRightDefs" />
 
       <!-- Game 3: Pop Quiz (Post-test) -->
-      <PopQuiz v-if="activeGame === 'quiz'"
-        :course-id="currentCourseId"
-        :week="currentWeek"
-        game-id="quiz"
-        game-title="แบบทดสอบหลังเรียน Week 1 (IoT & Arduino Uno)"
-        title="แบบทดสอบหลังเรียน: สัปดาห์ที่ 1 (IoT & Arduino)"
+      <PopQuiz v-if="activeGame === 'quiz'" :course-id="currentCourseId" :week="currentWeek" game-id="quiz"
+        game-title="แบบทดสอบหลังเรียน Week 1 (IoT & Arduino Hardware)"
+        title="แบบทดสอบหลังเรียน: สัปดาห์ที่ 1 (Embedded Systems, IoT & Hardware)"
         subtitle="แบบทดสอบ 4 ตัวเลือก 10 ข้อ วัดความเข้าใจรอบด้าน ทำได้เพียงครั้งเดียวเท่านั้น"
-        :questions="quizQuestions"
-      >
+        :questions="quizQuestions">
         <template #actions>
           <RouterLink to="/courses"
             class="px-8 py-4 bg-amber-600 border-2 border-amber-500 text-white font-bold rounded-xl hover:bg-amber-500 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)] flex items-center gap-2">
@@ -1548,45 +1414,366 @@ const quizQuestions = [
 
     <!-- Assignment Section -->
     <AssignmentSection :course-id="currentCourseId" assignment-id="asm-1"
-      assignment-title="ใบงานที่ 1: การสมัครและเริ่มต้นสร้างวงจรเสมือนจริงบน Tinkercad" :max-score="10">
+      assignment-title="ใบงานที่ 1: ระบบสมองกลฝังตัว & IoT และสถาปัตยกรรมบอร์ด Arduino Uno R3" :max-score="10">
       <template #number>1</template>
       <template #description>
-        ให้นักศึกษาสมัครบัญชี Autodesk Tinkercad และทดสอบสร้างวงจรจำลองบอร์ด Arduino Uno R3
-        พร้อมทดลองรันโค้ดไฟกระพริบแรก (Blink) บนระบบเสมือนจริง
+        ให้นักศึกษาสรุปความรู้เกี่ยวกับแนวคิดระบบสมองกลฝังตัว (Embedded System), สถาปัตยกรรม IoT,
+        ชี้ระบุส่วนประกอบสำคัญของบอร์ด Arduino Uno R3 และจำแนกอุปกรณ์เซนเซอร์พื้นฐาน
       </template>
       <template #tasks>
         <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
           <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span>เข้าไปที่เว็บไซต์ <a href="https://www.tinkercad.com/circuits" target="_blank"
-              class="text-cyan-600 font-bold underline">tinkercad.com/circuits</a> แล้วสมัครสมาชิก (Sign Up)
-            หรือเข้าสู่ระบบด้วย Google Account ของนักศึกษา</span>
+          <span><strong>ข้อที่ 1 (คอนเซปต์):</strong> อธิบายความหมายของระบบสมองกลฝังตัว (Embedded System)
+            ต่างจากคอมพิวเตอร์ทั่วไป (General Purpose PC) อย่างไร พร้อมยกตัวอย่างอุปกรณ์ในชีวิตประจำวัน 3 ชิ้น</span>
         </li>
         <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
           <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span>กดปุ่ม <strong>+ Create</strong> เลือก <strong>Circuit</strong> จากนั้นลากบอร์ด <strong>Arduino Uno
-              R3</strong> ออกมาวางในพื้นที่ทำงาน</span>
+          <span><strong>ข้อที่ 2 (IoT):</strong> อธิบาย 3 องค์ประกอบหลักของระบบ IoT (Sensors/Input, Processing,
+            Actuators/Output) และอธิบายประโยชน์ของการนำอุปกรณ์เชื่อมต่ออินเทอร์เน็ต</span>
         </li>
         <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
           <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span>กดปุ่ม <strong>Code</strong> ด้านบนขวา เลือกโหมด <strong>Blocks + Text</strong> แล้วกด <strong>Start
-              Simulation</strong> เพื่อสังเกตไฟสีส้มที่พิน 13 (Built-in LED) กระพริบติด-ดับ</span>
+          <span><strong>ข้อที่ 3 (แนะนำบอร์ด):</strong> ชี้ระบุตำแหน่งและหน้าที่ของ 8 ส่วนประกอบหลักบนบอร์ด Arduino Uno
+            R3 ตามแผนภาพกายวิภาค (เช่น ATmega328P, พินดิจิทัล, พินแอนะล็อก, GND, 5V)</span>
         </li>
         <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
           <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span>จับภาพหน้าจอ (Screenshot) วงจรและโค้ดของตนเองบน Tinkercad นำไปอัปโหลดขึ้น Google Drive
-            หรือแชร์ลิงก์สาธารณะของวงจร แล้วนำ URL มาส่งในปุ่ม <strong>ส่งงานด้วยลิงก์</strong> ด้านล่าง</span>
+          <span><strong>ข้อที่ 4 (แนะนำอุปกรณ์):</strong> จำแนกอุปกรณ์ 4 ชนิด (สวิตช์ปุ่มกด, หลอด LED, วอลลุ่ม
+            Potentiometer, เซนเซอร์แสง LDR) ว่าเป็น Digital หรือ Analog และเป็น Input หรือ Output</span>
         </li>
+        <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
+          <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+          <span>จัดทำเอกสารสรุปเป็นไฟล์ PDF หรือภาพ Infographic อัปโหลดขึ้น Google Drive พร้อมเปิดสิทธิ์แชร์สาธารณะ
+            แล้วนำ URL มาส่งในปุ่ม <strong>ส่งงานด้วยลิงก์</strong> ด้านล่าง</span>
+        </li>
+
+        <!-- PDF Example Button Card -->
+        <div class="mt-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h5 class="font-bold text-gray-900 text-sm flex items-center gap-1.5">
+              <FileText class="w-4 h-4 text-amber-600" /> ต้องการดูตัวอย่างการเขียนใบงานที่ 1?
+            </h5>
+            <p class="text-xs text-gray-500 mt-0.5">
+              กดเปิดดูตัวอย่างการเขียนใบงานที่ 1 ฉบับสมบูรณ์ (รูปแบบเอกสารมาตรฐานทางการ ขนาด A4)
+            </p>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button @click="showPdfModal = true" type="button"
+              class="px-5 py-3 rounded-2xl font-bold text-sm bg-amber-600 hover:bg-amber-700 text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2 shrink-0 cursor-pointer">
+              <FileText class="w-4 h-4 text-amber-200" />
+              <span>เปิดดูตัวอย่างใบงาน (PDF Preview)</span>
+            </button>
+          </div>
+        </div>
       </template>
     </AssignmentSection>
 
+    <!-- Assignment PDF Modal for IoT Week 1 (Multi-page A4 Skeleton Template) -->
+    <AssignmentPdfModal
+      v-model="showPdfModal"
+      title="โครงร่างแบบฟอร์ม_ใบงานที่_1_ระบบสมองกลฝังตัวและสถาปัตยกรรมบอร์ดArduinoUno_ปวช.pdf"
+      subtitle="โครงร่างแบบฟอร์มเอกสารทางการ ขนาด A4 (จำนวน 2 หน้า)"
+      footer-text="โครงร่างแบบฟอร์มมาตรฐาน ขนาด A4 • รายวิชาเทคโนโลยีระบบสมองกลฝังตัวและไอโอที (21901-2007)"
+      :show-print="true"
+      :multi-page="true"
+    >
+      <!-- ========================================================= -->
+      <!-- แผ่นที่ 1: ตอนที่ 1 และ ตอนที่ 2 (หน้า 1 จาก 2)            -->
+      <!-- ========================================================= -->
+      <div
+        class="printable-a4-sheet bg-white text-gray-900 w-full max-w-[210mm] min-h-[297mm] p-8 sm:p-11 shadow-2xl border border-gray-300 flex flex-col justify-between text-xs sm:text-sm font-sans box-border relative"
+        style="background-color: #ffffff !important; color: #111827 !important;"
+      >
+        <div class="space-y-4">
+          <!-- Page 1 Header -->
+          <div class="border-b-2 border-black pb-3 text-center space-y-1 relative">
+            <span class="absolute top-0 right-0 px-2 py-0.5 rounded bg-gray-100 border border-gray-300 text-[10px] font-mono text-gray-600">
+              หน้า 1 / 2
+            </span>
+            <h2 class="text-base sm:text-lg font-bold text-black uppercase tracking-wide">
+              ใบงานที่ 1: ระบบสมองกลฝังตัว & IoT และสถาปัตยกรรมบอร์ด Arduino Uno R3
+            </h2>
+          </div>
+
+          <!-- Student Meta Line (Form Placeholders) -->
+          <div
+            class="py-2 text-xs text-gray-900 flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-2">
+            <span><strong>ชื่อ-นามสกุล:</strong> [ ระบุชื่อ - นามสกุล นักศึกษา ]</span>
+            <span><strong>รหัสนักศึกษา:</strong> [ ระบุรหัสประจำตัว ]</span>
+            <span><strong>ระดับชั้น:</strong> ปวช.3/2</span>
+          </div>
+
+          <!-- Instructions Box -->
+          <div class="bg-amber-50/70 p-2.5 rounded border border-amber-200 text-xs text-amber-950 leading-relaxed">
+            <strong>คำชี้แจง:</strong> ให้นักศึกษาจัดทำรายงานผลการปฏิบัติงานตามโครงสร้างแบบฟอร์มที่กำหนดทั้ง 4 ตอนให้ครบถ้วน โดยพิมพ์หรือเขียนสรุปเนื้อหาลงในพื้นที่ที่จัดเตรียมไว้ พร้อมจัดรูปแบบเอกสารให้เรียบร้อยสวยงาม
+          </div>
+
+          <!-- Section 1: Embedded System vs PC -->
+          <div class="space-y-2 pt-1">
+            <div class="border-b border-gray-200 pb-1">
+              <h4 class="font-bold text-gray-900 text-xs sm:text-sm">
+                ตอนที่ 1: คอนเซปต์ระบบสมองกลฝังตัว (Embedded System) vs คอมพิวเตอร์ทั่วไป (General-Purpose PC)
+              </h4>
+            </div>
+
+            <div class="text-xs text-gray-800 space-y-2">
+              <div>
+                <span class="font-semibold text-gray-900 block mb-1">1.1 ความหมายและนิยามของระบบสมองกลฝังตัว:</span>
+                <div class="p-2.5 bg-gray-50 rounded border border-dashed border-gray-300 text-gray-500 italic text-[11px] leading-relaxed">
+                  [พื้นที่สำหรับพิมพ์/เขียนสรุป]: อธิบายความหมายของระบบสมองกลฝังตัว (Embedded System) และชี้ให้เห็นว่าแตกต่างจากคอมพิวเตอร์ทั่วไป (General Purpose PC) อย่างไรในแง่ของสถาปัตยกรรมและเป้าหมายการทำงาน...
+                </div>
+              </div>
+
+              <div>
+                <span class="font-semibold text-gray-900 block mb-1">1.2 ตารางเปรียบเทียบความแตกต่าง 3 มิติ:</span>
+                <table class="w-full border-collapse border border-gray-300 text-[11px]">
+                  <thead>
+                    <tr class="bg-gray-100 text-gray-800">
+                      <th class="border border-gray-300 p-1.5 text-left w-1/4">มิติเปรียบเทียบ</th>
+                      <th class="border border-gray-300 p-1.5 text-left w-3/8">ระบบสมองกลฝังตัว (Embedded System)</th>
+                      <th class="border border-gray-300 p-1.5 text-left w-3/8">คอมพิวเตอร์ทั่วไป (General PC)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="border border-gray-300 p-1.5 font-semibold">1. วัตถุประสงค์ (Purpose)</td>
+                      <td class="border border-gray-300 p-1.5 text-gray-500 italic">[ระบุการทำงานเฉพาะทาง (Dedicated Task)...]</td>
+                      <td class="border border-gray-300 p-1.5 text-gray-500 italic">[ระบุการทำงานอเนกประสงค์ (General Purpose)...]</td>
+                    </tr>
+                    <tr class="bg-gray-50">
+                      <td class="border border-gray-300 p-1.5 font-semibold">2. ระบบปฏิบัติการ (OS)</td>
+                      <td class="border border-gray-300 p-1.5 text-gray-500 italic">[ระบุระดับ Firmware / RTOS / Bare-metal...]</td>
+                      <td class="border border-gray-300 p-1.5 text-gray-500 italic">[ระบุ OS ขนาดใหญ่ เช่น Windows, macOS...]</td>
+                    </tr>
+                    <tr>
+                      <td class="border border-gray-300 p-1.5 font-semibold">3. พลังงานและทรัพยากร</td>
+                      <td class="border border-gray-300 p-1.5 text-gray-500 italic">[ระบุการกินไฟ แรม และหน่วยประมวลผล...]</td>
+                      <td class="border border-gray-300 p-1.5 text-gray-500 italic">[ระบุการกินไฟ แรม GB และหน่วยประมวลผล...]</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div>
+                <span class="font-semibold text-gray-900 block mb-1">1.3 ตัวอย่างอุปกรณ์สมองกลฝังตัวในชีวิตประจำวัน 3 ชิ้น:</span>
+                <div class="space-y-1.5 pl-2 text-[11px] text-gray-700">
+                  <p>• <strong>อุปกรณ์ชิ้นที่ 1:</strong> [ระบุชื่ออุปกรณ์ เช่น เครื่องซักผ้าอัตโนมัติ] — <em>(หน้าที่การทำงาน: [ระบุเซนเซอร์/ไมโครคอนโทรลเลอร์ที่ใช้ควบคุม]...)</em></p>
+                  <p>• <strong>อุปกรณ์ชิ้นที่ 2:</strong> [ระบุชื่ออุปกรณ์ เช่น ไมโครเวฟดิจิทัล] — <em>(หน้าที่การทำงาน: [ระบุเซนเซอร์/ไมโครคอนโทรลเลอร์ที่ใช้ควบคุม]...)</em></p>
+                  <p>• <strong>อุปกรณ์ชิ้นที่ 3:</strong> [ระบุชื่ออุปกรณ์ เช่น เครื่องปรับอากาศ Inverter] — <em>(หน้าที่การทำงาน: [ระบุเซนเซอร์/ไมโครคอนโทรลเลอร์ที่ใช้ควบคุม]...)</em></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: IoT 3-stage Architecture -->
+          <div class="space-y-2 pt-1">
+            <div class="border-b border-gray-200 pb-1">
+              <h4 class="font-bold text-gray-900 text-xs sm:text-sm">
+                ตอนที่ 2: สถาปัตยกรรม 3 องค์ประกอบหลักของระบบ IoT และประโยชน์เครือข่ายอินเทอร์เน็ต
+              </h4>
+            </div>
+
+            <div class="text-xs text-gray-800 space-y-2">
+              <span class="font-semibold text-gray-900 block">2.1 โครงสร้าง 3 องค์ประกอบหลัก:</span>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div class="p-2.5 rounded border border-blue-200 bg-blue-50/50">
+                  <span class="font-bold text-blue-900 block text-xs">1. Sensors (Input Layer)</span>
+                  <p class="text-[11px] text-blue-700 italic mt-1 leading-relaxed">
+                    [ระบุหน้าที่ตรวจวัดสภาพแวดล้อมกายภาพ และยกตัวอย่างเซนเซอร์อย่างน้อย 2 ชนิด]
+                  </p>
+                </div>
+                <div class="p-2.5 rounded border border-amber-200 bg-amber-50/50">
+                  <span class="font-bold text-amber-900 block text-xs">2. Processing Unit (Brain)</span>
+                  <p class="text-[11px] text-amber-700 italic mt-1 leading-relaxed">
+                    [ระบุหน้าที่ประมวลผลตรรกะ และการส่งผ่านข้อมูลเครือข่าย Wi-Fi/Cloud]
+                  </p>
+                </div>
+                <div class="p-2.5 rounded border border-emerald-200 bg-emerald-50/50">
+                  <span class="font-bold text-emerald-900 block text-xs">3. Actuators (Output Layer)</span>
+                  <p class="text-[11px] text-emerald-700 italic mt-1 leading-relaxed">
+                    [ระบุหน้าที่ขับเคลื่อนกลไกตอบสนอง และยกตัวอย่างอุปกรณ์ขับเคลื่อน 2 ชนิด]
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <span class="font-semibold text-gray-900 block mb-1">2.2 ประโยชน์ของการเชื่อมต่ออุปกรณ์เข้าสู่อินเทอร์เน็ต (IoT Benefits):</span>
+                <div class="p-2.5 bg-gray-50 rounded border border-dashed border-gray-300 text-gray-500 italic text-[11px] leading-relaxed">
+                  [พื้นที่สำหรับพิมพ์/เขียนสรุป]: อธิบายประโยชน์ 3 ด้านหลัก ได้แก่ 1) การติดตามและสั่งการจากระยะไกล (Remote Monitoring & Control) 2) การทำงานอัตโนมัติประสานระบบ (Automation) และ 3) การวิเคราะห์ข้อมูลบนคลาวด์ (Cloud Data Analytics)...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Page 1 Footer -->
+        <div class="pt-3 border-t border-gray-200 flex items-center justify-between text-[11px] text-gray-500 shrink-0">
+          <span>แบบฟอร์มใบงานที่ 1 • วิชาเทคโนโลยีระบบสมองกลฝังตัวและไอโอที (21901-2007)</span>
+          <span class="font-bold text-gray-700">หน้า 1 / 2</span>
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- แผ่นที่ 2: ตอนที่ 3 และ ตอนที่ 4 (หน้า 2 จาก 2)            -->
+      <!-- ========================================================= -->
+      <div
+        class="printable-a4-sheet bg-white text-gray-900 w-full max-w-[210mm] min-h-[297mm] p-8 sm:p-11 shadow-2xl border border-gray-300 flex flex-col justify-between text-xs sm:text-sm font-sans box-border relative"
+        style="background-color: #ffffff !important; color: #111827 !important;"
+      >
+        <div class="space-y-4">
+          <!-- Page 2 Header Continuation -->
+          <div class="border-b-2 border-black pb-2 flex items-center justify-between">
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-black uppercase tracking-wide">
+                ใบงานที่ 1: ระบบสมองกลฝังตัว & IoT และสถาปัตยกรรมบอร์ด Arduino Uno R3 (ต่อ)
+              </h3>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-gray-100 border border-gray-300 text-[10px] font-mono text-gray-600 shrink-0">
+              หน้า 2 / 2
+            </span>
+          </div>
+
+          <!-- Section 3: 8 Arduino Uno R3 Components -->
+          <div class="space-y-2 pt-1">
+            <div class="border-b border-gray-200 pb-1">
+              <h4 class="font-bold text-gray-900 text-xs sm:text-sm">
+                ตอนที่ 3: ตำแหน่งและหน้าที่ของ 8 ส่วนประกอบหลักบนบอร์ด Arduino Uno R3
+              </h4>
+            </div>
+
+            <p class="text-xs text-gray-700">
+              <strong>คำสั่ง:</strong> ให้นักศึกษาชี้ระบุชื่อเฉพาะและหน้าที่ของ 8 ส่วนประกอบหลักบนบอร์ด Arduino Uno R3 ตามแผนภาพกายวิภาค
+            </p>
+
+            <table class="w-full border-collapse border border-gray-300 text-[11px]">
+              <thead>
+                <tr class="bg-gray-100 text-gray-800">
+                  <th class="border border-gray-300 p-1 text-center w-12">ลำดับ</th>
+                  <th class="border border-gray-300 p-1 text-left w-1/4">ส่วนประกอบบนบอร์ด</th>
+                  <th class="border border-gray-300 p-1 text-left w-1/3">ชื่อเฉพาะ / รหัสระบุ</th>
+                  <th class="border border-gray-300 p-1 text-left">หน้าที่และการทำงานหลักในวงจร</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="border border-gray-300 p-1 text-center font-bold">1</td>
+                  <td class="border border-gray-300 p-1 font-semibold text-gray-900">ชิปไมโครคอนโทรลเลอร์</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[ระบุ เช่น ATmega328P]</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[อธิบายหน้าที่ประมวลผลและรันโค้ดโปรแกรม...]</td>
+                </tr>
+                <tr class="bg-gray-50">
+                  <td class="border border-gray-300 p-1 text-center font-bold">2</td>
+                  <td class="border border-gray-300 p-1 font-semibold text-gray-900">พอร์ตเชื่อมต่อคอมพิวเตอร์</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[ระบุชนิดพอร์ต USB Type-B]</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[อธิบายหน้าที่จ่ายไฟและดาวน์โหลดโค้ด...]</td>
+                </tr>
+                <tr>
+                  <td class="border border-gray-300 p-1 text-center font-bold">3</td>
+                  <td class="border border-gray-300 p-1 font-semibold text-gray-900">แจ็กจ่ายไฟภายนอก (DC Jack)</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[ระบุช่วงแรงดันไฟ DC 7-12V]</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[อธิบายหน้าที่รับไฟตรงและวงจรคุมแรงดัน...]</td>
+                </tr>
+                <tr class="bg-gray-50">
+                  <td class="border border-gray-300 p-1 text-center font-bold">4</td>
+                  <td class="border border-gray-300 p-1 font-semibold text-gray-900">พินดิจิทัล (Digital I/O)</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[ระบุพิน 0-13 และพิน PWM ~]</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[อธิบายหน้าที่รับ-ส่งค่าดิจิทัล HIGH/LOW...]</td>
+                </tr>
+                <tr>
+                  <td class="border border-gray-300 p-1 text-center font-bold">5</td>
+                  <td class="border border-gray-300 p-1 font-semibold text-gray-900">พินแอนะล็อก (Analog Input)</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[ระบุพิน A0-A5]</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[อธิบายหน้าที่อ่านค่าแรงดันด้วย ADC 10-bit...]</td>
+                </tr>
+                <tr class="bg-gray-50">
+                  <td class="border border-gray-300 p-1 text-center font-bold">6</td>
+                  <td class="border border-gray-300 p-1 font-semibold text-gray-900">พินไฟเลี้ยงและกราวด์</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[ระบุพิน 5V, 3.3V, GND]</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[อธิบายหน้าที่จ่ายไฟและจุดกราวด์ 0V...]</td>
+                </tr>
+                <tr>
+                  <td class="border border-gray-300 p-1 text-center font-bold">7</td>
+                  <td class="border border-gray-300 p-1 font-semibold text-gray-900">ปุ่มรีเซ็ตการทำงาน</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[ระบุชื่อปุ่ม Reset Button]</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[อธิบายหน้าที่รีสตาร์ตระบบและเริ่มโปรแกรมใหม่...]</td>
+                </tr>
+                <tr class="bg-gray-50">
+                  <td class="border border-gray-300 p-1 text-center font-bold">8</td>
+                  <td class="border border-gray-300 p-1 font-semibold text-gray-900">ไฟ LED แสดงสถานะ</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[ระบุไฟ ON, TX, RX, LED L]</td>
+                  <td class="border border-gray-300 p-1 text-gray-500 italic">[อธิบายหน้าที่แสดงสถานะไฟเข้าและการสื่อสาร...]</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section 4: Device Classification -->
+          <div class="space-y-2 pt-1">
+            <div class="border-b border-gray-200 pb-1">
+              <h4 class="font-bold text-gray-900 text-xs sm:text-sm">
+                ตอนที่ 4: การจำแนกประเภทอุปกรณ์พื้นฐาน (Digital/Analog & Input/Output)
+              </h4>
+            </div>
+
+            <p class="text-xs text-gray-700">
+              <strong>คำสั่ง:</strong> จำแนกอุปกรณ์ 4 ชนิด ว่าส่งสัญญาณชนิดใด (Digital หรือ Analog) และมีทิศทางการทำงานแบบใด (Input หรือ Output)
+            </p>
+
+            <table class="w-full border-collapse border border-gray-300 text-[11px]">
+              <thead>
+                <tr class="bg-gray-100 text-gray-800">
+                  <th class="border border-gray-300 p-1 text-left w-1/4">ชื่ออุปกรณ์</th>
+                  <th class="border border-gray-300 p-1 text-center w-28">ชนิดสัญญาณ</th>
+                  <th class="border border-gray-300 p-1 text-center w-28">ทิศทาง (I/O)</th>
+                  <th class="border border-gray-300 p-1 text-left">หน้าที่และฟังก์ชันคำสั่งในภาษา C++</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="border border-gray-300 p-1.5 font-semibold">1. สวิตช์ปุ่มกด (Push Button)</td>
+                  <td class="border border-gray-300 p-1.5 text-center text-gray-500 italic">[Digital / Analog]</td>
+                  <td class="border border-gray-300 p-1.5 text-center text-gray-500 italic">[Input / Output]</td>
+                  <td class="border border-gray-300 p-1.5 text-gray-500 italic">[ระบุหน้าที่ และฟังก์ชัน เช่น digitalRead()...]</td>
+                </tr>
+                <tr class="bg-gray-50">
+                  <td class="border border-gray-300 p-1.5 font-semibold">2. หลอด LED</td>
+                  <td class="border border-gray-300 p-1.5 text-center text-gray-500 italic">[Digital / Analog]</td>
+                  <td class="border border-gray-300 p-1.5 text-center text-gray-500 italic">[Input / Output]</td>
+                  <td class="border border-gray-300 p-1.5 text-gray-500 italic">[ระบุหน้าที่ และฟังก์ชัน เช่น digitalWrite()...]</td>
+                </tr>
+                <tr>
+                  <td class="border border-gray-300 p-1.5 font-semibold">3. วอลลุ่ม (Potentiometer)</td>
+                  <td class="border border-gray-300 p-1.5 text-center text-gray-500 italic">[Digital / Analog]</td>
+                  <td class="border border-gray-300 p-1.5 text-center text-gray-500 italic">[Input / Output]</td>
+                  <td class="border border-gray-300 p-1.5 text-gray-500 italic">[ระบุหน้าที่ และฟังก์ชัน เช่น analogRead()...]</td>
+                </tr>
+                <tr class="bg-gray-50">
+                  <td class="border border-gray-300 p-1.5 font-semibold">4. เซนเซอร์ตรวจวัดแสง (LDR)</td>
+                  <td class="border border-gray-300 p-1.5 text-center text-gray-500 italic">[Digital / Analog]</td>
+                  <td class="border border-gray-300 p-1.5 text-center text-gray-500 italic">[Input / Output]</td>
+                  <td class="border border-gray-300 p-1.5 text-gray-500 italic">[ระบุหน้าที่ และฟังก์ชัน เช่น analogRead()...]</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Design Summary Note Box -->
+            <div class="p-2.5 bg-gray-50 rounded border border-dashed border-gray-300 text-gray-500 italic text-[11px] leading-relaxed">
+              [พื้นที่สำหรับพิมพ์/เขียนสรุป]: อธิบายความสำคัญของการจำแนกชนิดสัญญาณและทิศทาง I/O ต่อการกำหนดคำสั่ง pinMode() ใน setup() และการเลือกใช้คำสั่งควบคุมใน loop()...
+            </div>
+          </div>
+        </div>
+
+        <!-- Page 2 Footer -->
+        <div class="pt-3 border-t border-gray-200 flex items-center justify-between text-[11px] text-gray-500 shrink-0">
+          <span>แบบฟอร์มใบงานที่ 1 • วิชาเทคโนโลยีระบบสมองกลฝังตัวและไอโอที (21901-2007)</span>
+          <span class="font-bold text-gray-700">หน้า 2 / 2</span>
+        </div>
+      </div>
+    </AssignmentPdfModal>
+
     <!-- Teacher Scoreboard Modal -->
-    <TeacherScoreboardModal
-      :is-open="showTeacherModal"
-      :course-id="currentCourseId"
-      :week="currentWeek"
-      :games="weekGames"
-      @close="showTeacherModal = false"
-    />
+    <TeacherScoreboardModal :is-open="showTeacherModal" :course-id="currentCourseId" :week="currentWeek"
+      :games="weekGames" @close="showTeacherModal = false" />
 
   </div>
 </template>

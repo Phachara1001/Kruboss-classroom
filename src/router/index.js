@@ -10,6 +10,7 @@ import DatabaseWeek1 from '../views/database/Week1View.vue'
 import PlatformWeek1 from '../views/platform/Week1View.vue'
 import DataAnalysisWeek1 from '../views/analysis/Week1View.vue'
 import IoTWeek1 from '../views/iot/Week1View.vue'
+import IoTWeek2 from '../views/iot/Week2View.vue'
 import ToolsView from '../views/ToolsView.vue'
 import TeacherView from '../views/TeacherView.vue'
 import ScheduleView from '../views/ScheduleView.vue'
@@ -65,6 +66,11 @@ const router = createRouter({
           path: 'course/21901-2007/week/1',
           name: 'iot-week1',
           component: IoTWeek1
+        },
+        {
+          path: 'course/21901-2007/week/2',
+          name: 'iot-week2',
+          component: IoTWeek2
         },
         {
           path: 'course/:id/classmates',

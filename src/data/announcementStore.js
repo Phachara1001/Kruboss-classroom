@@ -4,6 +4,8 @@ import { API_BASE_URL } from '@/config/api'
 const API_URL = `${API_BASE_URL}/announcements`
 
 export const announcements = ref([])
+export const isAnnouncementModalOpen = ref(false)
+export const hasCheckedAnnouncements = ref(false)
 
 export async function fetchAnnouncements() {
   try {
@@ -14,6 +16,8 @@ export async function fetchAnnouncements() {
     }
   } catch (error) {
     console.error('Failed to fetch announcements:', error)
+  } finally {
+    hasCheckedAnnouncements.value = true
   }
 }
 

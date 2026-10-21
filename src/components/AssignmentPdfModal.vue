@@ -22,6 +22,10 @@ const props = defineProps({
   showPrint: {
     type: Boolean,
     default: false
+  },
+  multiPage: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -100,9 +104,18 @@ onUnmounted(() => {
           </div>
 
           <!-- PDF Document Scrollable Area -->
-          <div class="overflow-y-auto p-4 sm:p-8 bg-slate-800/90 flex justify-center w-full">
-            <!-- A4 Sheet Paper (Strict A4 Dimension: 210mm x 297mm) -->
+          <div
+            class="overflow-y-auto p-4 sm:p-8 bg-slate-800/90 w-full"
+            :class="multiPage ? 'flex flex-col items-center gap-6 sm:gap-8' : 'flex justify-center'"
+          >
+            <!-- When multiPage is true, slot provides multiple page sheets -->
+            <template v-if="multiPage">
+              <slot />
+            </template>
+
+            <!-- Single Page Sheet Paper (Strict A4 Dimension: 210mm x 297mm) -->
             <div
+              v-else
               class="printable-a4-sheet bg-white text-gray-900 w-full max-w-[210mm] min-h-[297mm] p-8 sm:p-12 md:p-14 shadow-2xl border border-gray-300 space-y-4 text-xs sm:text-sm font-sans box-border"
               style="background-color: #ffffff !important; color: #111827 !important;"
             >
@@ -143,6 +156,11 @@ onUnmounted(() => {
 
 /* Printable A4 Stylesheet */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm;
+  }
+
   body * {
     visibility: hidden !important;
   }
@@ -153,18 +171,25 @@ onUnmounted(() => {
   }
 
   .printable-a4-sheet {
-    position: fixed !important;
-    left: 0 !important;
-    top: 0 !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
     width: 210mm !important;
     min-height: 297mm !important;
-    margin: 0 !important;
-    padding: 15mm 20mm !important;
+    margin: 0 auto 20mm auto !important;
+    padding: 12mm 15mm !important;
     border: none !important;
     box-shadow: none !important;
     background: white !important;
     color: black !important;
-    z-index: 99999 !important;
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .printable-a4-sheet:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+    margin-bottom: 0 !important;
   }
 }
 </style>

@@ -5,6 +5,9 @@ import { X } from '@lucide/vue'
 import Sidebar from '../components/Sidebar.vue'
 import Topbar from '../components/Topbar.vue'
 import Footer from '../components/Footer.vue'
+import AssignmentRewardModal from '../components/AssignmentRewardModal.vue'
+import { checkAndQueueStudentRewards } from '../data/rewardNotificationStore'
+import { authUser } from '../data/authStore'
 
 const route = useRoute()
 const isSidebarCollapsed = ref(false)
@@ -54,11 +57,22 @@ onMounted(() => {
     window.removeEventListener('resize', handleResize)
     document.body.style.overflow = ''
   })
+
+  // Automatically check for graded assignment coin rewards for logged-in students
+  if (authUser.value) {
+    const sId = authUser.value.studentId || authUser.value.id
+    if (sId) {
+      checkAndQueueStudentRewards(sId)
+    }
+  }
 })
 </script>
 
 <template>
   <div class="flex h-screen overflow-hidden bg-green-50 font-sans text-gray-800">
+    <!-- Assignment Reward Modal (Global for all views) -->
+    <AssignmentRewardModal />
+
     <!-- Desktop Sidebar -->
     <Sidebar :isCollapsed="isSidebarCollapsed" @toggle="toggleDesktopSidebar" class="hidden md:flex z-20 shrink-0" />
 

@@ -22,6 +22,7 @@ import {
   Shield, 
   RotateCcw, 
   Sparkles, 
+  FlaskConical,
   Info 
 } from '@lucide/vue'
 import { courses } from '../data/courses'
@@ -42,6 +43,7 @@ import {
 } from '../data/gradesStore'
 import { addCoins, deductCoins, getStudentCoins } from '../data/shopStore'
 import { authUser } from '../data/authStore'
+import { triggerTestReward, resetClaimedRewards } from '../data/rewardNotificationStore'
 
 const route = useRoute()
 const router = useRouter()
@@ -394,6 +396,18 @@ const handleBatchAllPresent = () => {
   })
   showAlert(`เช็คชื่อ "มาเรียนตรงเวลา" ให้นักศึกษาทั้งหมด ${courseStudents.value.length} คนเรียบร้อยแล้ว`)
 }
+
+// Test Graded Assignment Reward Modal
+const handleTestRewardModal = () => {
+  const firstAsm = currentAssignments.value?.[0]
+  triggerTestReward({
+    coins: 40,
+    assignmentTitle: firstAsm?.title || 'ใบงานที่ 1: การสำรวจปัญหาแฟ้มข้อมูล',
+    courseName: currentCourse.value?.name || 'เทคโนโลยีการจัดการฐานข้อมูล',
+    score: firstAsm?.maxScore || 10,
+    maxScore: firstAsm?.maxScore || 10
+  })
+}
 </script>
 
 <template>
@@ -413,8 +427,20 @@ const handleBatchAllPresent = () => {
         </div>
       </div>
 
-      <!-- Course & Classroom Dropdown Switcher -->
+      <!-- Course & Classroom Dropdown Switcher + Test Button -->
       <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+        <!-- Test Reward Modal (Teacher only) -->
+        <button 
+          v-if="isTeacher"
+          type="button"
+          @click="handleTestRewardModal"
+          class="px-3.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-xs sm:text-sm font-bold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+          title="คลิกเพื่อทดสอบดู Modal แจ้งเตือนเหรียญรางวัลของนักเรียน"
+        >
+          <FlaskConical class="w-4 h-4 text-amber-600" />
+          <span>ทดสอบ Modal เหรียญ</span>
+        </button>
+
         <!-- Select Course -->
         <select 
           v-model="selectedCourseId"

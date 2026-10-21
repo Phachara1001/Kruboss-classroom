@@ -1,8 +1,8 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { X, ChevronLeft, ChevronRight } from '@lucide/vue'
 import { useRouter } from 'vue-router'
-import { announcements, fetchAnnouncements } from '../data/announcementStore'
+import { announcements, fetchAnnouncements, isAnnouncementModalOpen } from '../data/announcementStore'
 
 const router = useRouter()
 const isVisible = ref(false)
@@ -21,7 +21,14 @@ onMounted(async () => {
     activeAnnouncements.value = active
     currentIndex.value = 0
     isVisible.value = true
+    isAnnouncementModalOpen.value = true
+  } else {
+    isAnnouncementModalOpen.value = false
   }
+})
+
+onUnmounted(() => {
+  isAnnouncementModalOpen.value = false
 })
 
 const nextAnnouncement = (e) => {
@@ -36,6 +43,7 @@ const prevAnnouncement = (e) => {
 
 const closeModal = () => {
   isVisible.value = false
+  isAnnouncementModalOpen.value = false
 }
 
 const handleClickImage = () => {
