@@ -38,10 +38,10 @@ export const courses = [
       {
         id: "สัปดาห์ที่ 2",
         weekNumber: 2,
-        name: "การออกแบบ Relational Schema และสร้างตารางด้วย SQL DDL/DML",
-        isOpen: false,
+        name: "ชนิดข้อมูล คีย์หลัก และข้อกำหนดใน Supabase (Data Types, Primary Key & Constraints)",
+        isOpen: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "กำลังเรียน",
         image: "bg-emerald-600",
       },
       {
@@ -202,10 +202,10 @@ export const courses = [
       {
         id: "สัปดาห์ที่ 2",
         weekNumber: 2,
-        name: "ระบบควบคุมเวอร์ชัน (Version Control System)",
-        isOpen: false,
+        name: "งานระบบควบคุมเวอร์ชัน (Version Control System)",
+        isOpen: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "กำลังเรียน",
         image: "bg-indigo-600",
       },
       {

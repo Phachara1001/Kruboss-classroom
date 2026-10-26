@@ -185,23 +185,23 @@ const dragItemsData = [
   { id: 6, text: 'อุณหภูมิที่วัดได้รายชั่วโมง', type: 'data' }
 ]
 const dragZonesData = [
-  { 
-    id: 'data', 
-    title: 'Data (ข้อมูลดิบ)', 
-    wrapperClass: 'border-blue-400/50 hover:bg-black/40', 
-    titleClass: 'text-blue-300 border-blue-400/30', 
-    itemBgClass: 'bg-blue-600/50 border-blue-400', 
-    emptyTextClass: 'text-blue-200/50', 
-    emptyText: 'ลาก Data มาวางที่นี่' 
+  {
+    id: 'data',
+    title: 'Data (ข้อมูลดิบ)',
+    wrapperClass: 'border-blue-400/50 hover:bg-black/40',
+    titleClass: 'text-blue-300 border-blue-400/30',
+    itemBgClass: 'bg-blue-600/50 border-blue-400',
+    emptyTextClass: 'text-blue-200/50',
+    emptyText: 'ลาก Data มาวางที่นี่'
   },
-  { 
-    id: 'info', 
-    title: 'Information (สารสนเทศ)', 
-    wrapperClass: 'border-emerald-400/50 hover:bg-black/40', 
-    titleClass: 'text-emerald-300 border-emerald-400/30', 
-    itemBgClass: 'bg-emerald-600/50 border-emerald-400', 
-    emptyTextClass: 'text-emerald-200/50', 
-    emptyText: 'ลาก Information มาวางที่นี่' 
+  {
+    id: 'info',
+    title: 'Information (สารสนเทศ)',
+    wrapperClass: 'border-emerald-400/50 hover:bg-black/40',
+    titleClass: 'text-emerald-300 border-emerald-400/30',
+    itemBgClass: 'bg-emerald-600/50 border-emerald-400',
+    emptyTextClass: 'text-emerald-200/50',
+    emptyText: 'ลาก Information มาวางที่นี่'
   }
 ]
 
@@ -648,8 +648,10 @@ const matchRightDefs = [
             <Gamepad2 class="w-6 h-6" />
           </div>
           <div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน</h2>
-            <p class="text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน</p>
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน
+            </h2>
+            <p class="text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10
+              คะแนน</p>
           </div>
         </div>
 
@@ -665,23 +667,29 @@ const matchRightDefs = [
       <div class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
           <div>
-            <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่ 1</span>
+            <span
+              class="text-xs font-bold text-emerald-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่
+              1</span>
             <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
               <span>สถานะ:</span>
-              <span v-if="studentNorm.isAllCompleted" class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              <span v-if="studentNorm.isAllCompleted"
+                class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                 ✓ ทำครบทุกกิจกรรมแล้ว (3/3)
               </span>
-              <span v-else-if="studentNorm.completedCount > 0" class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+              <span v-else-if="studentNorm.completedCount > 0"
+                class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
                 ⏳ กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
               </span>
-              <span v-else class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
+              <span v-else
+                class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
                 ยังไม่ได้เริ่มทำ
               </span>
             </div>
           </div>
 
           <!-- Total Normalized Score (Scaled to 10) -->
-          <div class="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-2.5 rounded-xl border border-emerald-100">
+          <div
+            class="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-2.5 rounded-xl border border-emerald-100">
             <Trophy class="w-7 h-7 text-amber-500 shrink-0" />
             <div>
               <span class="text-xs text-emerald-900 font-semibold block">คะแนนรวมทั้งหมด (หารเฉลี่ยเต็ม 10)</span>
@@ -747,7 +755,8 @@ const matchRightDefs = [
         ]">
           <MousePointer2 class="w-4 h-4" />
           <span>มินิเกมที่ 1: Data vs Info</span>
-          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
+          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
+            บันทึกแล้ว</span>
         </button>
 
         <button @click="activeGame = 'order'" :class="[
@@ -756,7 +765,8 @@ const matchRightDefs = [
         ]">
           <ListOrdered class="w-4 h-4" />
           <span>มินิเกมที่ 2: โยงระดับข้อมูล</span>
-          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
+          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
+            บันทึกแล้ว</span>
         </button>
 
         <button @click="activeGame = 'quiz'" :class="[
@@ -765,138 +775,127 @@ const matchRightDefs = [
         ]">
           <FileQuestion class="w-4 h-4" />
           <span>🎯 แบบทดสอบหลังเรียน (4 ชอยส์ 10 ข้อ)</span>
-          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
+          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
+            บันทึกแล้ว</span>
         </button>
       </div>
 
       <!-- Game 1: Drag & Drop (Data vs Info) -->
-      <DragDropGame v-if="activeGame === 'sort'" 
-        title="มินิเกมที่ 1: จำแนก Data vs Information"
+      <DragDropGame v-if="activeGame === 'sort'" title="มินิเกมที่ 1: จำแนก Data vs Information"
         subtitle="ลากข้อความด้านล่างไปใส่กล่องที่ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
-        gameId="game-1"
-        :courseId="currentCourseId"
-        :week="currentWeek"
-        :initialItems="dragItemsData"
-        :zones="dragZonesData"
-      />
+        gameId="game-1" :courseId="currentCourseId" :week="currentWeek" :initialItems="dragItemsData"
+        :zones="dragZonesData" />
 
       <!-- Game 2: Matching / โยงความสัมพันธ์ -->
-      <MatchingGame v-if="activeGame === 'order'"
-        title="มินิเกมที่ 2: โยงความสัมพันธ์ Data Abstraction & DBMS"
+      <MatchingGame v-if="activeGame === 'order'" title="มินิเกมที่ 2: โยงความสัมพันธ์ Data Abstraction & DBMS"
         subtitle="จับคู่คำศัพท์กับคำอธิบายให้ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
-        gameId="game-2"
-        :courseId="currentCourseId"
-        :week="currentWeek"
-        :initialLeftTerms="matchLeftTerms"
-        :initialRightDefs="matchRightDefs"
-      />
+        gameId="game-2" :courseId="currentCourseId" :week="currentWeek" :initialLeftTerms="matchLeftTerms"
+        :initialRightDefs="matchRightDefs" />
 
       <!-- Game 3: Final Post-test -->
-      <PopQuiz v-if="activeGame === 'quiz'" 
-        title="แบบทดสอบหลังเรียน (Post-test): บทนำสู่ระบบฐานข้อมูล"
+      <PopQuiz v-if="activeGame === 'quiz'" title="แบบทดสอบหลังเรียน (Post-test): บทนำสู่ระบบฐานข้อมูล"
         subtitle="แบบทดสอบ 4 ตัวเลือก 10 ข้อ วัดผลความรู้หลังเรียน ตอบให้ครบแล้วกดส่งคำตอบ (ทำได้ครั้งเดียวเท่านั้น)"
-        gameId="quiz"
-        :courseId="currentCourseId"
-        :week="currentWeek"
-        :questions="quizQuestions"
-      />
+        gameId="quiz" :courseId="currentCourseId" :week="currentWeek" :questions="quizQuestions" />
 
       <!-- Teacher Scoreboard Modal -->
-      <TeacherScoreboardModal
-        :show="showTeacherModal"
-        :courseId="currentCourseId"
-        courseName="ระบบจัดการฐานข้อมูล"
-        :week="currentWeek"
-        weekTitle="สัปดาห์ที่ 1: บทนำสู่ระบบฐานข้อมูล"
-        :games="weekGames"
-        @close="showTeacherModal = false"
-      />
+      <TeacherScoreboardModal :show="showTeacherModal" :courseId="currentCourseId" courseName="ระบบจัดการฐานข้อมูล"
+        :week="currentWeek" weekTitle="สัปดาห์ที่ 1: บทนำสู่ระบบฐานข้อมูล" :games="weekGames"
+        @close="showTeacherModal = false" />
     </section>
 
     <!-- Assignment Section -->
-    <AssignmentSection
-      course-id="31901-2007"
-      assignment-id="asm-1"
-      assignment-title="ใบงานที่ 1: สำรวจปัญหาแฟ้มข้อมูลและเสนอแนะระบบจัดการฐานข้อมูล (DBMS)"
-      :max-score="10"
-    >
+    <AssignmentSection course-id="31901-2007" assignment-id="asm-1"
+      assignment-title="ใบงานที่ 1: สำรวจปัญหาแฟ้มข้อมูลและเสนอแนะระบบจัดการฐานข้อมูล (DBMS)" :max-score="10">
       <template #number>1</template>
       <template #description>
-        สำรวจระบบงานรอบตัวที่ยังใช้การจดบันทึกลงสมุดหรือ Spreadsheet (เช่น ร้านขายของชำ, ร้านอาหาร, คลินิก) เพื่อวิเคราะห์ปัญหาตามหลัก 6 ข้อ และเสนอแนะแนวทางแก้ปัญหาด้วย DBMS
-        
+        สำรวจระบบงานรอบตัวที่ยังใช้การจดบันทึกลงสมุดหรือ Spreadsheet (เช่น ร้านขายของชำ, ร้านอาหาร, คลินิก)
+        เพื่อวิเคราะห์ปัญหาตามหลัก 6 ข้อ และเสนอแนะแนวทางแก้ปัญหาด้วย DBMS
+
         <!-- Objectives -->
-          <div class="mb-6 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
-            <h4 class="font-bold text-emerald-950 text-sm mb-2 flex items-center gap-2">
-              <CheckCircle class="w-4 h-4 text-emerald-600" />
-              จุดประสงค์การเรียนรู้ประจำใบงาน (เมื่อทำใบงานนี้เสร็จ ผู้เรียนสามารถ):
-            </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs text-emerald-900">
-              <div class="flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                <span>1. อธิบายความแตกต่างระหว่าง Data และ Information ได้</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                <span>2. วิเคราะห์ปัญหาของระบบแฟ้มข้อมูลเดิมตามหลัก 6 ข้อได้</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                <span>3. เสนอแนะหน้าที่และบทบาทของ DBMS ในการแก้ปัญหาได้</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                <span>4. กำหนดกลุ่มผู้ใช้งานและสิทธิ์การเข้าถึงข้อมูลเบื้องต้นได้</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                <span>5. สรุปผลการประเมินความคุ้มค่าของการเปลี่ยนผ่านสู่ DBMS ได้</span>
-              </div>
+        <div class="mb-6 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+          <h4 class="font-bold text-emerald-950 text-sm mb-2 flex items-center gap-2">
+            <CheckCircle class="w-4 h-4 text-emerald-600" />
+            จุดประสงค์การเรียนรู้ประจำใบงาน (เมื่อทำใบงานนี้เสร็จ ผู้เรียนสามารถ):
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs text-emerald-900">
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+              <span>1. อธิบายความแตกต่างระหว่าง Data และ Information ได้</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+              <span>2. วิเคราะห์ปัญหาของระบบแฟ้มข้อมูลเดิมตามหลัก 6 ข้อได้</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+              <span>3. เสนอแนะหน้าที่และบทบาทของ DBMS ในการแก้ปัญหาได้</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+              <span>4. กำหนดกลุ่มผู้ใช้งานและสิทธิ์การเข้าถึงข้อมูลเบื้องต้นได้</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+              <span>5. สรุปผลการประเมินความคุ้มค่าของการเปลี่ยนผ่านสู่ DBMS ได้</span>
             </div>
           </div>
+        </div>
 
         <!-- Objectives -->
 
-            <ul class="space-y-4 text-slate-700">
-              <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
-                <div class="w-6 h-6 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">1</div>
-                <div>
-                  <strong>1. ข้อมูลระบบงานที่เลือกศึกษา (System Overview)</strong>
-                  <p class="text-xs text-gray-500 mt-0.5">
-                    เลือกระบบงานรอบตัว 1 ระบบ (เช่น ร้านขายของชำ, ร้านอาหาร, หอพัก, คลินิก) พร้อมอธิบายลักษณะการเก็บข้อมูลแบบเดิม (ใช้สมุดจดบันทึก หรือโปรแกรม Excel อย่างไร)
-                  </p>
-                </div>
-              </li>
-              <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
-                <div class="w-6 h-6 rounded-lg bg-teal-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">2</div>
-                <div>
-                  <strong>2. วิเคราะห์ปัญหาของระบบเดิมตามหลัก 6 ข้อ (Problems Analysis)</strong>
-                  <p class="text-xs text-gray-500 mt-0.5">
-                    วิเคราะห์ปัญหาที่พบตาม 6 ปัญหาหลักของ File-based System: Data Redundancy, Data Inconsistency, Data Isolation, Integrity, Security และ Concurrent Access
-                  </p>
-                </div>
-              </li>
-              <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
-                <div class="w-6 h-6 rounded-lg bg-cyan-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">3</div>
-                <div>
-                  <strong>3. ข้อเสนอแนะและแนวทางแก้ไขด้วยระบบจัดการฐานข้อมูล (DBMS Recommendation)</strong>
-                  <p class="text-xs text-gray-500 mt-0.5">
-                    อธิบายว่าหากเปลี่ยนมาใช้ระบบจัดการฐานข้อมูล (DBMS) จะนำหน้าที่หลัก (CRUD, Integrity Constraints, Concurrency, Security) เข้ามาช่วยแก้ไขปัญหาได้อย่างไร
-                  </p>
-                </div>
-              </li>
-              <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
-                <div class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">4</div>
-                <div>
-                  <strong>4. สรุปผลการประเมิน (Conclusion)</strong>
-                  <p class="text-xs text-gray-500 mt-0.5">
-                    สรุปประโยชน์ที่องค์กรหรือธุรกิจจะได้รับ และความคุ้มค่าของการเปลี่ยนผ่านจากแฟ้มข้อมูลสู่ระบบฐานข้อมูล
-                  </p>
-                </div>
-              </li>
-            </ul>
+        <ul class="space-y-4 text-slate-700">
+          <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
+            <div
+              class="w-6 h-6 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">
+              1</div>
+            <div>
+              <strong>1. ข้อมูลระบบงานที่เลือกศึกษา (System Overview)</strong>
+              <p class="text-xs text-gray-500 mt-0.5">
+                เลือกระบบงานรอบตัว 1 ระบบ (เช่น ร้านขายของชำ, ร้านอาหาร, หอพัก, คลินิก)
+                พร้อมอธิบายลักษณะการเก็บข้อมูลแบบเดิม (ใช้สมุดจดบันทึก หรือโปรแกรม Excel อย่างไร)
+              </p>
+            </div>
+          </li>
+          <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
+            <div
+              class="w-6 h-6 rounded-lg bg-teal-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">
+              2</div>
+            <div>
+              <strong>2. วิเคราะห์ปัญหาของระบบเดิมตามหลัก 6 ข้อ (Problems Analysis)</strong>
+              <p class="text-xs text-gray-500 mt-0.5">
+                วิเคราะห์ปัญหาที่พบตาม 6 ปัญหาหลักของ File-based System: Data Redundancy, Data Inconsistency, Data
+                Isolation, Integrity, Security และ Concurrent Access
+              </p>
+            </div>
+          </li>
+          <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
+            <div
+              class="w-6 h-6 rounded-lg bg-cyan-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">
+              3</div>
+            <div>
+              <strong>3. ข้อเสนอแนะและแนวทางแก้ไขด้วยระบบจัดการฐานข้อมูล (DBMS Recommendation)</strong>
+              <p class="text-xs text-gray-500 mt-0.5">
+                อธิบายว่าหากเปลี่ยนมาใช้ระบบจัดการฐานข้อมูล (DBMS) จะนำหน้าที่หลัก (CRUD, Integrity Constraints,
+                Concurrency, Security) เข้ามาช่วยแก้ไขปัญหาได้อย่างไร
+              </p>
+            </div>
+          </li>
+          <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
+            <div
+              class="w-6 h-6 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">
+              4</div>
+            <div>
+              <strong>4. สรุปผลการประเมิน (Conclusion)</strong>
+              <p class="text-xs text-gray-500 mt-0.5">
+                สรุปประโยชน์ที่องค์กรหรือธุรกิจจะได้รับ และความคุ้มค่าของการเปลี่ยนผ่านจากแฟ้มข้อมูลสู่ระบบฐานข้อมูล
+              </p>
+            </div>
+          </li>
+        </ul>
 
         <!-- PDF Example Button -->
-        <div class="mt-6 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div
+          class="mt-6 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h5 class="font-bold text-gray-900 text-sm flex items-center gap-1.5">
               <FileText class="w-4 h-4 text-emerald-600" /> ต้องการดูตัวอย่างการเขียนใบงานที่ 1?
@@ -917,26 +916,13 @@ const matchRightDefs = [
     </AssignmentSection>
 
     <!-- Reusable PDF Viewer Modal for Database Assignment 1 -->
-    <AssignmentPdfModal
-      v-model="showPdfModal"
-      title="ใบงานที่_1_สำรวจปัญหาแฟ้มข้อมูลและเสนอแนะDBMS_ปวส1.pdf"
-      subtitle="แบบฟอร์มเอกสารทางการ ขนาด A4 (1 หน้า)"
-      footer-text="แบบฟอร์มใบงานมาตรฐานขนาด A4 (Assignment Format)"
-    >
+    <AssignmentPdfModal v-model="showPdfModal" title="ใบงานที่_1_สำรวจปัญหาแฟ้มข้อมูลและเสนอแนะDBMS_ปวส1.pdf"
+      subtitle="แบบฟอร์มเอกสารทางการ ขนาด A4 (1 หน้า)" footer-text="แบบฟอร์มใบงานมาตรฐานขนาด A4 (Assignment Format)">
       <!-- Official Worksheet Header -->
       <div class="border-b-2 border-black pb-3 text-center space-y-1">
         <h2 class="text-base sm:text-lg font-bold text-black uppercase tracking-wide">
           ใบงานที่ 1: สำรวจปัญหาแฟ้มข้อมูลและเสนอแนะระบบจัดการฐานข้อมูล (DBMS)
         </h2>
-        <p class="text-xs text-gray-800 font-semibold">
-          (File-based System Problems Exploration & DBMS Recommendation)
-        </p>
-        <p class="text-xs text-gray-700">
-          รายวิชา เทคโนโลยีการจัดการฐานข้อมูล (รหัสวิชา 31901-2007)
-        </p>
-        <p class="text-[11px] text-gray-600">
-          หลักสูตรประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.) พุทธศักราช 2567 สาขาวิชาเทคโนโลยีสารสนเทศ
-        </p>
       </div>
 
       <!-- Student Meta Line (Simple Format) -->
@@ -949,7 +935,9 @@ const matchRightDefs = [
 
       <!-- Instructions -->
       <div class="bg-gray-100 p-2.5 rounded border border-gray-300 text-xs text-gray-800">
-        <strong>คำชี้แจง:</strong> ให้นักศึกษาสำรวจระบบงานที่สนใจ 1 ระบบ พร้อมวิเคราะห์ปัญหาของระบบแฟ้มข้อมูลเดิมตามหลัก 6 ข้อ และเสนอแนะแนวทางการนำระบบจัดการฐานข้อมูล (DBMS) เข้ามาแก้ไขปัญหาให้สมบูรณ์
+        <strong>คำชี้แจง:</strong> ให้นักศึกษาสำรวจระบบงานที่สนใจ 1 ระบบ พร้อมวิเคราะห์ปัญหาของระบบแฟ้มข้อมูลเดิมตามหลัก
+        6
+        ข้อ และเสนอแนะแนวทางการนำระบบจัดการฐานข้อมูล (DBMS) เข้ามาแก้ไขปัญหาให้สมบูรณ์
       </div>
 
       <!-- 1: ข้อมูลระบบ -->
@@ -959,9 +947,13 @@ const matchRightDefs = [
         </h4>
         <div class="text-xs text-gray-800 space-y-1">
           <p><strong>ชื่อระบบงาน:</strong> ระบบจัดการสต็อกสินค้าและบันทึกยอดขาย ร้านขายของชำ "เจ๊พรพาณิชย์"</p>
-          <p><strong>ลักษณะการเก็บข้อมูลแบบเดิม:</strong> บันทึกลงในสมุดจดบัญชีรายวัน ควบคู่กับการใช้ตารางคำนวณ Microsoft Excel แบบแยกไฟล์รายเดือน</p>
-          <p><strong>ผู้ใช้งานในระบบ:</strong> เจ้าของร้าน (ผู้จัดการสต็อกและดูยอดขายรวม), พนักงานขายหน้าร้าน (2 คน ทำหน้าที่คิดเงินและบันทึกตัดสต็อก)</p>
-          <p><strong>ลักษณะงาน:</strong> บันทึกรับสินค้าเข้าสต็อก, ตัดสต็อกยอดขายหน้าร้าน, สรุปยอดขายประจำวัน และคำนวณกำไร-ขาดทุนรายเดือน</p>
+          <p><strong>ลักษณะการเก็บข้อมูลแบบเดิม:</strong> บันทึกลงในสมุดจดบัญชีรายวัน ควบคู่กับการใช้ตารางคำนวณ
+            Microsoft
+            Excel แบบแยกไฟล์รายเดือน</p>
+          <p><strong>ผู้ใช้งานในระบบ:</strong> เจ้าของร้าน (ผู้จัดการสต็อกและดูยอดขายรวม), พนักงานขายหน้าร้าน (2 คน
+            ทำหน้าที่คิดเงินและบันทึกตัดสต็อก)</p>
+          <p><strong>ลักษณะงาน:</strong> บันทึกรับสินค้าเข้าสต็อก, ตัดสต็อกยอดขายหน้าร้าน, สรุปยอดขายประจำวัน
+            และคำนวณกำไร-ขาดทุนรายเดือน</p>
         </div>
       </div>
 
@@ -980,34 +972,56 @@ const matchRightDefs = [
           </thead>
           <tbody>
             <tr>
-              <td class="border border-gray-400 p-1.5 font-semibold align-top">1. Data Redundancy<br><span class="font-normal text-gray-500">(ความซ้ำซ้อน)</span></td>
-              <td class="border border-gray-400 p-1.5 align-top">บันทึกชื่อสินค้า ราคา และผู้จัดจำหน่ายซ้ำๆ ในไฟล์ Excel หลายเดือน</td>
-              <td class="border border-gray-400 p-1.5 align-top">เปลืองเนื้อที่จัดเก็บ และหากเปลี่ยนราคาต้องไล่แก้ทุกไฟล์</td>
+              <td class="border border-gray-400 p-1.5 font-semibold align-top">1. Data Redundancy<br><span
+                  class="font-normal text-gray-500">(ความซ้ำซ้อน)</span></td>
+              <td class="border border-gray-400 p-1.5 align-top">บันทึกชื่อสินค้า ราคา และผู้จัดจำหน่ายซ้ำๆ ในไฟล์ Excel
+                หลายเดือน</td>
+              <td class="border border-gray-400 p-1.5 align-top">เปลืองเนื้อที่จัดเก็บ
+                และหากเปลี่ยนราคาต้องไล่แก้ทุกไฟล์
+              </td>
             </tr>
             <tr class="bg-gray-50">
-              <td class="border border-gray-400 p-1.5 font-semibold align-top">2. Data Inconsistency<br><span class="font-normal text-gray-500">(ข้อมูลขัดแย้ง)</span></td>
-              <td class="border border-gray-400 p-1.5 align-top">แก้ไขยอดขายในสมุดจด แต่ลืมแก้ในไฟล์ Excel หรืออัปเดตไม่ตรงกัน</td>
-              <td class="border border-gray-400 p-1.5 align-top">ตัวเลขสต็อกกับเงินในลิ้นชักไม่ตรงกัน ไม่รู้ข้อมูลใดถูกต้อง</td>
+              <td class="border border-gray-400 p-1.5 font-semibold align-top">2. Data Inconsistency<br><span
+                  class="font-normal text-gray-500">(ข้อมูลขัดแย้ง)</span></td>
+              <td class="border border-gray-400 p-1.5 align-top">แก้ไขยอดขายในสมุดจด แต่ลืมแก้ในไฟล์ Excel
+                หรืออัปเดตไม่ตรงกัน</td>
+              <td class="border border-gray-400 p-1.5 align-top">ตัวเลขสต็อกกับเงินในลิ้นชักไม่ตรงกัน
+                ไม่รู้ข้อมูลใดถูกต้อง
+              </td>
             </tr>
             <tr>
-              <td class="border border-gray-400 p-1.5 font-semibold align-top">3. Data Isolation<br><span class="font-normal text-gray-500">(ความโดดเดี่ยว)</span></td>
-              <td class="border border-gray-400 p-1.5 align-top">ไฟล์ยอดขายกับไฟล์ข้อมูลลูกหนี้แยกกันคนละไฟล์และคนละโฟลเดอร์</td>
-              <td class="border border-gray-400 p-1.5 align-top">นำข้อมูลมารวมเพื่อดูภาพรวมหรือวิเคราะห์แนวโน้มได้ยากมาก</td>
+              <td class="border border-gray-400 p-1.5 font-semibold align-top">3. Data Isolation<br><span
+                  class="font-normal text-gray-500">(ความโดดเดี่ยว)</span></td>
+              <td class="border border-gray-400 p-1.5 align-top">
+                ไฟล์ยอดขายกับไฟล์ข้อมูลลูกหนี้แยกกันคนละไฟล์และคนละโฟลเดอร์
+              </td>
+              <td class="border border-gray-400 p-1.5 align-top">นำข้อมูลมารวมเพื่อดูภาพรวมหรือวิเคราะห์แนวโน้มได้ยากมาก
+              </td>
             </tr>
             <tr class="bg-gray-50">
-              <td class="border border-gray-400 p-1.5 font-semibold align-top">4. Integrity Problems<br><span class="font-normal text-gray-500">(ความถูกต้อง)</span></td>
-              <td class="border border-gray-400 p-1.5 align-top">พนักงานเผลอพิมพ์จำนวนสต็อกติดลบ หรือพิมพ์ตัวอักษรลงช่องราคา</td>
-              <td class="border border-gray-400 p-1.5 align-top">ไม่มีระบบตรวจสอบเงื่อนไข (Constraint) ข้อมูลผิดพลาดนำไปใช้ต่อไม่ได้</td>
+              <td class="border border-gray-400 p-1.5 font-semibold align-top">4. Integrity Problems<br><span
+                  class="font-normal text-gray-500">(ความถูกต้อง)</span></td>
+              <td class="border border-gray-400 p-1.5 align-top">พนักงานเผลอพิมพ์จำนวนสต็อกติดลบ
+                หรือพิมพ์ตัวอักษรลงช่องราคา
+              </td>
+              <td class="border border-gray-400 p-1.5 align-top">ไม่มีระบบตรวจสอบเงื่อนไข (Constraint)
+                ข้อมูลผิดพลาดนำไปใช้ต่อไม่ได้</td>
             </tr>
             <tr>
-              <td class="border border-gray-400 p-1.5 font-semibold align-top">5. Security Problems<br><span class="font-normal text-gray-500">(ความปลอดภัย)</span></td>
-              <td class="border border-gray-400 p-1.5 align-top">ไม่มีการล็อกรหัสผ่าน ใครเปิดเครื่องก็เห็นข้อมูลต้นทุนและกำไรทั้งหมด</td>
-              <td class="border border-gray-400 p-1.5 align-top">ข้อมูลความลับทางการค้ารั่วไหล และเสี่ยงต่อการถูกลบไฟล์โดยไม่ตั้งใจ</td>
+              <td class="border border-gray-400 p-1.5 font-semibold align-top">5. Security Problems<br><span
+                  class="font-normal text-gray-500">(ความปลอดภัย)</span></td>
+              <td class="border border-gray-400 p-1.5 align-top">ไม่มีการล็อกรหัสผ่าน
+                ใครเปิดเครื่องก็เห็นข้อมูลต้นทุนและกำไรทั้งหมด</td>
+              <td class="border border-gray-400 p-1.5 align-top">ข้อมูลความลับทางการค้ารั่วไหล
+                และเสี่ยงต่อการถูกลบไฟล์โดยไม่ตั้งใจ</td>
             </tr>
             <tr class="bg-gray-50">
-              <td class="border border-gray-400 p-1.5 font-semibold align-top">6. Concurrent Access<br><span class="font-normal text-gray-500">(ใช้งานพร้อมกัน)</span></td>
-              <td class="border border-gray-400 p-1.5 align-top">พนักงาน 2 คนเปิดไฟล์ Excel เดียวกันผ่านแชร์ไดรฟ์แล้วกดบันทึกทับกัน</td>
-              <td class="border border-gray-400 p-1.5 align-top">เกิดปัญหา Lost Update ข้อมูลยอดขายของพนักงานคนแรกหายไป</td>
+              <td class="border border-gray-400 p-1.5 font-semibold align-top">6. Concurrent Access<br><span
+                  class="font-normal text-gray-500">(ใช้งานพร้อมกัน)</span></td>
+              <td class="border border-gray-400 p-1.5 align-top">พนักงาน 2 คนเปิดไฟล์ Excel
+                เดียวกันผ่านแชร์ไดรฟ์แล้วกดบันทึกทับกัน</td>
+              <td class="border border-gray-400 p-1.5 align-top">เกิดปัญหา Lost Update ข้อมูลยอดขายของพนักงานคนแรกหายไป
+              </td>
             </tr>
           </tbody>
         </table>
@@ -1019,10 +1033,16 @@ const matchRightDefs = [
           3. ข้อเสนอแนะและแนวทางแก้ไขด้วยระบบจัดการฐานข้อมูล (DBMS Recommendation)
         </h4>
         <div class="text-xs text-gray-800 space-y-1">
-          <p><strong>3.1 การจัดเก็บแบบรวมศูนย์ (Centralized Database):</strong> ย้ายข้อมูลทั้งหมดมาจัดเก็บในระบบฐานข้อมูลเชิงสัมพันธ์ (Relational DBMS เช่น MySQL/PostgreSQL) เพื่อขจัดความซ้ำซ้อนและเชื่อมโยงตารางผ่าน Primary Key และ Foreign Key</p>
-          <p><strong>3.2 การควบคุมความถูกต้อง (Data Integrity):</strong> กำหนดเงื่อนไขตรวจสอบข้อมูล เช่น ห้ามค่าว่าง (NOT NULL), ห้ามยอดสต็อกติดลบ (CHECK), และตรวจสอบราคาสินค้าอัตโนมัติ</p>
-          <p><strong>3.3 การควบคุมการเข้าถึงพร้อมกัน (Concurrency Control):</strong> ใช้ระบบจัดการ Transaction (ACID Properties) เพื่อรองรับการขายสินค้าหลายจุดพร้อมกันโดยไม่เกิดข้อมูลทับซ้อน</p>
-          <p><strong>3.4 การรักษาความปลอดภัย (Security & Authorization):</strong> กำหนดสิทธิ์ผู้ใช้ (User Privileges) ให้พนักงานหน้าร้านบันทึกขายได้เท่านั้น แต่ดูข้อมูลต้นทุนหรือรายงานกำไรไม่ได้</p>
+          <p><strong>3.1 การจัดเก็บแบบรวมศูนย์ (Centralized Database):</strong>
+            ย้ายข้อมูลทั้งหมดมาจัดเก็บในระบบฐานข้อมูลเชิงสัมพันธ์ (Relational DBMS เช่น MySQL/PostgreSQL)
+            เพื่อขจัดความซ้ำซ้อนและเชื่อมโยงตารางผ่าน Primary Key และ Foreign Key</p>
+          <p><strong>3.2 การควบคุมความถูกต้อง (Data Integrity):</strong> กำหนดเงื่อนไขตรวจสอบข้อมูล เช่น ห้ามค่าว่าง
+            (NOT
+            NULL), ห้ามยอดสต็อกติดลบ (CHECK), และตรวจสอบราคาสินค้าอัตโนมัติ</p>
+          <p><strong>3.3 การควบคุมการเข้าถึงพร้อมกัน (Concurrency Control):</strong> ใช้ระบบจัดการ Transaction (ACID
+            Properties) เพื่อรองรับการขายสินค้าหลายจุดพร้อมกันโดยไม่เกิดข้อมูลทับซ้อน</p>
+          <p><strong>3.4 การรักษาความปลอดภัย (Security & Authorization):</strong> กำหนดสิทธิ์ผู้ใช้ (User Privileges)
+            ให้พนักงานหน้าร้านบันทึกขายได้เท่านั้น แต่ดูข้อมูลต้นทุนหรือรายงานกำไรไม่ได้</p>
         </div>
       </div>
 
@@ -1032,7 +1052,11 @@ const matchRightDefs = [
           4. สรุปผลการประเมิน (Conclusion)
         </h4>
         <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded text-xs text-gray-800 leading-relaxed">
-          "การเปลี่ยนผ่านจากระบบแฟ้มข้อมูลแบบเดิม (สมุดจดและ Excel) มาสู่ระบบจัดการฐานข้อมูล (DBMS) จะช่วยลดความผิดพลาดและความสูญเสียจากสต็อกสินค้าสูญหายได้อย่างสิ้นเชิง เพิ่มความรวดเร็วในการให้บริการลูกค้าหน้าร้าน ป้องกันการรั่วไหลของข้อมูลการค้า และช่วยให้เจ้าของร้านได้รับรายงานยอดขายและแจ้งเตือนสินค้าใกล้หมดแบบเรียลไทม์ ซึ่งช่วยยกระดับความสามารถในการแข่งขันของธุรกิจร้านขายของชำได้อย่างยั่งยืน"
+          "การเปลี่ยนผ่านจากระบบแฟ้มข้อมูลแบบเดิม (สมุดจดและ Excel) มาสู่ระบบจัดการฐานข้อมูล (DBMS)
+          จะช่วยลดความผิดพลาดและความสูญเสียจากสต็อกสินค้าสูญหายได้อย่างสิ้นเชิง
+          เพิ่มความรวดเร็วในการให้บริการลูกค้าหน้าร้าน
+          ป้องกันการรั่วไหลของข้อมูลการค้า และช่วยให้เจ้าของร้านได้รับรายงานยอดขายและแจ้งเตือนสินค้าใกล้หมดแบบเรียลไทม์
+          ซึ่งช่วยยกระดับความสามารถในการแข่งขันของธุรกิจร้านขายของชำได้อย่างยั่งยืน"
         </div>
       </div>
     </AssignmentPdfModal>

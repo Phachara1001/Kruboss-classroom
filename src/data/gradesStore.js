@@ -60,7 +60,7 @@ export const courseAssignments = {
     {
       id: "asm-2",
       week: 2,
-      title: "ใบงานที่ 2: การออกแบบ Relational Schema และสร้างตารางด้วย SQL DDL/DML",
+      title: "ใบงานที่ 2: การออกแบบ Relational Schema และกำหนดชนิดข้อมูล คีย์หลัก และข้อกำหนดใน Supabase",
       maxScore: 10,
     },
     {
@@ -86,7 +86,7 @@ export const courseAssignments = {
     {
       id: "asm-2",
       week: 2,
-      title: "ใบงานที่ 2: การติดตั้งและใช้งาน Git Version Control",
+      title: "ใบงานที่ 2: งานระบบควบคุมเวอร์ชัน (Version Control System)",
       maxScore: 10,
     },
     {
