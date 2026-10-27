@@ -138,7 +138,7 @@ export const courseAssignments = {
     {
       id: "asm-2",
       week: 2,
-      title: "ใบงานที่ 2: การสมัครและเริ่มต้นสร้างวงจรเสมือนจริงบน Tinkercad",
+      title: "ใบงานที่ 2: วงจรไฟวิ่ง 5 ดวง วิ่งวนไปเรื่อยๆ (Running LED 5 LEDs) บน Tinkercad",
       maxScore: 10,
     },
     {

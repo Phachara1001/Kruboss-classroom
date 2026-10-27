@@ -32,7 +32,7 @@ export const courses = [
         name: "แนะนำเทคโนโลยีการจัดการฐานข้อมูลและ Cloud DBMS (Supabase & PostgreSQL)",
         isOpen: true,
         progress: 100,
-        status: "เรียนจบแล้ว",
+        status: "เปิดให้เรียน",
         image: "bg-green-600",
       },
       {
@@ -41,7 +41,7 @@ export const courses = [
         name: "ชนิดข้อมูล คีย์หลัก และข้อกำหนดใน Supabase (Data Types, Primary Key & Constraints)",
         isOpen: true,
         progress: 0,
-        status: "กำลังเรียน",
+        status: "เปิดให้เรียน",
         image: "bg-emerald-600",
       },
       {
@@ -196,7 +196,7 @@ export const courses = [
         name: "การพัฒนาซอฟต์แวร์ตามแนวคิดแบบเดวอปส์ (DevOps)",
         isOpen: true,
         progress: 0,
-        status: "กำลังเรียน",
+        status: "เปิดให้เรียน",
         image: "bg-blue-600",
       },
       {
@@ -205,7 +205,7 @@ export const courses = [
         name: "งานระบบควบคุมเวอร์ชัน (Version Control System)",
         isOpen: true,
         progress: 0,
-        status: "กำลังเรียน",
+        status: "เปิดให้เรียน",
         image: "bg-indigo-600",
       },
       {
@@ -395,7 +395,7 @@ export const courses = [
           "รู้จัก Data Analyst / Workflow / ตัวอย่างการใช้ข้อมูลเพื่อการตัดสินใจ",
         isOpen: true,
         progress: 0,
-        status: "กำลังเรียน",
+        status: "เปิดให้เรียน",
         image: "bg-sky-600",
       },
       {
@@ -606,16 +606,16 @@ export const courses = [
         name: "บทนำระบบสมองกลฝังตัว & IoT และสถาปัตยกรรมบอร์ด Arduino Uno R3",
         isOpen: true,
         progress: 0,
-        status: "กำลังเรียน",
+        status: "เปิดให้เรียน",
         image: "bg-amber-600",
       },
       {
         id: "สัปดาห์ที่ 2",
         weekNumber: 2,
         name: "การจำลองวงจรและเขียนโปรแกรมควบคุมบอร์ดด้วย Autodesk Tinkercad Circuits",
-        isOpen: false,
+        isOpen: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "เปิดให้เรียน",
         image: "bg-orange-600",
       },
       {
@@ -765,3 +765,20 @@ export const courses = [
     ],
   },
 ];
+
+// กำหนดให้ status ของทุกหัวข้อเปลี่ยนตาม isOpen โดยอัตโนมัติ
+// ถ้า isOpen: true -> status = "เปิดให้เรียน"
+// ถ้า isOpen: false -> status = "ยังไม่เริ่ม"
+courses.forEach((course) => {
+  course.topics?.forEach((topic) => {
+    Object.defineProperty(topic, 'status', {
+      get() {
+        return this.isOpen ? 'เปิดให้เรียน' : 'ยังไม่เริ่ม';
+      },
+      set(_val) {},
+      enumerable: true,
+      configurable: true,
+    });
+  });
+});
+

@@ -901,7 +901,7 @@ const quizQuestions = [
         </div>
 
         <!-- Teacher Scoreboard Button -->
-        <button @click="showTeacherModal = true"
+        <button v-if="isTeacher" @click="showTeacherModal = true"
           class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-sky-900 to-blue-900 hover:from-sky-800 hover:to-blue-800 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-sky-700 shrink-0">
           <FileSpreadsheet class="w-4 h-4 text-amber-400" />
           <span>ดูตารางคะแนนมินิเกม (สำหรับคุณครู)</span>
