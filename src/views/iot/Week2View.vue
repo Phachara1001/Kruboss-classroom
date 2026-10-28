@@ -18,7 +18,6 @@ import PopQuiz from '@/components/games/PopQuiz.vue'
 import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
-import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 
 import { authUser } from '@/data/authStore'
 import { isStudent } from '@/data/studentsStore'
@@ -28,7 +27,6 @@ import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/da
 const currentCourseId = '21901-2007'
 const currentWeek = 2
 const showTeacherModal = ref(false)
-const showPdfModal = ref(false)
 
 // Week Games Config
 const weekGames = [
@@ -1081,198 +1079,178 @@ const quizQuestions = [
       </PopQuiz>
     </section>
 
-    <!-- Assignment Section (5-LED Running Light Assignment Challenge) -->
+    <!-- Assignment Section (5-LED Running Light Assignment Challenge - 3 Tiers) -->
     <AssignmentSection :course-id="currentCourseId" assignment-id="asm-2"
-      assignment-title="ใบงานที่ 2: วงจรไฟวิ่ง 5 ดวง วิ่งวนไปเรื่อยๆ (Running LED 5 LEDs) บน Tinkercad" :max-score="10">
+      assignment-title="ใบงานที่ 2: วงจรไฟวิ่ง 5 ดวง โจทย์ท้าทาย 3 ระดับ (8 / 9 / 10 คะแนน) บน Tinkercad" :max-score="10">
       <template #number>2</template>
       <template #description>
         หลังจากที่นักศึกษาได้เรียนรู้การต่อวงจรและเขียนฟังก์ชันควบคุมหลอดไฟ LED 1 ดวงในคาบเรียนแล้ว
-        ในใบงานนี้ให้นักศึกษานำความรู้ดังกล่าวมาต่อยอดจำลองวงจรบน Autodesk Tinkercad Circuits โดยต่อหลอดไฟ LED จำนวน 5 ดวงบน Breadboard
-        และเขียนโปรแกรมควบคุมด้วยบอร์ด Arduino Uno R3 โดยใช้การสร้าง Function แล้วนำมาเรียกใช้งานใน void loop()
-        ให้ไฟ 5 ดวงติด-ดับไล่ระดับ วิ่งวนไปเรื่อยๆ ไม่รู้จบ เมื่อเสร็จแล้วให้บันทึกภาพหน้าจอ (Screenshot) วงจรและโค้ด
-        อัปโหลดรูปภาพลง Google Drive และนำลิงก์มาส่ง
+        ในใบงานนี้นักศึกษาสามารถ<strong>เลือกระดับความท้าทายในการทำผลงาน</strong>เพื่อพิชิตคะแนนตามเป้าหมายของตนเอง
+        โดยจำลองวงจรบน Autodesk Tinkercad Circuits และเขียนโปรแกรมควบคุมด้วยบอร์ด Arduino Uno R3 ด้วยภาษา C++
+        มีการสร้าง Custom Function เมื่อทำเสร็จแล้ว<strong>ให้ยกมือเรียกครูผู้สอนไปตรวจการทำงานจริงที่โต๊ะ</strong> และแนบภาพหลักฐานส่งในระบบหลังจากครูตรวจเสร็จสิ้น
       </template>
       <template #tasks>
+
+        <!-- 3 Challenge Tiers Presentation Card -->
+        <div class="mb-6 space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <span class="text-xs font-black uppercase tracking-wider text-orange-950 flex items-center gap-1.5">
+              <Trophy class="w-4 h-4 text-orange-600" />
+              เลือกระดับความท้าทายของชิ้นงาน (เลือกทำระดับใดระดับหนึ่ง):
+            </span>
+            <span class="text-[11px] text-gray-500 font-medium">* นักศึกษาสามารถเลือกทำระดับท้าทาย (10 คะแนน) ได้ทันที</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Tier 1: 8 Points (ระดับพื้นฐาน) -->
+            <div class="rounded-2xl p-4.5 bg-gradient-to-b from-amber-50/70 via-white to-amber-50/30 border-2 border-amber-300 shadow-xs flex flex-col justify-between relative group hover:border-amber-400 hover:shadow-md transition-all">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-black text-xs border border-amber-200 flex items-center gap-1.5">
+                    <Layers class="w-3.5 h-3.5 text-amber-700" />
+                    <span>ระดับพื้นฐาน</span>
+                  </span>
+                  <span class="text-base font-black text-amber-700">8 คะแนน</span>
+                </div>
+                <div>
+                  <h5 class="text-sm font-black text-gray-900 flex items-center gap-1.5">
+                    <Sparkles class="w-4 h-4 text-amber-600 shrink-0" />
+                    ไฟ 5 ดวง วิ่งทางเดียววนลูป
+                  </h5>
+                  <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                    Single-Direction Running LED
+                  </p>
+                </div>
+                <div class="p-3 bg-white rounded-xl border border-amber-100 text-xs text-gray-700 space-y-1.5">
+                  <p class="font-bold text-amber-900 flex items-center gap-1 text-[11px]">
+                    <Check class="w-3.5 h-3.5 text-amber-600" /> ข้อกำหนดการทำงาน:
+                  </p>
+                  <ul class="list-disc pl-4 space-y-1 text-[11px] text-gray-600">
+                    <li>ต่อ LED 5 ดวง (Pin 2-6) ผ่านตัวต้านทาน 220 Ω</li>
+                    <li>ไฟติด-ดับไล่ทีละดวงจากดวงที่ <strong>1 -> 2 -> 3 -> 4 -> 5</strong></li>
+                    <li>เมื่อครบ 5 ดวง ให้วนกลับมาเริ่มดวงที่ 1 ใหม่ไปเรื่อยๆ</li>
+                    <li>สร้าง <strong>Custom Function</strong> อย่างน้อย 1 ฟังก์ชัน เช่น <code>void runForward()</code></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="mt-3 pt-2.5 border-t border-amber-200/60 text-[11px] text-amber-800 font-medium">
+                เหมาะสำหรับ: ฝึกต่อวงจร 5 ดวงและเขียนฟังก์ชันเบื้องต้น
+              </div>
+            </div>
+
+            <!-- Tier 2: 9 Points (ระดับยาก) -->
+            <div class="rounded-2xl p-4.5 bg-gradient-to-b from-blue-50/70 via-white to-blue-50/30 border-2 border-blue-400 shadow-xs flex flex-col justify-between relative group hover:border-blue-500 hover:shadow-md transition-all">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-black text-xs border border-blue-200 flex items-center gap-1.5">
+                    <Zap class="w-3.5 h-3.5 text-blue-700" />
+                    <span>ระดับยาก</span>
+                  </span>
+                  <span class="text-base font-black text-blue-700">9 คะแนน</span>
+                </div>
+                <div>
+                  <h5 class="text-sm font-black text-gray-900 flex items-center gap-1.5">
+                    <Sparkles class="w-4 h-4 text-blue-600 shrink-0" />
+                    ไฟ 5 ดวง วิ่งไป-กลับต่อเนื่อง
+                  </h5>
+                  <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                    Ping-Pong / Knight Rider Running LED
+                  </p>
+                </div>
+                <div class="p-3 bg-white rounded-xl border border-blue-100 text-xs text-gray-700 space-y-1.5">
+                  <p class="font-bold text-blue-900 flex items-center gap-1 text-[11px]">
+                    <Check class="w-3.5 h-3.5 text-blue-600" /> ข้อกำหนดการทำงาน:
+                  </p>
+                  <ul class="list-disc pl-4 space-y-1 text-[11px] text-gray-600">
+                    <li>ต่อ LED 5 ดวง (Pin 2-6) ผ่านตัวต้านทาน 220 Ω</li>
+                    <li>ไฟวิ่งไปข้างหน้า <strong>1 -> 2 -> 3 -> 4 -> 5</strong></li>
+                    <li>แล้ววิ่งเด้งถอยหลังกลับ <strong>4 -> 3 -> 2</strong> วนลูปต่อเนื่อง</li>
+                    <li>ไฟไม่กระตุกหรือค้างที่หัวท้ายผิดจังหวะ</li>
+                    <li>สร้างฟังก์ชัน เช่น <code>runForward()</code> และ <code>runBackward()</code></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="mt-3 pt-2.5 border-t border-blue-200/60 text-[11px] text-blue-800 font-medium">
+                เหมาะสำหรับ: ผู้ที่เข้าใจทิศทางลูปและการสลับลำดับขาพิน
+              </div>
+            </div>
+
+            <!-- Tier 3: 10 Points (ระดับท้าทาย) -->
+            <div class="rounded-2xl p-4.5 bg-gradient-to-b from-emerald-50 via-white to-emerald-50/40 border-2 border-emerald-500 shadow-sm flex flex-col justify-between relative group hover:border-emerald-600 hover:shadow-lg transition-all ring-2 ring-emerald-400/20">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-black text-xs shadow-xs flex items-center gap-1.5">
+                    <Award class="w-3.5 h-3.5 text-white" />
+                    <span>ระดับท้าทาย</span>
+                  </span>
+                  <span class="text-base font-black text-emerald-700">10 คะแนนเต็ม</span>
+                </div>
+                <div>
+                  <h5 class="text-sm font-black text-gray-900 flex items-center gap-1.5">
+                    <Zap class="w-4 h-4 text-emerald-600 shrink-0" />
+                    กดปุ่มค้างไว้ ไฟ 5 ดวงวิ่งไป-กลับ
+                  </h5>
+                  <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                    Interactive Push Button + Bounce LED
+                  </p>
+                </div>
+                <div class="p-3 bg-white rounded-xl border border-emerald-200 text-xs text-gray-700 space-y-1.5">
+                  <p class="font-bold text-emerald-950 flex items-center gap-1 text-[11px]">
+                    <Check class="w-3.5 h-3.5 text-emerald-600" /> ข้อกำหนดการทำงาน:
+                  </p>
+                  <ul class="list-disc pl-4 space-y-1 text-[11px] text-gray-600">
+                    <li>LED 5 ดวง (Pin 2-6) + <strong>Push Button 1 ตัว (Pin 7)</strong></li>
+                    <li>ใช้ <code>digitalRead(7)</code> ตรวจสอบสถานะการกดสวิตช์</li>
+                    <li><strong>เมื่อกดปุ่มค้างไว้ (Pressed):</strong> ไฟ 5 ดวงจะวิ่งไป-กลับตลอดเวลา</li>
+                    <li><strong>เมื่อปล่อยปุ่ม (Released):</strong> ไฟหยุดวิ่งและดับลงทันที</li>
+                    <li>ใช้ <code>pinMode(7, INPUT_PULLUP)</code> หรือต่อตัวต้านทาน 10kΩ</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="mt-3 pt-2.5 border-t border-emerald-200/80 text-[11px] text-emerald-800 font-bold flex items-center gap-1">
+                <Sparkles class="w-3.5 h-3.5 text-emerald-600" />
+                พิชิตคะแนนเต็ม 10 ด้วยการผสมผสาน Input & Output
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step-by-Step Instructions -->
         <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
           <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span><strong>1. เข้าใช้งาน Tinkercad Circuits:</strong> เข้าไปที่เว็บไซต์ <a href="https://www.tinkercad.com/circuits" target="_blank"
-              class="text-cyan-600 font-bold underline">tinkercad.com/circuits</a> เข้าสู่ระบบ แล้วกดปุ่ม <strong>+ Create &gt; Circuit</strong> เพื่อเปิดพื้นที่ทำงานใหม่</span>
+          <span><strong>1. เข้าใช้งาน Tinkercad Circuits:</strong> ไปที่ <a href="https://www.tinkercad.com/circuits" target="_blank" class="text-cyan-600 font-bold underline">tinkercad.com/circuits</a> แล้วกด <strong>+ Create &gt; Circuit</strong></span>
         </li>
         <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
           <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span><strong>2. ต่อยอดจาก 1 ดวงเป็น 5 ดวง:</strong> วางบอร์ด <strong>Arduino Uno R3</strong>, <strong>Breadboard Small</strong>, <strong>LED จำนวน 5 ดวง</strong> (เลือกผสมสีได้ตามใจชอบ) และ <strong>ตัวต้านทาน 220 Ω จำนวน 5 ตัว</strong></span>
+          <span><strong>2. เตรียมอุปกรณ์:</strong> บอร์ด Arduino Uno R3, Breadboard Small, LED 5 ดวง, ตัวต้านทาน 220 Ω 5 ตัว <em>(ระดับท้าทาย เพิ่ม Push Button 1 ตัว)</em></span>
         </li>
         <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
           <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span><strong>3. การต่อสายไฟ:</strong>
-            <ul class="list-disc pl-5 mt-1 space-y-0.5 text-xs text-gray-600">
-              <li>ต่อขา <strong>Anode (ขั้วบวก / ขายาว)</strong> ของ LED 1-5 เข้ากับพิน <strong>Pin 2, 3, 4, 5, 6</strong> โดยแต่ละดวงต้องต่อผ่านตัวต้านทาน 220 Ω เสมอ</li>
-              <li>ต่อขา <strong>Cathode (ขั้วลบ / ขาสั้น)</strong> ของ LED ทุกดวงลงรางขั้วลบ (-) ของ Breadboard แล้วลากสายจัมป์เปอร์สีดำไปต่อเข้าพิน <strong>GND</strong> ของบอร์ด Arduino</li>
-            </ul>
-          </span>
+          <span><strong>3. ต่อสายไฟวงจร:</strong> ขา Anode ต่อ Pin 2-6 ผ่านตัวต้านทาน 220 Ω และต่อ Cathode ลง GND <em>(ระดับท้าทาย ต่อปุ่มกดเข้า Pin 7 และ GND)</em></span>
         </li>
         <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
           <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span><strong>4. การเขียนโค้ดภาษา C++ (โหมด Code &gt; Text):</strong>
-            <ul class="list-disc pl-5 mt-1 space-y-0.5 text-xs text-gray-600">
-              <li>ใน <code>void setup()</code> ตั้งค่า <code>pinMode</code> ของพิน 2 ถึง 6 ให้เป็น <code>OUTPUT</code> ทั้งหมด</li>
-              <li>สร้าง <strong>Custom Function</strong> อย่างน้อย 1 ฟังก์ชัน เช่น <code>void runForward()</code> หรือ <code>void runningLight()</code> เพื่อควบคุมจังหวะไฟติด-ดับทีละดวง</li>
-              <li>เรียกใช้งานฟังก์ชันใน <code>void loop()</code> เพื่อให้ไฟวิ่งวนซ้ำไปเรื่อยๆ อย่างต่อเนื่อง</li>
-            </ul>
-          </span>
+          <span><strong>4. เขียนโค้ดภาษา C++:</strong> ตั้ง <code>pinMode</code> ใน <code>setup()</code>, สร้าง Custom Function ควบคุมไฟวิ่ง และเรียกใช้ใน <code>loop()</code> ตามระดับที่เลือก</span>
         </li>
         <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
           <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span><strong>5. ทดสอบวงจร:</strong> กดปุ่ม <strong>Start Simulation</strong> ตรวจสอบว่าไฟ LED ทั้ง 5 ดวงติด-ดับวิ่งวนตามลำดับอย่างถูกต้องและราบรื่น</span>
+          <span><strong>5. ทดสอบวงจร:</strong> กดปุ่ม <strong>Start Simulation</strong> ตรวจสอบว่าไฟทำงานถูกต้องตามเงื่อนไข</span>
+        </li>
+        <li class="flex items-start gap-3 hover:translate-x-1 transition-transform bg-amber-50/80 p-3 rounded-xl border border-amber-200">
+          <CheckCircle class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <span class="text-amber-950"><strong>6. เรียกครูตรวจที่โต๊ะ:</strong> เมื่อวงจรทำงานถูกต้อง ให้ยกมือเรียกครูผู้สอนมาตรวจการทำงานจริงที่หน้าจอ</span>
         </li>
         <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
           <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span><strong>6. แคปรูปภาพส่งงาน (Screenshot):</strong> จับภาพหน้าจอให้เห็นทั้ง <strong>วงจรจำลองที่มีไฟติด</strong> และ <strong>หน้าต่างโค้ดโปรแกรมภาษา C++</strong> รวมถึงชื่อโปรเจกต์ของตนเองอย่างชัดเจน</span>
+          <span><strong>7. แคปภาพหลักฐาน (Screenshot):</strong> หลังครูตรวจเสร็จแล้ว แคปหน้าจอวงจรและโค้ดโปรแกรมของตนเอง</span>
         </li>
         <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
           <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span><strong>7. อัปโหลดลง Google Drive และแชร์ลิงก์:</strong> อัปโหลดรูปภาพลง Google Drive คลิกขวาเลือก <strong>แชร์ (Share)</strong> และตั้งค่าสิทธิ์การเข้าถึงเป็น <strong>"ทุกคนที่มีลิงก์ (Anyone with the link)"</strong> สามารถดูได้</span>
-        </li>
-        <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
-          <CheckCircle class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-          <span><strong>8. ส่งงาน:</strong> คัดลอก URL ลิงก์จาก Google Drive แล้วนำมากรอกในปุ่ม <strong>"ส่งงานด้วยลิงก์"</strong> ด้านล่างนี้</span>
+          <span><strong>8. แนบหลักฐานส่งงาน:</strong> นำรูปลง Google Drive (เปิดสิทธิ์ให้ทุกคนที่มีลิงก์ดูได้) แล้วนำลิงก์มากรอกส่งในปุ่มด้านล่างนี้</span>
         </li>
 
-        <!-- PDF Example Button Card -->
-        <div class="mt-6 p-5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h5 class="font-bold text-gray-900 text-sm flex items-center gap-1.5">
-              <FileText class="w-4 h-4 text-amber-600" /> ต้องการดูตัวอย่างเอกสารใบงานที่ 2?
-            </h5>
-            <p class="text-xs text-gray-500 mt-0.5">
-              กดเปิดดูตัวอย่างโครงสร้างรายงานผลการปฏิบัติงานใบงานที่ 2 (แบบฟอร์มมาตรฐาน ขนาด A4)
-            </p>
-          </div>
-          <button @click="showPdfModal = true" type="button"
-            class="px-5 py-2.5 rounded-xl font-bold text-xs bg-amber-600 hover:bg-amber-700 text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2 shrink-0 cursor-pointer">
-            <FileText class="w-4 h-4 text-amber-200" />
-            <span>เปิดดูตัวอย่างใบงาน (PDF Preview)</span>
-          </button>
-        </div>
       </template>
     </AssignmentSection>
-
-    <!-- Assignment PDF Modal for IoT Week 2 (A4 Format) -->
-    <AssignmentPdfModal
-      v-model="showPdfModal"
-      title="ใบงานที่_2_วงจรไฟวิ่ง5ดวงบนTinkercad_ปวช.pdf"
-      subtitle="แบบฟอร์มเอกสารรายงานผลการปฏิบัติงาน ขนาด A4 (จำนวน 1 หน้า)"
-      footer-text="แบบฟอร์มใบงานมาตรฐาน • รายวิชาเทคโนโลยีระบบสมองกลฝังตัวและไอโอที (21901-2007)"
-      :show-print="true"
-      :multi-page="false"
-    >
-      <div
-        class="printable-a4-sheet bg-white text-gray-900 w-full max-w-[210mm] min-h-[297mm] p-8 sm:p-11 shadow-2xl border border-gray-300 flex flex-col justify-between text-xs sm:text-sm font-sans box-border relative"
-        style="background-color: #ffffff !important; color: #111827 !important;"
-      >
-        <div class="space-y-4">
-          <!-- Page Header -->
-          <div class="border-b-2 border-black pb-3 text-center space-y-1 relative">
-            <span class="absolute top-0 right-0 px-2 py-0.5 rounded bg-gray-100 border border-gray-300 text-[10px] font-mono text-gray-600">
-              หน้า 1 / 1
-            </span>
-            <h2 class="text-base sm:text-lg font-bold text-black uppercase tracking-wide">
-              ใบงานที่ 2: วงจรไฟวิ่ง 5 ดวง วิ่งวนไปเรื่อยๆ (Running LED 5 LEDs) บน Tinkercad
-            </h2>
-            <p class="text-xs text-gray-600">วิชา: เทคโนโลยีระบบสมองกลฝังตัวและไอโอที (รหัสวิชา 21901-2007)</p>
-          </div>
-
-          <!-- Student Meta Line -->
-          <div class="py-2 text-xs text-gray-900 flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-2">
-            <span><strong>ชื่อ-นามสกุล:</strong> [ ระบุชื่อ - นามสกุล นักศึกษา ]</span>
-            <span><strong>รหัสนักศึกษา:</strong> [ ระบุรหัสประจำตัว ]</span>
-            <span><strong>ระดับชั้น:</strong> ปวช.3/2</span>
-          </div>
-
-          <!-- Instructions Box -->
-          <div class="bg-amber-50/70 p-2.5 rounded border border-amber-200 text-xs text-amber-950 leading-relaxed">
-            <strong>คำชี้แจง:</strong> ให้นักศึกษาต่อยอดจากวงจรหลอด LED 1 ดวงที่เรียนในห้อง มาสร้างเป็นวงจรหลอด LED 5 ดวง และเขียนโปรแกรมควบคุมด้วยบอร์ด Arduino Uno R3 บน Autodesk Tinkercad Circuits โดยใช้การเขียน Function แล้วนำภาพถ่ายหน้าจอวงจรและโค้ดมาแนบส่งในพื้นที่ที่กำหนด
-          </div>
-
-          <!-- Section 1: Circuit Diagram & Pinout -->
-          <div class="space-y-2 pt-1">
-            <h4 class="font-bold text-gray-900 text-xs sm:text-sm border-b border-gray-200 pb-1">
-              ตอนที่ 1: ตารางบันทึกการต่อขาอุปกรณ์ 5 ดวง (Hardware Pin Mapping)
-            </h4>
-            <table class="w-full text-[11px] text-left border border-gray-300">
-              <thead class="bg-gray-100 font-bold border-b border-gray-300">
-                <tr>
-                  <th class="p-1.5 border-r border-gray-300">อุปกรณ์</th>
-                  <th class="p-1.5 border-r border-gray-300">พิน Arduino (ขา Anode +)</th>
-                  <th class="p-1.5 border-r border-gray-300">ตัวต้านทาน</th>
-                  <th class="p-1.5">ขั้วกราวด์ (ขา Cathode -)</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200">
-                <tr>
-                  <td class="p-1.5 border-r border-gray-300">LED 1 (แดง)</td>
-                  <td class="p-1.5 border-r border-gray-300 font-mono">Digital Pin 2</td>
-                  <td class="p-1.5 border-r border-gray-300 font-mono">220 Ω</td>
-                  <td class="p-1.5 font-mono">GND บน Breadboard</td>
-                </tr>
-                <tr>
-                  <td class="p-1.5 border-r border-gray-300">LED 2 (เหลือง)</td>
-                  <td class="p-1.5 border-r border-gray-300 font-mono">Digital Pin 3</td>
-                  <td class="p-1.5 border-r border-gray-300 font-mono">220 Ω</td>
-                  <td class="p-1.5 font-mono">GND บน Breadboard</td>
-                </tr>
-                <tr>
-                  <td class="p-1.5 border-r border-gray-300">LED 3 (เขียว)</td>
-                  <td class="p-1.5 border-r border-gray-300 font-mono">Digital Pin 4</td>
-                  <td class="p-1.5 border-r border-gray-300 font-mono">220 Ω</td>
-                  <td class="p-1.5 font-mono">GND บน Breadboard</td>
-                </tr>
-                <tr>
-                  <td class="p-1.5 border-r border-gray-300">LED 4 (ฟ้า)</td>
-                  <td class="p-1.5 border-r border-gray-300 font-mono">Digital Pin 5</td>
-                  <td class="p-1.5 border-r border-gray-300 font-mono">220 Ω</td>
-                  <td class="p-1.5 font-mono">GND บน Breadboard</td>
-                </tr>
-                <tr>
-                  <td class="p-1.5 border-r border-gray-300">LED 5 (ม่วง/ส้ม)</td>
-                  <td class="p-1.5 border-r border-gray-300 font-mono">Digital Pin 6</td>
-                  <td class="p-1.5 border-r border-gray-300 font-mono">220 Ω</td>
-                  <td class="p-1.5 font-mono">GND บน Breadboard</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Section 2: Screenshot Evidence Placeholder -->
-          <div class="space-y-2 pt-1">
-            <h4 class="font-bold text-gray-900 text-xs sm:text-sm border-b border-gray-200 pb-1">
-              ตอนที่ 2: ภาพถ่ายหน้าจอผลการทดลองบน Tinkercad Circuits (Screenshot Evidence)
-            </h4>
-            <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50 text-gray-500 text-xs space-y-1">
-              <p class="font-bold text-gray-700">[ พื้นที่แนบภาพถ่ายหน้าจอผลการจำลองไฟวิ่ง 5 ดวงและโค้ดโปรแกรม C++ ]</p>
-              <p class="text-[11px] text-gray-500">ต้องแสดงให้เห็นวงจรที่ไฟกำลังติดสว่าง และหน้าต่างโค้ดที่มีการสร้าง Custom Function อย่างชัดเจน</p>
-            </div>
-          </div>
-
-          <!-- Section 3: Google Drive Link -->
-          <div class="space-y-1.5 pt-1">
-            <h4 class="font-bold text-gray-900 text-xs sm:text-sm border-b border-gray-200 pb-1">
-              ตอนที่ 3: ลิงก์ไฟล์ภาพและโปรเจกต์ Google Drive (Public Link)
-            </h4>
-            <div class="p-2.5 bg-gray-50 rounded border border-gray-200 text-xs font-mono text-gray-700">
-              URL: https://drive.google.com/file/d/your-screenshot-id/view?usp=sharing
-            </div>
-            <p class="text-[10px] text-gray-500">* ตรวจสอบให้แน่ใจว่าได้เปิดสิทธิ์การแชร์เป็น "ทุกคนที่มีลิงก์ (Anyone with the link)" ก่อนส่งงาน</p>
-          </div>
-        </div>
-
-        <!-- Sheet Footer -->
-        <div class="border-t border-gray-300 pt-3 text-[10px] text-gray-500 flex justify-between items-center">
-          <span>แผนกวิชาเทคโนโลยีคอมพิวเตอร์ • วิทยาลัยเทคนิค / มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ</span>
-          <span>ลงชื่อผู้ตรวจ: ....................................................</span>
-        </div>
-      </div>
-    </AssignmentPdfModal>
 
     <!-- Teacher Scoreboard Modal -->
     <TeacherScoreboardModal
