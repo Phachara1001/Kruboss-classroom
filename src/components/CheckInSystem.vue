@@ -9,9 +9,11 @@ import {
 import { courses } from '@/data/courses'
 import { 
   CheckCircle, XCircle, Clock, MousePointer2, 
-  Settings, Power, AlertCircle, RotateCcw, Calendar
+  Settings, Power, AlertCircle, RotateCcw, Calendar, FileSpreadsheet
 } from '@lucide/vue'
 import { addCoins } from '@/data/shopStore'
+import { studentsList } from '@/data/studentsStore'
+import { exportAttendanceToExcel } from '@/utils/exportAttendanceExcel'
 
 const props = defineProps({
   courseId: {
@@ -108,6 +110,26 @@ const handleCancelWithoutSaving = async () => {
     return
   }
   await cancelCheckInSession(props.courseId, activeWeek.value)
+}
+
+// 3. Export Attendance to Excel (Teacher Only)
+const isExporting = ref(false)
+const handleExportExcel = async () => {
+  if (!isTeacher.value) return
+  isExporting.value = true
+  try {
+    const fileName = await exportAttendanceToExcel({
+      courseId: props.courseId,
+      classroom: 'all',
+      allStudents: studentsList.value
+    })
+    checkInMessage.value = `ดาวน์โหลดตารางการเข้าเรียนสำเร็จ (${fileName})`
+    setTimeout(() => { checkInMessage.value = '' }, 4000)
+  } catch (err) {
+    console.error('Export attendance excel error:', err)
+  } finally {
+    isExporting.value = false
+  }
 }
 
 // --- Student Actions ---
@@ -248,6 +270,18 @@ onUnmounted(() => {
             * ปิดแบบไม่บันทึก: รีเซ็ตสถานะรอบนี้ แต่นักเรียนจะได้รับเหรียญไปเลย
           </span>
         </template>
+
+        <!-- 3. Print/Export Attendance Excel (Teacher Only) -->
+        <button
+          type="button"
+          @click="handleExportExcel"
+          :disabled="isExporting"
+          class="px-5 py-2.5 bg-emerald-600/30 hover:bg-emerald-600/40 text-emerald-200 border border-emerald-400/40 font-bold rounded-2xl hover:scale-105 transition-all flex items-center justify-center gap-2 text-xs cursor-pointer shadow-sm disabled:opacity-50"
+          title="พิมพ์ตารางการเข้าเรียนรายวิชานี้ออกมาเป็นไฟล์ Excel ตามแบบฟอร์ม"
+        >
+          <FileSpreadsheet class="w-4 h-4 text-emerald-300" />
+          <span>{{ isExporting ? 'กำลังสร้างไฟล์...' : 'พิมพ์ตารางเข้าเรียน (Excel)' }}</span>
+        </button>
       </div>
     </div>
 

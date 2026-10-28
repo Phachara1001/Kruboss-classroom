@@ -23,9 +23,11 @@ import {
   RotateCcw, 
   Sparkles, 
   FlaskConical,
+  FileSpreadsheet,
   Info 
 } from '@lucide/vue'
 import { courses } from '../data/courses'
+import { exportAttendanceToExcel } from '../utils/exportAttendanceExcel'
 import { studentsList, courseClassrooms, isStudentInCourse, isStudent, fetchStudents } from '../data/studentsStore'
 import { 
   gradingConfig, 
@@ -408,6 +410,26 @@ const handleTestRewardModal = () => {
     maxScore: firstAsm?.maxScore || 10
   })
 }
+
+// Export Attendance Table to Excel (Template)
+const isExportingExcel = ref(false)
+const handleExportAttendanceExcel = async () => {
+  if (!isTeacher.value) return
+  isExportingExcel.value = true
+  try {
+    const fileName = await exportAttendanceToExcel({
+      courseId: selectedCourseId.value,
+      classroom: selectedClassroom.value,
+      allStudents: studentsList.value
+    })
+    showAlert(`ดาวน์โหลดตารางการเข้าเรียนสำเร็จ (${fileName})`)
+  } catch (err) {
+    console.error('Export attendance excel error:', err)
+    showAlert('เกิดข้อผิดพลาดในการสร้างไฟล์ Excel')
+  } finally {
+    isExportingExcel.value = false
+  }
+}
 </script>
 
 <template>
@@ -429,6 +451,19 @@ const handleTestRewardModal = () => {
 
       <!-- Course & Classroom Dropdown Switcher + Test Button -->
       <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+        <!-- Print/Export Attendance Excel (Teacher only) -->
+        <button 
+          v-if="isTeacher"
+          type="button"
+          @click="handleExportAttendanceExcel"
+          :disabled="isExportingExcel"
+          class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+          title="พิมพ์ตารางการเข้าเรียนออกมาเป็นไฟล์ Excel ตามแบบฟอร์ม (เฉพาะอาจารย์)"
+        >
+          <FileSpreadsheet class="w-4 h-4 text-emerald-200" />
+          <span>{{ isExportingExcel ? 'กำลังสร้างไฟล์...' : 'พิมพ์ตารางเข้าเรียน (Excel)' }}</span>
+        </button>
+
         <!-- Test Reward Modal (Teacher only) -->
         <button 
           v-if="isTeacher"
@@ -1043,8 +1078,18 @@ const handleTestRewardModal = () => {
           </div>
         </div>
 
-        <!-- Quick Batch Check-in (Teacher Only) -->
-        <div v-if="isTeacher" class="flex items-center gap-2 self-stretch md:self-auto">
+        <!-- Quick Batch Check-in & Export Excel (Teacher Only) -->
+        <div v-if="isTeacher" class="flex flex-wrap items-center gap-2 self-stretch md:self-auto">
+          <button
+            @click="handleExportAttendanceExcel"
+            :disabled="isExportingExcel"
+            class="w-full md:w-auto px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="พิมพ์ตารางการเข้าเรียนของวิชา/ห้องนี้ออกมาเป็นไฟล์ Excel"
+          >
+            <FileSpreadsheet class="w-4 h-4 text-emerald-200" />
+            <span>{{ isExportingExcel ? 'กำลังสร้างไฟล์...' : 'พิมพ์ตารางเข้าเรียน (Excel)' }}</span>
+          </button>
+          
           <button
             @click="handleBatchAllPresent"
             class="w-full md:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
