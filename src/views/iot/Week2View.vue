@@ -294,7 +294,7 @@ const quizQuestions = [
         <div class="flex items-center gap-2 mb-4">
           <span
             class="px-4 py-1.5 bg-orange-100 text-orange-800 font-bold rounded-full text-xs uppercase tracking-wider shadow-sm">
-            สัปดาห์ที่ 2
+            หัวข้อที่ 2
           </span>
           <span class="px-3 py-1 bg-amber-50 text-amber-700 font-medium rounded-full text-xs border border-amber-200">
             Tinkercad Circuits & Arduino C++
@@ -915,7 +915,7 @@ const quizQuestions = [
             <Gamepad2 class="w-6 h-6" />
           </div>
           <div>
-            <h2 class="text-2xl sm:text-3xl font-black text-gray-900">Game Center: ทดสอบความเข้าใจสัปดาห์ที่ 2</h2>
+            <h2 class="text-2xl sm:text-3xl font-black text-gray-900">Game Center: ทดสอบความเข้าใจหัวข้อที่ 2</h2>
             <p class="text-xs sm:text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน</p>
           </div>
         </div>
@@ -932,7 +932,7 @@ const quizQuestions = [
       <div class="rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
           <div>
-            <span class="text-xs font-bold text-orange-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่ 2</span>
+            <span class="text-xs font-bold text-orange-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำหัวข้อที่ 2</span>
             <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
               <span>สถานะ:</span>
               <span v-if="studentNorm.isAllCompleted" class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">

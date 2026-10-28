@@ -564,7 +564,7 @@ const quizQuestions = [
       <div class="relative z-10 w-full md:w-3/4 lg:w-2/3">
         <span
           class="px-4 py-1.5 bg-amber-100 text-amber-700 font-bold rounded-full text-sm uppercase tracking-wider mb-6 inline-block shadow-sm">
-          สัปดาห์ที่ 1
+          หัวข้อที่ 1
         </span>
         <h1 class="text-4xl md:text-5xl font-bold text-amber-900 mb-4 leading-tight">
           บทนำสู่ระบบสมองกลฝังตัว & IoT<br />

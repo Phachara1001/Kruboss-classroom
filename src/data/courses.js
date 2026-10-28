@@ -771,6 +771,9 @@ export const courses = [
 // ถ้า isOpen: false -> status = "ยังไม่เริ่ม"
 courses.forEach((course) => {
   course.topics?.forEach((topic) => {
+    if (topic.id && topic.id.startsWith('สัปดาห์ที่')) {
+      topic.id = topic.id.replace('สัปดาห์ที่', 'หัวข้อที่');
+    }
     Object.defineProperty(topic, 'status', {
       get() {
         return this.isOpen ? 'เปิดให้เรียน' : 'ยังไม่เริ่ม';

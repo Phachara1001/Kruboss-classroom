@@ -529,6 +529,36 @@ export const closeCheckInSession = async (courseId, week) => {
   }
 };
 
+// Teacher Action: Cancel Check-in Session without saving
+// Resets attendance for the session, but students keep awarded coins
+export const cancelCheckInSession = async (courseId, week) => {
+  const sessionKey = `${courseId}_${week}`;
+
+  // 1. Reset check-in session state
+  if (checkInSessionsStore.value[sessionKey]) {
+    delete checkInSessionsStore.value[sessionKey];
+  }
+
+  // 2. Clear attendance records for this week (Reset student check-in status)
+  const suffix = `_${week}`;
+  Object.keys(attendanceStore.value).forEach((key) => {
+    if (key.startsWith(`${courseId}_`) && key.endsWith(suffix)) {
+      delete attendanceStore.value[key];
+    }
+  });
+
+  // 3. Sync to API backend if available
+  try {
+    await fetch(`${API_BASE_URL}/attendance/session/cancel`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ courseId, week }),
+    });
+  } catch (e) {
+    // offline or mock mode
+  }
+};
+
 // Helper: Calculate student's Attendance score out of 10 points
 // Rule: Start with 10. Deduct proportionally based on course level (ปวช = 18 weeks, ปวส = 15 weeks).
 // - Present: no deduction

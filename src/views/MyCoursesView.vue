@@ -148,7 +148,7 @@ const closeModal = () => {
           :class="course.theme.bgText">
           <ChevronLeft class="w-4 h-4 mr-1" /> กลับไปหน้ารวมวิชา
         </button>
-        <h2 :class="['text-3xl font-black mb-2', course.theme.text]">บทเรียนทั้งหมด ({{ course.topics.length }} สัปดาห์)
+        <h2 :class="['text-3xl font-black mb-2', course.theme.text]">บทเรียนทั้งหมด ({{ course.topics.length }} หัวข้อ)
         </h2>
         <div class="flex flex-wrap items-center gap-2">
           <p :class="['font-medium text-lg', course.theme.bgText]">รหัสวิชา {{ course.code }} {{ course.name }}</p>
@@ -235,7 +235,7 @@ const closeModal = () => {
         topic.isOpen ? `bg-white ${course.theme.border} hover:shadow-xl hover:-translate-y-1 ${course.theme.hoverBorder}` : 'bg-gray-50 border-gray-200 hover:bg-gray-100 opacity-90'
       ]">
         <!-- Topic Header/Image -->
-        <div class="h-32 w-full relative" :class="topic.isOpen ? topic.image : 'bg-gray-400 grayscale'">
+        <div class="h-32 w-full relative" :class="topic.isOpen ? topic.image : (effectiveIsTeacher ? 'bg-gray-400 grayscale' : 'bg-gradient-to-br from-slate-700 via-gray-800 to-zinc-900')">
           <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
           <!-- Status Badge -->
@@ -253,13 +253,13 @@ const closeModal = () => {
           <div class="absolute bottom-4 left-4 right-4 text-white flex items-center justify-between gap-2">
             <span :class="[
               'px-3 py-1 backdrop-blur-md rounded-lg text-sm font-bold border border-white/20 shadow-sm shrink-0',
-              topic.id.includes('สอบ') ? 'bg-red-600/80' : 'bg-black/40'
+              (effectiveIsTeacher && topic.id.includes('สอบ')) ? 'bg-red-600/80' : 'bg-black/40'
             ]">
-              {{ topic.id }}
+              {{ (!effectiveIsTeacher && !topic.isOpen) ? topic.id : topic.id }}
             </span>
 
-            <!-- Top Banner Indicator: Student View -->
-            <div v-if="!effectiveIsTeacher && getSubmissionStatus(topic).hasAssignment">
+            <!-- Top Banner Indicator: Student View (Only show for open topics to avoid spoilers) -->
+            <div v-if="!effectiveIsTeacher && topic.isOpen && getSubmissionStatus(topic).hasAssignment">
               <span v-if="getSubmissionStatus(topic).isSubmitted && getSubmissionStatus(topic).isGraded"
                 class="px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-600/90 text-white backdrop-blur-md border border-emerald-400/50 shadow-md flex items-center gap-1.5">
                 <CheckCircle2 class="w-3.5 h-3.5 text-white" />
@@ -270,15 +270,10 @@ const closeModal = () => {
                 <CheckCircle2 class="w-3.5 h-3.5 text-white" />
                 <span>ส่งงานแล้ว</span>
               </span>
-              <span v-else-if="topic.isOpen"
+              <span v-else
                 class="px-2.5 py-1 rounded-lg text-xs font-black bg-amber-500/95 text-white backdrop-blur-md border border-amber-300/60 shadow-md flex items-center gap-1.5 animate-pulse">
                 <AlertCircle class="w-3.5 h-3.5 text-white" />
                 <span>ยังไม่ส่งงาน</span>
-              </span>
-              <span v-else
-                class="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-black/40 text-stone-300 backdrop-blur-md border border-white/20 flex items-center gap-1">
-                <FileText class="w-3 h-3 text-stone-300" />
-                <span>มีใบงาน</span>
               </span>
             </div>
 
@@ -296,7 +291,7 @@ const closeModal = () => {
         <div class="p-6 flex-1 flex flex-col">
           <h3
             :class="['font-bold text-xl leading-snug mb-3 line-clamp-2 transition-colors', topic.isOpen ? 'text-gray-900 ' + course.theme.bgText.replace('text-', 'group-hover:text-') : 'text-gray-600']">
-            {{ topic.name }}
+            {{ (!effectiveIsTeacher && !topic.isOpen) ? 'เนื้อหาถัดไป' : topic.name }}
           </h3>
 
           <div class="mt-auto">
@@ -307,7 +302,7 @@ const closeModal = () => {
 
               <!-- Detailed Assignment Status Badge: Student View -->
               <div v-if="!effectiveIsTeacher">
-                <template v-if="getSubmissionStatus(topic).hasAssignment">
+                <template v-if="topic.isOpen && getSubmissionStatus(topic).hasAssignment">
                   <!-- Case 1: Submitted & Graded -->
                   <div v-if="getSubmissionStatus(topic).isSubmitted && getSubmissionStatus(topic).isGraded"
                     class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs"
@@ -329,28 +324,24 @@ const closeModal = () => {
                   </div>
 
                   <!-- Case 3: Not Submitted (Topic Open) -->
-                  <div v-else-if="topic.isOpen"
+                  <div v-else
                     class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs"
                     title="มีใบงานแต่ยังไม่ได้ส่ง">
                     <AlertCircle class="w-3.5 h-3.5 text-amber-600" />
                     <span>ยังไม่ส่งงาน</span>
                   </div>
-
-                  <!-- Case 4: Not Submitted (Topic Locked) -->
-                  <div v-else
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium text-stone-500 bg-stone-100 border border-stone-200">
-                    <FileText class="w-3 h-3 text-stone-400" />
-                    <span>มีใบงาน</span>
-                  </div>
                 </template>
 
-                <!-- No Assignment in this week -->
+                <!-- No Assignment or Locked in Student View -->
                 <div v-else class="text-xs text-stone-400 font-medium">
-                  <span v-if="getSubmissionStatus(topic).isExam" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-[11px] font-bold border border-rose-200">
+                  <span v-if="topic.isOpen && getSubmissionStatus(topic).isExam" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-[11px] font-bold border border-rose-200">
                     สอบเก็บคะแนน
                   </span>
-                  <span v-else class="text-stone-400 text-[11px]">
+                  <span v-else-if="topic.isOpen" class="text-stone-400 text-[11px]">
                     ไม่มีใบงาน
+                  </span>
+                  <span v-else class="text-stone-400 text-[11px] flex items-center gap-1">
+                    <Lock class="w-3 h-3" /> รอเปิดเรียน
                   </span>
                 </div>
               </div>
@@ -397,17 +388,32 @@ const closeModal = () => {
             <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4 animate-pulse-glow">
               <Lock class="w-8 h-8 text-red-500 animate-wiggle" />
             </div>
-            <span v-if="selectedTopic?.phase" class="px-3 py-1 bg-purple-50 text-purple-700 font-bold rounded-full text-xs mb-3 border border-purple-100">
-              {{ selectedTopic.phase }}
-            </span>
-            <h3 class="text-xl font-black text-gray-900 mb-1">เนื้อหายังไม่เปิดให้เข้าเรียน</h3>
-            <p class="text-purple-900 font-bold text-base mb-3 leading-snug">
-              {{ selectedTopic?.id }}: {{ selectedTopic?.name }}
-            </p>
-            <div v-if="selectedTopic?.desc" class="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 mb-4 text-left">
-              <span class="text-[11px] font-bold text-gray-400 block mb-1 uppercase tracking-wider">เนื้อหาที่จะได้เรียนรู้</span>
-              <p class="text-xs text-gray-600 leading-relaxed">{{ selectedTopic.desc }}</p>
-            </div>
+            
+            <template v-if="!effectiveIsTeacher">
+              <h3 class="text-xl font-black text-gray-900 mb-1">เนื้อหายังไม่เปิดให้เข้าเรียน</h3>
+              <p class="text-purple-900 font-bold text-base mb-3 leading-snug">
+                {{ selectedTopic?.id }}: เนื้อหาถัดไป
+              </p>
+              <div class="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 mb-4 text-center">
+                <p class="text-xs text-gray-600 leading-relaxed">
+                  เนื้อหาการเรียนรู้ในหัวข้อนี้จะเปิดให้เข้าเรียนตามกำหนดการสอนในคาบเรียน รอติดตามเร็วๆ นี้
+                </p>
+              </div>
+            </template>
+            <template v-else>
+              <span v-if="selectedTopic?.phase" class="px-3 py-1 bg-purple-50 text-purple-700 font-bold rounded-full text-xs mb-3 border border-purple-100">
+                {{ selectedTopic.phase }}
+              </span>
+              <h3 class="text-xl font-black text-gray-900 mb-1">เนื้อหายังไม่เปิดให้เข้าเรียน</h3>
+              <p class="text-purple-900 font-bold text-base mb-3 leading-snug">
+                {{ selectedTopic?.id }}: {{ selectedTopic?.name }}
+              </p>
+              <div v-if="selectedTopic?.desc" class="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 mb-4 text-left">
+                <span class="text-[11px] font-bold text-gray-400 block mb-1 uppercase tracking-wider">เนื้อหาที่จะได้เรียนรู้</span>
+                <p class="text-xs text-gray-600 leading-relaxed">{{ selectedTopic.desc }}</p>
+              </div>
+            </template>
+
             <p class="text-xs text-gray-400 mb-6">
               ระบบจะเปิดให้เข้าเรียนตามกำหนดการสอนของรายวิชา
             </p>

@@ -154,7 +154,7 @@ const pwsCourses = computed(() => visibleCourses.value.filter(c => c.levelGroup 
               <div class="flex gap-4">
                 <span
                   class="flex items-center gap-1.5 text-gray-500 text-sm font-medium bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                  <BookOpen class="w-4 h-4" /> {{ course.topics.length }} สัปดาห์
+                  <BookOpen class="w-4 h-4" /> {{ course.topics.length }} หัวข้อ
                 </span>
               </div>
               <div
@@ -230,7 +230,7 @@ const pwsCourses = computed(() => visibleCourses.value.filter(c => c.levelGroup 
               <div class="flex gap-4">
                 <span
                   class="flex items-center gap-1.5 text-gray-500 text-sm font-medium bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                  <BookOpen class="w-4 h-4" /> {{ course.topics.length }} สัปดาห์
+                  <BookOpen class="w-4 h-4" /> {{ course.topics.length }} หัวข้อ
                 </span>
               </div>
               <div
