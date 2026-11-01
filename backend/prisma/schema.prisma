@@ -107,7 +107,10 @@ model Submission {
   courseId     String
   assignmentId String
   studentId    String
-  link         String   // ลิงก์งานที่ส่ง
+  link         String   // ลิงก์งานที่ส่ง (ลิงก์หลัก)
+  links        Json?    // ลิงก์ผลงานทั้งหมด [{ title: String, url: String }]
+  workType     String?  @default("individual") // individual, pair, group
+  members      Json?    // ข้อมูลสมาชิกในกลุ่ม [{ studentId, name, classroom, isSubmitter }]
   note         String?  // โน้ตย่อถึงครู
   submittedAt  String?  // เวลาที่ส่ง
 

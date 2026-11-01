@@ -890,7 +890,17 @@ app.get('/api/submissions/:courseId', async (req, res) => {
             if (l && !/^https?:\/\//i.test(l)) {
                 l = `https://${l}`;
             }
-            return { ...s, link: l };
+            let linksList = s.links;
+            if (!linksList || !Array.isArray(linksList) || linksList.length === 0) {
+                linksList = l ? [{ title: '', url: l }] : [];
+            }
+            return { 
+                ...s, 
+                link: l,
+                links: linksList,
+                workType: s.workType || 'individual',
+                members: s.members || []
+            };
         });
         res.json(sanitized);
     } catch (err) {
@@ -909,7 +919,17 @@ app.get('/api/submissions/:courseId/:studentId', async (req, res) => {
             if (l && !/^https?:\/\//i.test(l)) {
                 l = `https://${l}`;
             }
-            return { ...s, link: l };
+            let linksList = s.links;
+            if (!linksList || !Array.isArray(linksList) || linksList.length === 0) {
+                linksList = l ? [{ title: '', url: l }] : [];
+            }
+            return { 
+                ...s, 
+                link: l,
+                links: linksList,
+                workType: s.workType || 'individual',
+                members: s.members || []
+            };
         });
         res.json(sanitized);
     } catch (err) {
@@ -919,20 +939,45 @@ app.get('/api/submissions/:courseId/:studentId', async (req, res) => {
 
 app.post('/api/submissions', async (req, res) => {
     try {
-        let { courseId, assignmentId, studentId, link, note, submittedAt } = req.body;
-        if (link && typeof link === 'string') {
-            link = link.trim();
-            if (link && !/^https?:\/\//i.test(link)) {
-                link = `https://${link}`;
-            }
+        let { courseId, assignmentId, studentId, link, links, workType, members, note, submittedAt } = req.body;
+        
+        let normalizedLinks = null;
+        if (Array.isArray(links) && links.length > 0) {
+            normalizedLinks = links.map(l => {
+                if (!l) return null;
+                if (typeof l === 'string') {
+                    let u = l.trim();
+                    if (u && !/^https?:\/\//i.test(u)) u = `https://${u}`;
+                    return { title: '', url: u };
+                }
+                let u = (l.url || '').trim();
+                if (u && !/^https?:\/\//i.test(u)) u = `https://${u}`;
+                return { title: l.title || '', url: u };
+            }).filter(Boolean);
+        } else if (link && typeof link === 'string') {
+            let u = link.trim();
+            if (u && !/^https?:\/\//i.test(u)) u = `https://${u}`;
+            normalizedLinks = [{ title: '', url: u }];
         }
+
+        const primaryLink = (normalizedLinks && normalizedLinks[0]?.url) || (typeof link === 'string' ? link.trim() : '');
         const timeStr = submittedAt || new Date().toLocaleString("th-TH");
+
+        const dataToSave = {
+            link: primaryLink,
+            links: normalizedLinks || [],
+            workType: workType || 'individual',
+            members: Array.isArray(members) ? members : [],
+            note: note || '',
+            submittedAt: timeStr
+        };
+
         const submission = await prisma.submission.upsert({
             where: {
                 courseId_assignmentId_studentId: { courseId, assignmentId, studentId }
             },
-            update: { link, note, submittedAt: timeStr },
-            create: { courseId, assignmentId, studentId, link, note, submittedAt: timeStr }
+            update: dataToSave,
+            create: { courseId, assignmentId, studentId, ...dataToSave }
         });
         res.json({ success: true, submission });
     } catch (err) {

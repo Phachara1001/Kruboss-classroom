@@ -137,115 +137,115 @@ const matchRightDefs = [
   { id: 'r6', text: 'แสดงประวัติการ Commit ย้อนหลังแบบกระชับบรรทัดเดียว' }
 ]
 
-// Game 3: Post-test 10 ข้อ
+// Game 3: Post-test 10 ข้อ (ตัวเลือกลวงแนบเนียน ความยาวสมดุล กระจาย A/B/C/D)
 const quizQuestions = [
   {
     id: 1,
-    question: "โครงสร้างสถาปัตยกรรม 3 พื้นที่หลัก (Three Trees) ของ Git ประกอบด้วยอะไรบ้างตามลำดับ?",
+    question: "โครงสร้างสถาปัตยกรรม 3 พื้นที่หลัก (Three Trees) ของ Git ในเครื่องคอมพิวเตอร์ประกอบด้วยส่วนใดบ้างตามลำดับการทำงาน?",
     options: [
-      { id: 'a', text: "CPU, RAM, และ Harddisk", isCorrect: false },
-      { id: 'b', text: "Working Directory, Staging Area, และ Local Repository", isCorrect: true },
-      { id: 'c', text: "HTML, CSS, และ JavaScript", isCorrect: false },
-      { id: 'd', text: "Frontend, Backend, และ Database", isCorrect: false }
+      { id: 'a', text: "Working Directory, Remote Repository, และ Staging Area", isCorrect: false },
+      { id: 'b', text: "Staging Area, Working Directory, และ Git Archive", isCorrect: false },
+      { id: 'c', text: "Working Directory, Staging Area, และ Local Repository", isCorrect: true },
+      { id: 'd', text: "Working Directory, Commit Cache, และ Cloud Repository", isCorrect: false }
     ],
-    explanation: "สถาปัตยกรรมหัวใจสำคัญของ Git คือ Working Directory (พื้นที่ไฟล์จริง) -> Staging Area (จุดพักไฟล์ก่อนยืนยัน) -> Local Repository (ที่จัดเก็บ Snapshot ถาวรในโฟลเดอร์ .git)"
+    explanation: "สถาปัตยกรรม 3 พื้นที่หลักของ Git ทำงานเรียงลำดับจาก Working Directory (พื้นที่แก้ไขไฟล์จริง) -> Staging Area (พื้นที่เตรียมพร้อมและคัดเลือกไฟล์) -> Local Repository (พื้นที่จัดเก็บ Snapshot ถาวรในโฟลเดอร์ .git)"
   },
   {
     id: 2,
-    question: "คำสั่งใดใช้สำหรับสร้าง Local Git Repository ขึ้นใหม่ในโฟลเดอร์โครงการปัจจุบัน?",
+    question: "คำสั่งใดใช้สำหรับเริ่มต้นสร้าง Git Repository ขึ้นใหม่ในโฟลเดอร์โปรเจกต์ปัจจุบัน?",
     options: [
-      { id: 'a', text: "git create-new", isCorrect: false },
+      { id: 'a', text: "git init", isCorrect: true },
       { id: 'b', text: "git start", isCorrect: false },
-      { id: 'c', text: "git init", isCorrect: true },
-      { id: 'd', text: "git install", isCorrect: false }
+      { id: 'c', text: "git setup", isCorrect: false },
+      { id: 'd', text: "git create", isCorrect: false }
     ],
-    explanation: "คำสั่ง 'git init' ย่อมาจาก initialize ใช้สร้างโฟลเดอร์ซ่อนชื่อ .git ขึ้นมาเพื่อเริ่มติดตามการเปลี่ยนแปลงไฟล์ในโฟลเดอร์นั้น"
+    explanation: "คำสั่ง 'git init' (ย่อมาจาก initialize) ใช้สร้างโฟลเดอร์ซ่อนชื่อ .git ขึ้นมาเพื่อเริ่มติดตามการเปลี่ยนแปลงไฟล์ในโฟลเดอร์นั้น"
   },
   {
     id: 3,
-    question: "การตั้งค่า Identity ระบุตัวตนผู้ Commit เป็นครั้งแรกด้วยคำสั่งใดจึงจะถูกต้องตามหลักการ?",
+    question: "หากต้องการกำหนดชื่อและอีเมลของผู้พัฒนาสำหรับใช้บันทึกประวัติการ Commit ในเครื่องเป็นค่าเริ่มต้นทุกโปรเจกต์ ต้องใช้คำสั่งใด?",
     options: [
-      { id: 'a', text: "git config --global user.name 'ชื่อ' และ git config --global user.email 'อีเมล'", isCorrect: true },
-      { id: 'b', text: "git set user 'ชื่อ' 'อีเมล'", isCorrect: false },
-      { id: 'c', text: "git login -u ชื่อ -p รหัสผ่าน", isCorrect: false },
-      { id: 'd', text: "git register --account 'อีเมล'", isCorrect: false }
+      { id: 'a', text: "git config --system author.name \"ชื่อ\" และ author.email \"อีเมล\"", isCorrect: false },
+      { id: 'b', text: "git set-identity --default user.name \"ชื่อ\" และ user.email \"อีเมล\"", isCorrect: false },
+      { id: 'c', text: "git profile --all user.name \"ชื่อ\" และ user.email \"อีเมล\"", isCorrect: false },
+      { id: 'd', text: "git config --global user.name \"ชื่อ\" และ git config --global user.email \"อีเมล\"", isCorrect: true }
     ],
-    explanation: "Git บันทึกประวัติว่าใครแก้ไขด้วย user.name และ user.email ผ่านคำสั่ง git config --global เพื่อใช้ร่วมกันทุกโปรเจกต์ในเครื่อง"
+    explanation: "Git บันทึกประวัติว่าใครแก้ไขด้วย user.name และ user.email ผ่านคำสั่ง git config --global เพื่อใช้เป็นค่าตั้งต้นร่วมกันทุกโปรเจกต์ในเครื่อง"
   },
   {
     id: 4,
-    question: "โฟลเดอร์สำคัญใดที่ Git แอบสร้างไว้ในเครื่องเพื่อเก็บข้อมูลประวัติ Commit และการตั้งค่าทั้งหมดของ Repository?",
+    question: "โฟลเดอร์ใดทำหน้าที่เป็นพื้นที่จัดเก็บประวัติ Commit, ข้อมูล Object, และการตั้งค่าทั้งหมดของ Local Repository?",
     options: [
-      { id: 'a', text: "โฟลเดอร์ node_modules/", isCorrect: false },
+      { id: 'a', text: "โฟลเดอร์ .github/", isCorrect: false },
       { id: 'b', text: "โฟลเดอร์ .git/", isCorrect: true },
-      { id: 'c', text: "โฟลเดอร์ .vscode/", isCorrect: false },
-      { id: 'd', text: "โฟลเดอร์ dist/", isCorrect: false }
+      { id: 'c', text: "โฟลเดอร์ .stage/", isCorrect: false },
+      { id: 'd', text: "โฟลเดอร์ .repo/", isCorrect: false }
     ],
     explanation: "โฟลเดอร์ .git/ เป็นโฟลเดอร์ซ่อนที่เก็บฐานข้อมูล Snapshot, HEAD, Object และ Config ทั้งหมดของ Git หากลบโฟลเดอร์นี้ประวัติ Git จะหายทันที"
   },
   {
     id: 5,
-    question: "เมื่อสร้างไฟล์ใหม่ขึ้นมาในโปรเจกต์ ไฟล์นั้นจะมีสถานะใดในระบบของ Git ก่อนถูกเรียกใช้คำสั่งใดๆ?",
+    question: "เมื่อผู้พัฒนาสร้างไฟล์โค้ดใหม่ขึ้นมาในโฟลเดอร์โปรเจกต์ แต่ยังไม่ได้สั่งคำสั่ง Git ใดๆ ไฟล์นั้นจะอยู่ในสถานะใด?",
     options: [
-      { id: 'a', text: "Committed (บันทึกแล้ว)", isCorrect: false },
-      { id: 'b', text: "Staged (เตรียมจัดเก็บ)", isCorrect: false },
-      { id: 'c', text: "Untracked (ยังไม่ได้รับการติดตาม)", isCorrect: true },
-      { id: 'd', text: "Ignored (ถูกเพิกเฉยถาวร)", isCorrect: false }
+      { id: 'a', text: "Untracked (ยังไม่ได้รับการติดตาม)", isCorrect: true },
+      { id: 'b', text: "Modified (ไฟล์ได้รับการแก้ไข)", isCorrect: false },
+      { id: 'c', text: "Unstaged (ไฟล์รอการเตรียมพร้อม)", isCorrect: false },
+      { id: 'd', text: "Ignored (ไฟล์ถูกละเว้นถาวร)", isCorrect: false }
     ],
     explanation: "ไฟล์ที่สร้างขึ้นใหม่เอี่ยม Git จะมองเห็นเป็น Untracked หมายถึง Git รับรู้ว่ามีไฟล์นี้อยู่แต่ยังไม่ได้เริ่มติดตามบันทึกเวอร์ชัน"
   },
   {
     id: 6,
-    question: "คำสั่งใดใช้สำหรับนำไฟล์ที่แก้ไขแล้วเข้าสู่ Staging Area เพื่อเตรียมพร้อมสำหรับการ Commit?",
+    question: "หากต้องการนำไฟล์ที่แก้ไขแล้วเข้าสู่ Staging Area เพื่อคัดเลือกเตรียมพร้อมสำหรับการบันทึก Snapshot ต้องใช้คำสั่งใด?",
     options: [
-      { id: 'a', text: "git push", isCorrect: false },
-      { id: 'b', text: "git save", isCorrect: false },
-      { id: 'c', text: "git add <ชื่อไฟล์>", isCorrect: true },
-      { id: 'd', text: "git upload", isCorrect: false }
+      { id: 'a', text: "git commit <ชื่อไฟล์>", isCorrect: false },
+      { id: 'b', text: "git stage <ชื่อไฟล์>", isCorrect: false },
+      { id: 'c', text: "git track <ชื่อไฟล์>", isCorrect: false },
+      { id: 'd', text: "git add <ชื่อไฟล์>", isCorrect: true }
     ],
     explanation: "คำสั่ง 'git add' ทำหน้าที่หยิบไฟล์จาก Working Directory เข้าไปวางไว้ใน Staging Area (Index) เพื่อเตรียม Commit"
   },
   {
     id: 7,
-    question: "ข้อใดคือหน้าที่สำคัญที่สุดของไฟล์ '.gitignore' ในโปรเจกต์ Git?",
+    question: "ข้อใดอธิบายวัตถุประสงค์หลักของการกำหนดไฟล์ '.gitignore' ในโปรเจกต์ได้อย่างถูกต้องที่สุด?",
     options: [
-      { id: 'a', text: "ป้องกันไม่ให้โปรแกรมเปิดทำงาน", isCorrect: false },
-      { id: 'b', text: "ระบุรายชื่อไฟล์หรือโฟลเดอร์ที่ไม่ต้องการให้ Git ติดตาม เช่น รหัสผ่าน (.env) หรือไลบรารีขนาดใหญ่ (node_modules/)", isCorrect: true },
-      { id: 'c', text: "ลบไฟล์ทั้งหมดออกจากฮาร์ดดิสก์อัตโนมัติ", isCorrect: false },
-      { id: 'd', text: "เข้ารหัสข้อความ Commit Message ไม่ให้ผู้อื่นอ่านออก", isCorrect: false }
+      { id: 'a', text: "ป้องกันไม่ให้สมาชิกคนอื่นในทีมดึงไฟล์โค้ดไปแก้ไขโดยไม่ได้รับอนุญาต", isCorrect: false },
+      { id: 'b', text: "ระบุรายชื่อไฟล์หรือโฟลเดอร์ที่ไม่ต้องการให้ระบบ Git ติดตามและนำขึ้นระบบ", isCorrect: true },
+      { id: 'c', text: "ซ่อนไฟล์สำคัญไม่ให้แสดงบนโปรแกรมแก้ไขโค้ดเพื่อความปลอดภัยของข้อมูล", isCorrect: false },
+      { id: 'd', text: "ลบไฟล์ขยะและไฟล์ชั่วคราวออกจากระบบฮาร์ดดิสก์โดยอัตโนมัติเมื่อสั่งรันโปรแกรม", isCorrect: false }
     ],
     explanation: ".gitignore ทำหน้าที่บอกให้ Git เพิกเฉยต่อไฟล์ที่ไม่ควรขึ้นระบบ เช่น ไฟล์ชั่วคราว, ค่า Config ส่วนตัว (.env), และโฟลเดอร์ดาวน์โหลด (node_modules)"
   },
   {
     id: 8,
-    question: "การบันทึก Commit ที่ดีควรยึดหลักการใดจึงจะช่วยให้ทีมทำงานร่วมกันได้สะดวกที่สุด?",
+    question: "ตามแนวคิด Atomic Commit และมาตรฐาน Conventional Commits ข้อใดคือแนวปฏิบัติที่ดีในการบันทึก Commit?",
     options: [
-      { id: 'a', text: "เขียนรวมโค้ด 10 สัปดาห์ไว้ใน 1 Commit แล้วใส่ข้อความ 'update'", isCorrect: false },
-      { id: 'b', text: "ทำ Commit แยกเป็นหน่วยย่อยที่มีความหมาย (Atomic Commit) พร้อมระบุข้อความอธิบายการเปลี่ยนแปลงชัดเจน เช่น 'feat: add login page'", isCorrect: true },
-      { id: 'c', text: "ต้องตั้งชื่อ Commit เป็นภาษาอังกฤษคำเดียว เช่น 'done'", isCorrect: false },
-      { id: 'd', text: "บันทึก Commit เฉพาะวันที่ส่งงานเท่านั้น", isCorrect: false }
+      { id: 'a', text: "รวบรวมงานทั้งหมดที่ทำตลอดสัปดาห์ไว้ใน Commit เดียวเพื่อลดประวัติที่ซ้ำซ้อน", isCorrect: false },
+      { id: 'b', text: "บันทึก Commit ทุกครั้งที่กดปุ่ม Save ใน Text Editor เพื่อบันทึกงานให้ละเอียดที่สุด", isCorrect: false },
+      { id: 'c', text: "แยกการบันทึกแต่ละ Commit ตามงานย่อยที่สมบูรณ์ในตัวเองพร้อมข้อความที่ชัดเจน", isCorrect: true },
+      { id: 'd', text: "บันทึกเฉพาะไฟล์โค้ดส่วนของโปรแกรมหลักเท่านั้น ส่วนไฟล์เอกสารไม่ต้องทำ Commit", isCorrect: false }
     ],
     explanation: "หลักการ Atomic Commit และ Conventional Commits (เช่น feat:, fix:, docs:) ช่วยให้ย้อนประวัติ ตรวจสอบสาเหตุบั๊ก และทำงานร่วมกันในทีมได้อย่างมีประสิทธิภาพ"
   },
   {
     id: 9,
-    question: "คำสั่งใดใช้ตรวจสอบสถานะปัจจุบันของไฟล์ว่ามีไฟล์ใดแก้ไขแล้ว ไฟล์ใดอยู่ใน Staging หรือไฟล์ใดยัง Untracked?",
+    question: "คำสั่งใดใช้สำหรับตรวจสอบสถานะปัจจุบันของไฟล์ในโปรเจกต์ ทั้งไฟล์ที่แก้ไขแล้ว ไฟล์ที่อยู่ใน Staging และไฟล์ที่ยังไม่ถูกติดตาม?",
     options: [
-      { id: 'a', text: "git check", isCorrect: false },
-      { id: 'b', text: "git status", isCorrect: true },
-      { id: 'c', text: "git list", isCorrect: false },
-      { id: 'd', text: "git info", isCorrect: false }
+      { id: 'a', text: "git log", isCorrect: false },
+      { id: 'b', text: "git diff", isCorrect: false },
+      { id: 'c', text: "git show", isCorrect: false },
+      { id: 'd', text: "git status", isCorrect: true }
     ],
     explanation: "คำสั่ง 'git status' เป็นคำสั่งพื้นฐานที่ใช้บ่อยที่สุดเพื่อตรวจดูสถานะของไฟล์ในแต่ละพื้นที่ก่อนทำคำสั่งถัดไป"
   },
   {
     id: 10,
-    question: "หากต้องการคัดลอกโปรเจกต์ที่มีอยู่แล้วบนคลาวด์แพลตฟอร์ม (เช่น GitHub) ลงมาทำงานบนเครื่องตนเอง ต้องใช้คำสั่งใด?",
+    question: "หากต้องการคัดลอก Remote Repository จากเซิร์ฟเวอร์ (เช่น GitHub หรือ GitLab) ลงมาสร้างเป็น Local Repository ในเครื่องคอมพิวเตอร์ ต้องใช้คำสั่งใด?",
     options: [
-      { id: 'a', text: "git copy <url>", isCorrect: false },
-      { id: 'b', text: "git download <url>", isCorrect: false },
-      { id: 'c', text: "git clone <url>", isCorrect: true },
-      { id: 'd', text: "git fetch-all <url>", isCorrect: false }
+      { id: 'a', text: "git clone <url>", isCorrect: true },
+      { id: 'b', text: "git pull <url>", isCorrect: false },
+      { id: 'c', text: "git fetch <url>", isCorrect: false },
+      { id: 'd', text: "git checkout <url>", isCorrect: false }
     ],
     explanation: "คำสั่ง 'git clone <url>' ใช้คัดลอก Repository ทางไกล (Remote Repository) พร้อมประวัติการ Commit ทั้งหมดลงมาเป็น Local Repository ในเครื่องของเราทันที"
   }
@@ -851,13 +851,11 @@ const quizQuestions = [
       assignment-id="asm-3"
       assignment-title="ใบงานที่ 3: การเริ่มต้นสร้าง Git Repository, กำหนด .gitignore และบันทึกประวัติด้วย Commit มาตรฐาน"
       :max-score="10"
-      work-type="pair"
-      :min-members="2"
-      :max-members="4"
+      work-type="individual"
     >
       <template #number>3</template>
       <template #description>
-        ให้นักศึกษาฝึกปฏิบัติตามคำสั่งของ Git Command Line บนเครื่องคอมพิวเตอร์ โดยทำการสร้างโฟลเดอร์โปรเจกต์ใหม่ ทำการตั้งค่า Identity, สร้าง Local Repository ด้วย <code class="font-bold">git init</code>, กำหนดไฟล์ <code class="font-bold">.gitignore</code>, บันทึกการเปลี่ยนแปลงไฟล์อย่างน้อย 3 Commit ตามรูปแบบ Conventional Commits และตรวจสอบประวัติด้วย <code class="font-bold">git log</code> จากนั้นแคปภาพหน้าจอและรวบรวมส่งเป็นรายงาน หรือแนบลิงก์ GitHub Repository ร่วมกันในระบบ
+        ให้นักศึกษาฝึกปฏิบัติตามคำสั่งของ Git Command Line บนเครื่องคอมพิวเตอร์ โดยทำการสร้างโฟลเดอร์โปรเจกต์ใหม่ ทำการตั้งค่า Identity, สร้าง Local Repository ด้วย <code class="font-bold">git init</code>, กำหนดไฟล์ <code class="font-bold">.gitignore</code>, บันทึกการเปลี่ยนแปลงไฟล์อย่างน้อย 3 Commit ตามรูปแบบ Conventional Commits และตรวจสอบประวัติด้วย <code class="font-bold">git log</code> จากนั้นแคปภาพหน้าจอและรวบรวมส่งเป็นรายงาน หรือแนบลิงก์ GitHub Repository ของตนเองในระบบ
 
         <!-- Objectives Box -->
         <div class="mb-6 p-4 rounded-2xl bg-indigo-50/70 border border-indigo-200 mt-4">
@@ -925,9 +923,9 @@ const quizQuestions = [
               4
             </div>
             <div>
-              <strong>ตอนที่ 4: การส่งผลงานในระบบ (รองรับงานเดี่ยว / งานคู่ / งานกลุ่ม)</strong>
+              <strong>ตอนที่ 4: การส่งผลงานในระบบ (งานเดี่ยว)</strong>
               <p class="text-xs text-gray-500 mt-0.5">
-                รวบรวมภาพหลักฐานบันทึกเป็นเอกสาร PDF อัปโหลดขึ้น Google Drive (เปิดแชร์) และ/หรือนำโค้ดขึ้น GitHub สามารถ<strong>แนบได้หลายลิงก์</strong>ในช่องส่งงาน หากทำงานเป็นคู่หรือกลุ่ม ให้ตัวแทน 1 คนเป็นผู้ส่งและเลือกชื่อเพื่อนร่วมกลุ่มในระบบ
+                รวบรวมภาพหลักฐานบันทึกเป็นเอกสาร PDF อัปโหลดขึ้น Google Drive (เปิดแชร์) และ/หรือนำโค้ดขึ้น GitHub สามารถ<strong>แนบได้หลายลิงก์</strong>ในช่องส่งงาน และกดส่งงานเดี่ยวของตนเองในระบบ
               </p>
             </div>
           </li>

@@ -38,6 +38,12 @@ const members = ref([])
 const memberSearch = ref('')
 const showMemberDropdown = ref(false)
 
+const workTypeLabel = computed(() => {
+  if (workType.value === 'pair') return 'งานคู่ (จับคู่ 2 คน)'
+  if (workType.value === 'group') return 'งานกลุ่ม (กลุ่มละ 3-5 คน)'
+  return 'งานเดี่ยว (ทำคนเดียว 1 คน)'
+})
+
 // Multiple Links
 const links = ref([
   { title: '', url: '' }
@@ -161,9 +167,11 @@ const hasValidLink = computed(() => {
 })
 
 const startEdit = () => {
-  if (currentSubmission.value) {
-    workType.value = currentSubmission.value.workType || 'individual'
+  const setting = getAssignmentSetting(props.courseId, props.assignmentId)
+  const defaultType = setting?.workType || props.assignmentWorkType || 'individual'
+  workType.value = defaultType
 
+  if (currentSubmission.value) {
     // Load members
     if (Array.isArray(currentSubmission.value.members)) {
       const myId = studentId.value
@@ -202,9 +210,9 @@ const initFormFromState = () => {
   // Check if configured by assignment setting or prop
   const setting = getAssignmentSetting(props.courseId, props.assignmentId)
   const defaultType = setting?.workType || props.assignmentWorkType || 'individual'
+  workType.value = defaultType
 
   if (currentSubmission.value) {
-    workType.value = currentSubmission.value.workType || defaultType
     const myId = studentId.value
     members.value = Array.isArray(currentSubmission.value.members)
       ? currentSubmission.value.members.filter(m => (m.studentId || m.id) !== myId)
@@ -219,7 +227,6 @@ const initFormFromState = () => {
     }
     studentNote.value = currentSubmission.value.note || ''
   } else {
-    workType.value = defaultType
     members.value = []
     links.value = [{ title: '', url: '' }]
     studentNote.value = ''
@@ -294,12 +301,14 @@ const handleSubmit = async () => {
     <div
       class="relative bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-[scaleIn_0.2s_ease-out] flex flex-col max-h-[92vh]">
       <!-- Header -->
-      <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between text-white shrink-0">
+      <div
+        class="bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between text-white shrink-0">
         <h3 class="font-bold text-lg sm:text-xl flex items-center gap-2.5">
           <UploadCloud class="w-6 h-6 text-indigo-200" />
           <span>{{ isEditing ? 'แก้ไขการส่งงาน' : 'ส่งงาน' }}: {{ assignmentTitle }}</span>
         </h3>
-        <button @click="emit('close')" class="p-2 hover:bg-white/20 rounded-full transition-colors cursor-pointer text-white">
+        <button @click="emit('close')"
+          class="p-2 hover:bg-white/20 rounded-full transition-colors cursor-pointer text-white">
           <X class="w-5 h-5" />
         </button>
       </div>
@@ -310,7 +319,8 @@ const handleSubmit = async () => {
         <!-- Already Submitted View (Only when NOT editing) -->
         <div v-if="currentSubmission && !isEditing"
           class="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 text-center space-y-4">
-          <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+          <div
+            class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
             <CheckCircle2 class="w-8 h-8" />
           </div>
           <div>
@@ -320,31 +330,37 @@ const handleSubmit = async () => {
 
           <!-- Submission Details Card -->
           <div class="p-5 bg-white rounded-2xl border border-emerald-100 text-left space-y-4 shadow-2xs">
-            
+
             <!-- Work Type & Members Display -->
             <div class="pb-3 border-b border-stone-100 flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-stone-500 uppercase">รูปแบบงาน:</span>
-                <span v-if="currentSubmission.workType === 'pair'" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-800 font-bold text-xs">
+                <span v-if="currentSubmission.workType === 'pair'"
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-800 font-bold text-xs">
                   <Users class="w-3.5 h-3.5 text-blue-600" /> งานคู่ (2 คน)
                 </span>
-                <span v-else-if="currentSubmission.workType === 'group'" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold text-xs">
+                <span v-else-if="currentSubmission.workType === 'group'"
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-bold text-xs">
                   <Users class="w-3.5 h-3.5 text-purple-600" /> งานกลุ่ม
                 </span>
-                <span v-else class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-700 font-bold text-xs">
+                <span v-else
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-700 font-bold text-xs">
                   <User class="w-3.5 h-3.5 text-stone-600" /> งานเดี่ยว (ทำคนเดียว)
                 </span>
               </div>
 
-              <span v-if="currentSubmission.isGroupPartner" class="text-xs text-amber-700 font-medium bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+              <span v-if="currentSubmission.isGroupPartner"
+                class="text-xs text-amber-700 font-medium bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
                 ส่งโดยตัวแทนกลุ่ม: {{ currentSubmission.submittedBy }}
               </span>
             </div>
 
             <!-- Group Members List (if pair or group) -->
-            <div v-if="['pair', 'group'].includes(currentSubmission.workType) && currentSubmission.members?.length" class="space-y-2">
+            <div v-if="['pair', 'group'].includes(currentSubmission.workType) && currentSubmission.members?.length"
+              class="space-y-2">
               <p class="text-xs text-stone-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                <Users class="w-3.5 h-3.5 text-indigo-600" /> รายชื่อสมาชิกในกลุ่ม ({{ currentSubmission.members.length }} คน):
+                <Users class="w-3.5 h-3.5 text-indigo-600" /> รายชื่อสมาชิกในกลุ่ม ({{ currentSubmission.members.length
+                }} คน):
               </p>
               <div class="flex flex-wrap gap-2">
                 <div v-for="mem in currentSubmission.members" :key="mem.studentId || mem.id"
@@ -352,7 +368,8 @@ const handleSubmit = async () => {
                   <User class="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                   <span class="font-bold text-stone-800">{{ mem.name }}</span>
                   <span class="text-stone-400 font-mono text-[11px]">({{ mem.studentId }})</span>
-                  <span v-if="mem.isSubmitter" class="px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-700 font-bold text-[10px]">ผู้ส่ง</span>
+                  <span v-if="mem.isSubmitter"
+                    class="px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-700 font-bold text-[10px]">ผู้ส่ง</span>
                 </div>
               </div>
             </div>
@@ -360,15 +377,17 @@ const handleSubmit = async () => {
             <!-- Attached Links List -->
             <div class="space-y-2">
               <p class="text-xs text-stone-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                <LinkIcon class="w-3.5 h-3.5 text-blue-600" /> ลิงก์ผลงานที่แนบ ({{ (currentSubmission.links && currentSubmission.links.length) || 1 }} ลิงก์):
+                <LinkIcon class="w-3.5 h-3.5 text-blue-600" /> ลิงก์ผลงานที่แนบ ({{ (currentSubmission.links &&
+                  currentSubmission.links.length) || 1 }} ลิงก์):
               </p>
-              
+
               <!-- If multiple links array exists -->
               <div v-if="currentSubmission.links && currentSubmission.links.length" class="space-y-2">
                 <div v-for="(lnk, idx) in currentSubmission.links" :key="idx"
                   class="flex items-center justify-between p-3 rounded-xl bg-stone-50 border border-stone-200 hover:border-blue-300 transition-colors gap-3">
                   <div class="flex items-center gap-2 min-w-0">
-                    <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                    <span
+                      class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 font-mono font-bold text-xs flex items-center justify-center shrink-0">
                       {{ idx + 1 }}
                     </span>
                     <div class="min-w-0">
@@ -385,8 +404,10 @@ const handleSubmit = async () => {
               </div>
 
               <!-- Fallback to single link if old record -->
-              <div v-else class="p-3 bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-between gap-3">
-                <div class="text-blue-600 text-xs font-mono truncate max-w-sm sm:max-w-md">{{ currentSubmission.link }}</div>
+              <div v-else
+                class="p-3 bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-between gap-3">
+                <div class="text-blue-600 text-xs font-mono truncate max-w-sm sm:max-w-md">{{ currentSubmission.link }}
+                </div>
                 <a :href="formatExternalUrl(currentSubmission.link)" target="_blank" rel="noopener noreferrer"
                   class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs inline-flex items-center gap-1 shrink-0 transition-colors">
                   <span>เปิดลิงก์</span>
@@ -398,7 +419,8 @@ const handleSubmit = async () => {
             <!-- Note if any -->
             <div v-if="currentSubmission.note" class="pt-2 border-t border-stone-100">
               <p class="text-xs text-stone-500 font-bold mb-1 uppercase">ข้อความเพิ่มเติมถึงผู้สอน:</p>
-              <p class="text-xs text-stone-700 bg-stone-50 p-3 rounded-xl leading-relaxed">{{ currentSubmission.note }}</p>
+              <p class="text-xs text-stone-700 bg-stone-50 p-3 rounded-xl leading-relaxed">{{ currentSubmission.note }}
+              </p>
             </div>
           </div>
 
@@ -421,7 +443,8 @@ const handleSubmit = async () => {
           <div v-if="isEditing"
             class="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between text-xs text-amber-900 font-bold">
             <span class="flex items-center gap-2">
-              <Pencil class="w-4 h-4 text-amber-600" /> โหมดแก้ไขการส่งงาน (สามารถเพิ่ม/เปลี่ยนลิงก์และเพื่อนร่วมกลุ่มได้)
+              <Pencil class="w-4 h-4 text-amber-600" /> โหมดแก้ไขการส่งงาน
+              (สามารถเพิ่ม/เปลี่ยนลิงก์และเพื่อนร่วมกลุ่มได้)
             </span>
             <button v-if="currentSubmission" type="button" @click="cancelEdit"
               class="text-stone-500 hover:text-stone-800 underline font-normal cursor-pointer">
@@ -435,90 +458,73 @@ const handleSubmit = async () => {
             <div class="text-xs text-blue-900 leading-relaxed space-y-1">
               <p class="font-bold text-sm">คำแนะนำการส่งงาน:</p>
               <ul class="list-disc list-inside space-y-0.5 text-blue-800">
-                <li>เลือกรูปแบบงาน (งานเดี่ยว / งานคู่ / งานกลุ่ม) ตามที่อาจารย์ผู้สอนกำหนด</li>
-                <li>สำหรับงานคู่หรืองานกลุ่ม ให้<strong>ตัวแทน 1 คนเป็นผู้ส่งงาน</strong> และเลือกรายชื่อเพื่อนในระบบ</li>
-                <li>สามารถแนบได้<strong>หลายลิงก์</strong> เช่น Google Drive (เปิดแชร์แล้ว), Tinkercad, คลิปวิดีโอ ฯลฯ</li>
+                <li>รูปแบบงาน: <strong>{{ workTypeLabel }}</strong></li>
+                <li v-if="workType === 'pair' || workType === 'group'">สำหรับงานคู่หรืองานกลุ่ม ให้<strong>ตัวแทน 1
+                    คนเป็นผู้ส่งงาน</strong> และเลือกรายชื่อเพื่อนในระบบ</li>
+                <li>สามารถแนบได้<strong>หลายลิงก์</strong> เช่น Google Drive (เปิดแชร์แล้ว), Tinkercad, คลิปวิดีโอ ฯลฯ
+                </li>
               </ul>
             </div>
           </div>
 
-          <!-- SECTION 1: Work Type Selector -->
+          <!-- SECTION 1: Work Type (Locked to Teacher Specification) -->
           <div class="space-y-2">
-            <label class="block text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
-              <Users class="w-4 h-4 text-indigo-600" /> 1. รูปแบบการทำงาน <span class="text-red-500">*</span>
-            </label>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              <button 
-                type="button"
-                @click="setWorkType('individual')"
-                class="p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-center gap-3"
-                :class="workType === 'individual' 
-                  ? 'border-blue-600 bg-blue-50/70 text-blue-900 shadow-xs' 
-                  : 'border-stone-200 bg-white hover:border-stone-300 text-stone-600'"
-              >
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  :class="workType === 'individual' ? 'bg-blue-600 text-white' : 'bg-stone-100 text-stone-500'">
-                  <User class="w-5 h-5" />
-                </div>
-                <div>
-                  <div class="font-bold text-sm">งานเดี่ยว</div>
-                  <div class="text-[11px] opacity-75">ทำคนเดียว (1 คน)</div>
-                </div>
-              </button>
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
+                <Users class="w-4 h-4 text-indigo-600" /> 1. รูปแบบการทำงาน <span class="text-red-500">*</span>
+              </label>
+            </div>
 
-              <button 
-                type="button"
-                @click="setWorkType('pair')"
-                class="p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-center gap-3"
-                :class="workType === 'pair' 
-                  ? 'border-indigo-600 bg-indigo-50/70 text-indigo-900 shadow-xs' 
-                  : 'border-stone-200 bg-white hover:border-stone-300 text-stone-600'"
-              >
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  :class="workType === 'pair' ? 'bg-indigo-600 text-white' : 'bg-stone-100 text-stone-500'">
-                  <Users class="w-5 h-5" />
+            <div class="p-4 rounded-2xl border-2 flex items-center justify-between shadow-2xs" :class="{
+              'border-blue-300 bg-blue-50/70 text-blue-950': workType === 'individual',
+              'border-indigo-300 bg-indigo-50/70 text-indigo-950': workType === 'pair',
+              'border-purple-300 bg-purple-50/70 text-purple-950': workType === 'group'
+            }">
+              <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 text-white shadow-xs"
+                  :class="{
+                    'bg-blue-600': workType === 'individual',
+                    'bg-indigo-600': workType === 'pair',
+                    'bg-purple-600': workType === 'group'
+                  }">
+                  <User v-if="workType === 'individual'" class="w-5 h-5" />
+                  <Users v-else class="w-5 h-5" />
                 </div>
                 <div>
-                  <div class="font-bold text-sm">งานคู่</div>
-                  <div class="text-[11px] opacity-75">จับคู่ (2 คน)</div>
+                  <div class="font-bold text-sm sm:text-base flex items-center gap-2">
+                    <span>{{ workTypeLabel }}</span>
+                  </div>
+                  <div class="text-xs opacity-75 mt-0.5">
+                    {{ workType === 'individual' ? 'ส่งผลงานเดี่ยวของตนเอง (1 คน)' : workType === 'pair' ?
+                      'ส่งผลงานร่วมกันเป็นคู่ (2 คน)' : 'ส่งผลงานร่วมกันเป็นกลุ่ม (3-5 คน)' }}
+                  </div>
                 </div>
-              </button>
-
-              <button 
-                type="button"
-                @click="setWorkType('group')"
-                class="p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-center gap-3"
-                :class="workType === 'group' 
-                  ? 'border-purple-600 bg-purple-50/70 text-purple-900 shadow-xs' 
-                  : 'border-stone-200 bg-white hover:border-stone-300 text-stone-600'"
-              >
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  :class="workType === 'group' ? 'bg-purple-600 text-white' : 'bg-stone-100 text-stone-500'">
-                  <Users class="w-5 h-5" />
-                </div>
-                <div>
-                  <div class="font-bold text-sm">งานกลุ่ม</div>
-                  <div class="text-[11px] opacity-75">กลุ่มละ 3-5 คน</div>
-                </div>
-              </button>
+              </div>
+              <span
+                class="text-xs font-bold px-3 py-1 rounded-xl bg-white/90 border border-stone-200 text-stone-700 shrink-0">
+                {{ workType === 'individual' ? 'งานเดี่ยว' : workType === 'pair' ? 'งานคู่' : 'งานกลุ่ม' }}
+              </span>
             </div>
           </div>
 
           <!-- SECTION 2: Member Selection (When pair or group) -->
-          <div v-if="workType === 'pair' || workType === 'group'" class="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
+          <div v-if="workType === 'pair' || workType === 'group'"
+            class="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
             <div class="flex items-center justify-between">
               <label class="text-xs font-bold text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
                 <UserPlus class="w-4 h-4 text-indigo-600" />
                 สมาชิกในกลุ่ม ({{ workType === 'pair' ? 'จับคู่ 2 คน' : 'กลุ่มละ 3-5 คน' }})
               </label>
-              <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+              <span
+                class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
                 รวมทั้งหมด {{ members.length + 1 }} คน
               </span>
             </div>
 
             <!-- Current Submitter Badge -->
             <div class="flex flex-wrap gap-2 items-center">
-              <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-100 text-blue-900 border border-blue-200 text-xs">
+              <div
+                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-100 text-blue-900 border border-blue-200 text-xs">
                 <User class="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span class="font-bold">{{ currentStudentObj?.name }}</span>
                 <span class="text-blue-700 font-mono text-[11px]">({{ currentStudentObj?.studentId }})</span>
@@ -540,33 +546,23 @@ const handleSubmit = async () => {
             </div>
 
             <!-- Member Search & Add Box -->
-            <div v-if="(workType === 'pair' && members.length < 1) || (workType === 'group' && members.length < 5)" class="relative pt-1">
+            <div v-if="(workType === 'pair' && members.length < 1) || (workType === 'group' && members.length < 5)"
+              class="relative pt-1">
               <div class="relative">
                 <Search class="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  v-model="memberSearch"
-                  @focus="showMemberDropdown = true"
-                  type="text"
+                <input v-model="memberSearch" @focus="showMemberDropdown = true" type="text"
                   :placeholder="workType === 'pair' ? 'ค้นหารหัสนักศึกษา หรือชื่อเพื่อนเพื่อจับคู่...' : 'ค้นหารหัสหรือชื่อเพื่อนเพื่อเพิ่มเข้ากลุ่ม...'"
-                  class="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs transition-all"
-                />
+                  class="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs transition-all" />
               </div>
 
               <!-- Autocomplete Dropdown -->
-              <div 
-                v-if="showMemberDropdown && memberSearch.trim()"
-                class="absolute left-0 right-0 mt-1 bg-white border border-stone-200 rounded-2xl shadow-xl z-20 max-h-48 overflow-y-auto divide-y divide-stone-100"
-              >
+              <div v-if="showMemberDropdown && memberSearch.trim()"
+                class="absolute left-0 right-0 mt-1 bg-white border border-stone-200 rounded-2xl shadow-xl z-20 max-h-48 overflow-y-auto divide-y divide-stone-100">
                 <div v-if="availableStudents.length === 0" class="p-3 text-center text-xs text-stone-400">
                   ไม่พบรายชื่อเพื่อนที่ตรงกับ "{{ memberSearch }}"
                 </div>
-                <button
-                  v-for="s in availableStudents"
-                  :key="s.studentId || s.id"
-                  type="button"
-                  @click="addMember(s)"
-                  class="w-full p-2.5 text-left hover:bg-indigo-50 transition-colors flex items-center justify-between text-xs cursor-pointer"
-                >
+                <button v-for="s in availableStudents" :key="s.studentId || s.id" type="button" @click="addMember(s)"
+                  class="w-full p-2.5 text-left hover:bg-indigo-50 transition-colors flex items-center justify-between text-xs cursor-pointer">
                   <div class="flex items-center gap-2">
                     <User class="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                     <div>
@@ -582,7 +578,8 @@ const handleSubmit = async () => {
             </div>
 
             <p class="text-[11px] text-stone-500">
-              * เมื่อกดส่งงาน สมาชิกทุกคนในกลุ่มจะได้รับสถานะ <strong>"ส่งงานแล้ว"</strong> และได้รับการบันทึกคะแนนพร้อมกัน
+              * เมื่อกดส่งงาน สมาชิกทุกคนในกลุ่มจะได้รับสถานะ <strong>"ส่งงานแล้ว"</strong>
+              และได้รับการบันทึกคะแนนพร้อมกัน
             </p>
           </div>
 
@@ -590,39 +587,31 @@ const handleSubmit = async () => {
           <div class="space-y-3">
             <div class="flex items-center justify-between">
               <label class="text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
-                <LinkIcon class="w-4 h-4 text-blue-600" /> 2. แนบลิงก์ผลงาน (แนบได้หลายลิงก์) <span class="text-red-500">*</span>
+                <LinkIcon class="w-4 h-4 text-blue-600" /> 2. แนบลิงก์ผลงาน (แนบได้หลายลิงก์) <span
+                  class="text-red-500">*</span>
               </label>
-              <button 
-                type="button" 
-                @click="addLinkItem"
-                class="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors cursor-pointer"
-              >
+              <button type="button" @click="addLinkItem"
+                class="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors cursor-pointer">
                 <Plus class="w-3.5 h-3.5" /> เพิ่มลิงก์อื่น
               </button>
             </div>
 
             <!-- Links Rows -->
             <div class="space-y-3">
-              <div 
-                v-for="(lnk, index) in links" 
-                :key="index"
-                class="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2 relative group hover:border-blue-300 transition-colors"
-              >
+              <div v-for="(lnk, index) in links" :key="index"
+                class="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2 relative group hover:border-blue-300 transition-colors">
                 <div class="flex items-center justify-between gap-2">
                   <span class="text-xs font-bold text-stone-600 flex items-center gap-1.5">
-                    <span class="w-5 h-5 rounded-md bg-blue-600 text-white font-mono text-[11px] font-bold flex items-center justify-center">
+                    <span
+                      class="w-5 h-5 rounded-md bg-blue-600 text-white font-mono text-[11px] font-bold flex items-center justify-center">
                       {{ index + 1 }}
                     </span>
                     <span>ลิงก์ที่ {{ index + 1 }}</span>
                   </span>
 
-                  <button 
-                    v-if="links.length > 1"
-                    type="button"
-                    @click="removeLinkItem(index)"
+                  <button v-if="links.length > 1" type="button" @click="removeLinkItem(index)"
                     class="text-stone-400 hover:text-rose-600 p-1 rounded-lg transition-colors cursor-pointer"
-                    title="ลบลิงก์นี้"
-                  >
+                    title="ลบลิงก์นี้">
                     <Trash2 class="w-4 h-4" />
                   </button>
                 </div>
@@ -630,22 +619,15 @@ const handleSubmit = async () => {
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <!-- Title / Label -->
                   <div>
-                    <input 
-                      v-model="lnk.title" 
-                      type="text" 
-                      placeholder="ชื่อลิงก์ (เช่น Google Drive, Tinkercad)"
+                    <input v-model="lnk.title" type="text" placeholder="ชื่อลิงก์ (เช่น Google Drive, Tinkercad)"
                       list="link-presets"
-                      class="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
-                    />
+                      class="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs" />
                   </div>
                   <!-- URL -->
                   <div class="sm:col-span-2">
-                    <input 
-                      v-model="lnk.url" 
-                      type="url" 
+                    <input v-model="lnk.url" type="url"
                       placeholder="https://drive.google.com/... หรือ https://www.tinkercad.com/..."
-                      class="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-mono"
-                    />
+                      class="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-mono" />
                   </div>
                 </div>
               </div>
@@ -662,34 +644,23 @@ const handleSubmit = async () => {
             <label class="block text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
               <FileText class="w-4 h-4 text-stone-500" /> 3. ข้อความเพิ่มเติมถึงผู้สอน (ถ้ามี)
             </label>
-            <textarea 
-              v-model="studentNote" 
-              rows="2" 
+            <textarea v-model="studentNote" rows="2"
               placeholder="พิมพ์ข้อความที่ต้องการแจ้งผู้สอนเพิ่มเติม เช่น ข้อสังเกต หรือรายงานการทำงานกลุ่ม..."
-              class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-xs resize-none"
-            ></textarea>
+              class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-xs resize-none"></textarea>
           </div>
 
           <!-- Submit Buttons -->
           <div class="flex items-center gap-3 pt-2">
-            <button 
-              v-if="isEditing && currentSubmission" 
-              type="button" 
-              @click="cancelEdit"
-              class="py-3 px-5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-2xl transition-all cursor-pointer text-xs"
-            >
+            <button v-if="isEditing && currentSubmission" type="button" @click="cancelEdit"
+              class="py-3 px-5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-2xl transition-all cursor-pointer text-xs">
               ยกเลิก
             </button>
-            <button 
-              @click="handleSubmit" 
-              :disabled="!hasValidLink || isSubmitting" 
-              :class="[
-                'flex-1 py-3.5 font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-sm text-sm',
-                hasValidLink
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer hover:shadow-md hover:-translate-y-0.5'
-                  : 'bg-stone-200 text-stone-400 cursor-not-allowed'
-              ]"
-            >
+            <button @click="handleSubmit" :disabled="!hasValidLink || isSubmitting" :class="[
+              'flex-1 py-3.5 font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-sm text-sm',
+              hasValidLink
+                ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer hover:shadow-md hover:-translate-y-0.5'
+                : 'bg-stone-200 text-stone-400 cursor-not-allowed'
+            ]">
               <UploadCloud v-if="!isSubmitting" class="w-5 h-5" />
               <svg v-else class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
                 fill="none" viewBox="0 0 24 24">
