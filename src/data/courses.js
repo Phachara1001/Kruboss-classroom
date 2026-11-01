@@ -47,10 +47,10 @@ export const courses = [
       {
         id: "สัปดาห์ที่ 3",
         weekNumber: 3,
-        name: "การจัดเก็บข้อมูลแบบ NoSQL (Document & JSONB ใน PostgreSQL)",
-        isOpen: false,
+        name: "การจัดการและสืบค้นข้อมูล (CRUD Operations & Filtering ใน Supabase)",
+        isOpen: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "เปิดให้เรียน",
         image: "bg-teal-600",
       },
       {
@@ -212,9 +212,9 @@ export const courses = [
         id: "สัปดาห์ที่ 3",
         weekNumber: 3,
         name: "หลักการพื้นฐานของกิต (GIT) และพื้นที่เก็บข้อมูล (Repository)",
-        isOpen: false,
+        isOpen: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "เปิดให้เรียน",
         image: "bg-cyan-600",
       },
       {
@@ -771,12 +771,12 @@ export const courses = [
 // ถ้า isOpen: false -> status = "ยังไม่เริ่ม"
 courses.forEach((course) => {
   course.topics?.forEach((topic) => {
-    if (topic.id && topic.id.startsWith('สัปดาห์ที่')) {
-      topic.id = topic.id.replace('สัปดาห์ที่', 'หัวข้อที่');
+    if (topic.id && topic.id.startsWith("สัปดาห์ที่")) {
+      topic.id = topic.id.replace("สัปดาห์ที่", "หัวข้อที่");
     }
-    Object.defineProperty(topic, 'status', {
+    Object.defineProperty(topic, "status", {
       get() {
-        return this.isOpen ? 'เปิดให้เรียน' : 'ยังไม่เริ่ม';
+        return this.isOpen ? "เปิดให้เรียน" : "ยังไม่เริ่ม";
       },
       set(_val) {},
       enumerable: true,
@@ -784,4 +784,3 @@ courses.forEach((course) => {
     });
   });
 });
-

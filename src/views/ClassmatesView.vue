@@ -21,7 +21,7 @@ import EditStudentProfileModal from '@/components/EditStudentProfileModal.vue'
 import MemberCard from '@/components/MemberCard.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { courses } from '../data/courses'
-import { studentsList, courseClassrooms, isStudentInCourse, isStudent } from '../data/studentsStore'
+import { studentsList, courseClassrooms, isStudentInCourse, isStudent, isTeacherUser } from '../data/studentsStore'
 import { getStudentRank, unrankedTier } from '../data/rankConfig'
 import { getStudentFullScore, fetchAllCourseData } from '../data/gradesStore'
 import { authUser } from '../data/authStore'
@@ -41,12 +41,7 @@ watch(() => route.params.id, (newId) => {
   }
 })
 
-const isTeacher = computed(() => {
-  if (!authUser.value) return false
-  const r = (authUser.value?.role || '').toLowerCase()
-  const id = (authUser.value?.studentId || authUser.value?.id || '').toString().toLowerCase()
-  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r) || id === 'boss' || id === '0000'
-})
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 
 const currentStudent = computed(() => {
   if (isTeacher.value || !authUser.value) return null

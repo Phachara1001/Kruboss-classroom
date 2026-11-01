@@ -9,7 +9,7 @@ import {
   Cloud, RefreshCw, Clock, Trophy, Lock, Download, Monitor, CheckSquare,
   AlertTriangle, Cpu, Laptop, HardDrive, Share2, HelpCircle,
   FolderArchive, FileX, RotateCcw, UserX, AlertOctagon, Flame,
-  User, ArrowDown
+  User, ArrowDown, FileSpreadsheet
 } from '@lucide/vue'
 
 import DragDropGame from '@/components/games/DragDropGame.vue'
@@ -21,7 +21,7 @@ import AssignmentSection from '@/components/AssignmentSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 
 import { authUser } from '@/data/authStore'
-import { isStudent } from '@/data/studentsStore'
+import { isStudent, isTeacherUser } from '@/data/studentsStore'
 import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 // Current Course & Week Context
@@ -47,7 +47,7 @@ onMounted(() => {
 })
 
 const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
-const isTeacher = computed(() => !isStudent(authUser.value))
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 
 const studentWeekScores = computed(() => {
   if (!currentStudentId.value) return {}
@@ -1447,10 +1447,11 @@ const matchRightDefs = [
           </div>
         </div>
 
+        <!-- Teacher Scoreboard Button -->
         <button v-if="isTeacher" @click="showTeacherModal = true"
-          class="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-sm transition-all self-start sm:self-auto">
-          <Trophy class="w-4 h-4" />
-          <span>แดชบอร์ดคะแนนนักศึกษา</span>
+          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-900 to-indigo-800 hover:from-indigo-800 hover:to-indigo-700 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-indigo-700 shrink-0">
+          <FileSpreadsheet class="w-4 h-4 text-amber-400" />
+          <span>ดูตารางคะแนนมินิเกม (สำหรับคุณครู)</span>
         </button>
       </div>
 

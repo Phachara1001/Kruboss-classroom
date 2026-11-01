@@ -36,7 +36,7 @@ import {
   getNextRankInfo,
   getStudentExpProgress 
 } from '../data/rankConfig'
-import { studentsList, isStudentInCourse, isStudent } from '../data/studentsStore'
+import { studentsList, isStudentInCourse, isStudent, isTeacherUser } from '../data/studentsStore'
 import { getStudentFullScore } from '../data/gradesStore'
 import { getStudentEquipment } from '../data/shopStore'
 import { authUser } from '../data/authStore'
@@ -62,8 +62,7 @@ const props = defineProps({
 
 const isTeacher = computed(() => {
   if (props.isStudentView) return false
-  if (!authUser.value) return false
-  return !isStudent(authUser.value)
+  return isTeacherUser(authUser.value)
 })
 
 const myStudentId = computed(() => {

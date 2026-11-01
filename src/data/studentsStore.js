@@ -88,17 +88,23 @@ export const isStudentInCourse = (student, courseId) => {
   return student.courseId === courseId
 }
 
+export const isTeacherUser = (user) => {
+  if (!user) return false
+  const r = (user.role || '').toLowerCase()
+  const c = (user.classroom || '').toLowerCase()
+  const id = (user.studentId || user.id || '').toString().toLowerCase()
+  const name = (user.name || '').toLowerCase()
+
+  if (['อาจารย์', 'teacher', 'admin', 'ครู'].some(t => r.includes(t))) return true
+  if (['teacher_room', 'อาจารย์ผู้สอน'].includes(c) || c.includes('teacher') || c.includes('อาจารย์') || c.includes('ครู')) return true
+  if (id === '0000' || id === 'teacher' || id === 'boss' || id === 'admin') return true
+  if (name.includes('ครู') || name.includes('อาจารย์') || name.includes('teacher') || name.includes('admin')) return true
+  return false
+}
+
 export const isStudent = (student) => {
   if (!student) return false
-  const r = (student.role || '').toLowerCase()
-  const c = (student.classroom || '').toLowerCase()
-  const id = (student.studentId || student.id || '').toString().toLowerCase()
-  const name = (student.name || '').toLowerCase()
-
-  if (['อาจารย์', 'teacher', 'admin', 'ครู'].some(t => r.includes(t))) return false
-  if (['teacher_room', 'อาจารย์ผู้สอน'].includes(c) || c.includes('teacher') || c.includes('อาจารย์') || c.includes('ครู')) return false
-  if (id === '0000' || id === 'teacher' || id === 'boss' || id === 'admin') return false
-  if (name.includes('ครู') || name.includes('อาจารย์') || name.includes('teacher') || name.includes('admin')) return false
+  if (isTeacherUser(student)) return false
   return true
 }
 

@@ -24,11 +24,12 @@ import {
   Sparkles, 
   FlaskConical,
   FileSpreadsheet,
-  Info 
+  Info,
+  Users 
 } from '@lucide/vue'
 import { courses } from '../data/courses'
 import { exportAttendanceToExcel } from '../utils/exportAttendanceExcel'
-import { studentsList, courseClassrooms, isStudentInCourse, isStudent, fetchStudents } from '../data/studentsStore'
+import { studentsList, courseClassrooms, isStudentInCourse, isStudent, fetchStudents, isTeacherUser } from '../data/studentsStore'
 import { 
   gradingConfig, 
   courseAssignments, 
@@ -50,10 +51,7 @@ import { triggerTestReward, resetClaimedRewards } from '../data/rewardNotificati
 const route = useRoute()
 const router = useRouter()
 
-const isTeacher = computed(() => {
-  const r = (authUser.value?.role || '').toLowerCase()
-  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r)
-})
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 
 const currentStudent = computed(() => {
   if (isTeacher.value || !authUser.value) return null
@@ -938,10 +936,17 @@ const handleExportAttendanceExcel = async () => {
             >
               <td class="py-3 px-4 text-center text-stone-400 font-mono">{{ index + 1 }}</td>
               <td class="py-3 px-4 font-bold text-stone-900">
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1.5 flex-wrap">
                   <span>{{ student.name }}</span>
                   <span v-if="!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)" class="px-1.5 py-0.2 rounded bg-emerald-600 text-white text-[9px] font-bold">
                     ตัวคุณ
+                  </span>
+                  <!-- Group / Pair Work Badge -->
+                  <span v-if="getSubmission(student.studentId, activeAssignment.id)?.workType === 'pair'" class="px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-800 text-[9px] font-bold inline-flex items-center gap-0.5">
+                    <Users class="w-2.5 h-2.5 text-indigo-600" /> งานคู่
+                  </span>
+                  <span v-else-if="getSubmission(student.studentId, activeAssignment.id)?.workType === 'group'" class="px-1.5 py-0.2 rounded bg-purple-100 text-purple-800 text-[9px] font-bold inline-flex items-center gap-0.5">
+                    <Users class="w-2.5 h-2.5 text-purple-600" /> งานกลุ่ม
                   </span>
                 </div>
               </td>
@@ -992,7 +997,8 @@ const handleExportAttendanceExcel = async () => {
                      rel="noopener noreferrer"
                      class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold text-[11px] inline-flex items-center gap-1 transition-colors"
                   >
-                    <Search class="w-3.5 h-3.5" /> ดูงาน (Link)
+                    <Search class="w-3.5 h-3.5" />
+                    <span>{{ getSubmission(student.studentId, activeAssignment.id).links?.length > 1 ? `ดูงาน (${getSubmission(student.studentId, activeAssignment.id).links.length} ลิงก์)` : 'ดูงาน (Link)' }}</span>
                   </a>
                   
                   <!-- ยังไม่มีอะไรเลย -->
@@ -1015,8 +1021,9 @@ const handleExportAttendanceExcel = async () => {
               <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
               มีการแก้ไขคะแนน {{ unsavedCount }} รายการที่ยังไม่ได้บันทึก
             </span>
-            <span v-else class="text-stone-500 font-medium">
-              💡 กรอกคะแนนลงในตารางให้ครบทุกคน แล้วกดปุ่ม "บันทึกคะแนน" ด้านขวา
+            <span v-else class="text-stone-500 font-medium inline-flex items-center gap-1.5">
+              <Info class="w-3.5 h-3.5 text-stone-400 shrink-0" />
+              <span>กรอกคะแนนลงในตารางให้ครบทุกคน แล้วกดปุ่ม "บันทึกคะแนน" ด้านขวา</span>
             </span>
           </div>
 
@@ -1150,10 +1157,17 @@ const handleExportAttendanceExcel = async () => {
             >
               <td class="py-3 px-4 text-center text-stone-400 font-mono">{{ index + 1 }}</td>
               <td class="py-3 px-4 font-bold text-stone-900">
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1.5 flex-wrap">
                   <span>{{ student.name }}</span>
                   <span v-if="!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)" class="px-1.5 py-0.2 rounded bg-emerald-600 text-white text-[9px] font-bold">
                     ตัวคุณ
+                  </span>
+                  <!-- Group / Pair Work Badge -->
+                  <span v-if="getSubmission(student.studentId, activeAssignment.id)?.workType === 'pair'" class="px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-800 text-[9px] font-bold inline-flex items-center gap-0.5">
+                    <Users class="w-2.5 h-2.5 text-indigo-600" /> งานคู่
+                  </span>
+                  <span v-else-if="getSubmission(student.studentId, activeAssignment.id)?.workType === 'group'" class="px-1.5 py-0.2 rounded bg-purple-100 text-purple-800 text-[9px] font-bold inline-flex items-center gap-0.5">
+                    <Users class="w-2.5 h-2.5 text-purple-600" /> งานกลุ่ม
                   </span>
                 </div>
               </td>

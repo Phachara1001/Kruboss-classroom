@@ -13,7 +13,7 @@ import {
   allQuestProgress 
 } from '../data/questsStore'
 import { authUser } from '../data/authStore'
-import { studentsList, isStudent, fetchStudents } from '../data/studentsStore'
+import { studentsList, isStudent, fetchStudents, isTeacherUser } from '../data/studentsStore'
 import { directShopItems } from '../data/shopStore'
 import { 
   Target, 
@@ -42,10 +42,7 @@ import {
   GraduationCap
 } from '@lucide/vue'
 
-const isTeacher = computed(() => {
-  const r = (authUser.value?.role || '').toLowerCase()
-  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r)
-})
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 const activeStudentId = computed(() => authUser.value?.studentId || authUser.value?.id)
 
 const isQuestCompleted = (quest) => {

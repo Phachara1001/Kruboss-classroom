@@ -4,7 +4,7 @@ import { BookOpen, ChevronRight, GraduationCap, Layers, Award } from '@lucide/vu
 import { useRouter } from 'vue-router'
 import { courses } from '../data/courses'
 import { authUser } from '../data/authStore'
-import { studentsList } from '../data/studentsStore'
+import { studentsList, isTeacherUser } from '../data/studentsStore'
 import { Database, GitBranch, LineChart, Cpu } from '@lucide/vue'
 
 const courseIcons = {
@@ -21,7 +21,7 @@ const handleCourseClick = (courseId) => {
   router.push(`/course/${courseId}`)
 }
 
-const isTeacher = computed(() => authUser.value?.role === 'teacher')
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 
 const visibleCourses = computed(() => {
   if (isTeacher.value) return courses

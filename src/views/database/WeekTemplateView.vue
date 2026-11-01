@@ -34,7 +34,7 @@ import CheckInSystem from '@/components/CheckInSystem.vue'
 
 // Store & Context
 import { authUser } from '@/data/authStore'
-import { isStudent } from '@/data/studentsStore'
+import { isStudent, isTeacherUser } from '@/data/studentsStore'
 import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 // ------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ onMounted(() => {
 })
 
 const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
-const isTeacher = computed(() => !isStudent(authUser.value))
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 
 const studentWeekScores = computed(() => {
   if (!currentStudentId.value) return {}

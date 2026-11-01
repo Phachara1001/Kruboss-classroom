@@ -9,3 +9,4 @@ call npx prisma db push
 echo.
 echo Database update complete!
 pause
+

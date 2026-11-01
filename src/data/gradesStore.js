@@ -7,6 +7,7 @@ const STORAGE_KEY_GRADES = "kmutnb_database_classroom_grades_v1";
 const STORAGE_KEY_ATTENDANCE = "kmutnb_database_classroom_attendance_v1";
 const STORAGE_KEY_SESSIONS = "kmutnb_database_classroom_checkin_sessions_v1";
 const STORAGE_KEY_SUBMISSIONS = "kmutnb_database_classroom_submissions_v1";
+const STORAGE_KEY_ASSIGNMENT_SETTINGS = "kmutnb_database_classroom_assignment_settings_v1";
 
 
 
@@ -66,7 +67,7 @@ export const courseAssignments = {
     {
       id: "asm-3",
       week: 3,
-      title: "ใบงานที่ 3: เวิร์กช็อป NoSQL และการจัดการข้อมูลแบบ Document ด้วย JSONB",
+      title: "ใบงานที่ 3: ปฏิบัติการจัดการและสืบค้นข้อมูลในตาราง Product ด้วยคำสั่ง SQL (10 ข้อ)",
       maxScore: 10,
     },
     {
@@ -91,14 +92,20 @@ export const courseAssignments = {
     },
     {
       id: "asm-3",
-      week: 5,
-      title: "ใบงานที่ 3: การทำงานแบบ Branching และ Pull Request",
+      week: 3,
+      title: "ใบงานที่ 3: การเริ่มต้นสร้าง Git Repository, กำหนด .gitignore และบันทึกประวัติด้วย Commit",
       maxScore: 10,
     },
     {
       id: "asm-4",
+      week: 5,
+      title: "ใบงานที่ 4: การทำงานแบบ Branching และ Pull Request",
+      maxScore: 10,
+    },
+    {
+      id: "asm-5",
       week: 10,
-      title: "ใบงานที่ 4: การสร้างและจัดการ Docker Container",
+      title: "ใบงานที่ 5: การสร้างและจัดการ Docker Container",
       maxScore: 10,
     },
   ],
@@ -261,10 +268,21 @@ const loadSubmissions = () => {
   return {};
 };
 
+const loadAssignmentSettings = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ASSIGNMENT_SETTINGS);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.warn("Failed to load assignment settings from localStorage:", e);
+  }
+  return {};
+};
+
 export const gradesStore = ref(loadGrades());
 export const attendanceStore = ref(loadAttendance());
 export const checkInSessionsStore = ref(loadCheckInSessions());
 export const submissionsStore = ref(loadSubmissions());
+export const assignmentSettingsStore = ref(loadAssignmentSettings());
 
 // Watchers for LocalStorage Cache (Offline backup)
 watch(
@@ -306,6 +324,31 @@ watch(
   },
   { deep: true },
 );
+
+watch(
+  assignmentSettingsStore,
+  (val) => {
+    try {
+      localStorage.setItem(STORAGE_KEY_ASSIGNMENT_SETTINGS, JSON.stringify(val));
+    } catch (e) {}
+  },
+  { deep: true },
+);
+
+export const getAssignmentSetting = (courseId, assignmentId) => {
+  if (!courseId || !assignmentId) return null;
+  const key = `${courseId}_${assignmentId}`;
+  return assignmentSettingsStore.value[key] || null;
+};
+
+export const setAssignmentSetting = (courseId, assignmentId, settings) => {
+  if (!courseId || !assignmentId) return;
+  const key = `${courseId}_${assignmentId}`;
+  assignmentSettingsStore.value[key] = {
+    ...(assignmentSettingsStore.value[key] || {}),
+    ...settings,
+  };
+};
 
 // --- API Sync Functions ---
 export const fetchGrades = async (courseId) => {
@@ -383,11 +426,38 @@ export const fetchSubmissions = async (courseId) => {
       const data = await res.json();
       data.forEach((sub) => {
         const key = `${sub.courseId}_${sub.studentId}_${sub.assignmentId}`;
-        submissionsStore.value[key] = {
-          link: formatExternalUrl(sub.link),
+        const links = Array.isArray(sub.links) && sub.links.length > 0
+          ? sub.links.map((l) => (typeof l === 'string' ? { title: '', url: formatExternalUrl(l) } : { title: l.title || '', url: formatExternalUrl(l.url) }))
+          : (sub.link ? [{ title: '', url: formatExternalUrl(sub.link) }] : []);
+
+        const subObj = {
+          link: links.length > 0 ? links[0].url : (formatExternalUrl(sub.link) || ""),
+          links,
           note: sub.note || "",
+          workType: sub.workType || "individual",
+          members: Array.isArray(sub.members) ? sub.members : [],
+          submittedBy: sub.submittedBy || sub.studentId,
           submittedAt: sub.submittedAt,
         };
+
+        submissionsStore.value[key] = subObj;
+
+        // Auto-link to member partners
+        if (['pair', 'group'].includes(subObj.workType) && subObj.members.length > 0) {
+          subObj.members.forEach((mem) => {
+            const mId = mem.studentId || mem.id;
+            if (mId && mId !== sub.studentId) {
+              const memKey = `${sub.courseId}_${mId}_${sub.assignmentId}`;
+              if (!submissionsStore.value[memKey]) {
+                submissionsStore.value[memKey] = {
+                  ...subObj,
+                  isGroupPartner: true,
+                  originalSubmitterId: sub.studentId,
+                };
+              }
+            }
+          });
+        }
       });
     }
   } catch (e) {
@@ -405,23 +475,87 @@ export const fetchAllCourseData = async (courseId) => {
   ]);
 };
 
-// Helper: Submit assignment
+// Helper: Submit assignment with multiple links and group/pair support
 export const submitAssignmentLink = async (
   courseId,
   studentId,
   assignmentId,
-  link,
+  linkOrLinks,
   note = "",
+  workType = "individual",
+  members = [],
 ) => {
-  const cleanLink = formatExternalUrl(link);
-  const key = `${courseId}_${studentId}_${assignmentId}`;
+  let linksArray = [];
+  if (Array.isArray(linkOrLinks)) {
+    linksArray = linkOrLinks
+      .map((l) => {
+        if (!l) return null;
+        if (typeof l === "string") {
+          const u = formatExternalUrl(l);
+          return u ? { title: "", url: u } : null;
+        }
+        const u = formatExternalUrl(l.url);
+        return u ? { title: l.title || "", url: u } : null;
+      })
+      .filter(Boolean);
+  } else if (typeof linkOrLinks === "string" && linkOrLinks.trim()) {
+    const u = formatExternalUrl(linkOrLinks);
+    if (u) linksArray = [{ title: "", url: u }];
+  }
+
+  const primaryLink = linksArray.length > 0 ? linksArray[0].url : "";
   const submittedAt = new Date().toLocaleString("th-TH");
-  submissionsStore.value[key] = {
-    link: cleanLink,
+
+  // Ensure current submitter is included in members if pair or group
+  let normalizedMembers = Array.isArray(members) ? [...members] : [];
+  if (['pair', 'group'].includes(workType)) {
+    const hasSelf = normalizedMembers.some(
+      (m) => (m.studentId || m.id) === studentId,
+    );
+    if (!hasSelf) {
+      const studentObj = studentsList.value.find(
+        (s) => (s.studentId || s.id) === studentId,
+      );
+      normalizedMembers.unshift({
+        studentId: studentId,
+        name: studentObj?.name || studentId,
+        classroom: studentObj?.classroom || "",
+      });
+    }
+  } else {
+    normalizedMembers = [];
+  }
+
+  const submissionPayload = {
+    link: primaryLink,
+    links: linksArray,
     note,
+    workType,
+    members: normalizedMembers,
+    submittedBy: studentId,
     submittedAt,
   };
 
+  // 1. Save for submitter
+  const key = `${courseId}_${studentId}_${assignmentId}`;
+  submissionsStore.value[key] = { ...submissionPayload };
+
+  // 2. Also save for group partners so they share the submission
+  if (['pair', 'group'].includes(workType) && normalizedMembers.length > 0) {
+    normalizedMembers.forEach((mem) => {
+      const memId = mem.studentId || mem.id;
+      if (memId && memId !== studentId) {
+        const memKey = `${courseId}_${memId}_${assignmentId}`;
+        submissionsStore.value[memKey] = {
+          ...submissionPayload,
+          isGroupPartner: true,
+          originalSubmitterId: studentId,
+        };
+      }
+    });
+  }
+
+  // 3. API sync
   try {
     await fetch(`${API_BASE_URL}/submissions`, {
       method: "POST",
@@ -430,8 +564,11 @@ export const submitAssignmentLink = async (
         courseId,
         assignmentId,
         studentId,
-        link: cleanLink,
+        link: primaryLink,
+        links: linksArray,
         note,
+        workType,
+        members: normalizedMembers,
         submittedAt,
       }),
     });

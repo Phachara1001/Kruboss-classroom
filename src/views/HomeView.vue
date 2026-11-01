@@ -17,7 +17,7 @@ import {
   X
 } from '@lucide/vue'
 import { authUser, isLoggedIn } from '../data/authStore'
-import { studentsList, isStudent, fetchStudents } from '../data/studentsStore'
+import { studentsList, isStudent, fetchStudents, isTeacherUser } from '../data/studentsStore'
 import { questsList, fetchQuests, fetchQuestProgress, getStudentQuestCompletions } from '../data/questsStore'
 import { directShopItems } from '../data/shopStore'
 import AnnouncementModal from '../components/AnnouncementModal.vue'
@@ -25,11 +25,7 @@ import { API_BASE_URL } from '@/config/api'
 
 const router = useRouter()
 
-const isTeacher = computed(() => {
-  const r = (authUser.value?.role || '').toLowerCase()
-  const id = (authUser.value?.studentId || authUser.value?.id || '').toLowerCase()
-  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r) || id === 'boss'
-})
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 
 const currentUserId = computed(() => {
   return authUser.value?.studentId || authUser.value?.id || ''

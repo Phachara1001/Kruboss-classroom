@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { BookOpen, Home, Settings, Users, ChevronLeft, ChevronRight, GraduationCap, Wrench, Contact, CalendarDays, Award, ShoppingBag, Package, LogOut, User, BarChart2, MoreVertical, ShieldAlert, Target, Coins } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
-import { studentsList } from '../data/studentsStore'
+import { studentsList, isTeacherUser } from '../data/studentsStore'
 import MyProfileModal from './MyProfileModal.vue'
 import ResetPasswordRequestsModal from './ResetPasswordRequestsModal.vue'
 import { passwordResetRequests, fetchPasswordResetRequests } from '../data/authStore'
@@ -68,10 +68,7 @@ const isItemActive = (item) => {
   return route.path === item.path || route.path.startsWith(item.path + '/')
 }
 
-const isTeacher = computed(() => {
-  const r = (authUser.value?.role || '').toLowerCase()
-  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r)
-})
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 
 const normalizedRole = computed(() => {
   return isTeacher.value ? 'teacher' : 'student'

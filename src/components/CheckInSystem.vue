@@ -12,7 +12,7 @@ import {
   Settings, Power, AlertCircle, RotateCcw, Calendar, FileSpreadsheet
 } from '@lucide/vue'
 import { addCoins } from '@/data/shopStore'
-import { studentsList } from '@/data/studentsStore'
+import { studentsList, isTeacherUser } from '@/data/studentsStore'
 import { exportAttendanceToExcel } from '@/utils/exportAttendanceExcel'
 
 const props = defineProps({
@@ -27,10 +27,7 @@ const props = defineProps({
 })
 
 // State
-const isTeacher = computed(() => {
-  const r = (authUser.value?.role || '').toLowerCase()
-  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r)
-})
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 
 const checkInMessage = ref('')
 const currentTime = ref(new Date())

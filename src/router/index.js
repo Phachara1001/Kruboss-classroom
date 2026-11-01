@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { isLoggedIn, authUser } from '../data/authStore'
+import { isTeacherUser } from '../data/studentsStore'
 import DefaultLayout from '../layouts/DefaultLayout.vue'
 import LoginView from '../views/LoginView.vue'
 import HomeView from '../views/HomeView.vue'
@@ -8,8 +9,10 @@ import SubjectsView from '../views/SubjectsView.vue'
 import ClassmatesView from '../views/ClassmatesView.vue'
 import DatabaseWeek1 from '../views/database/Week1View.vue'
 import DatabaseWeek2 from '../views/database/Week2View.vue'
+import DatabaseWeek3 from '../views/database/Week3View.vue'
 import PlatformWeek1 from '../views/platform/Week1View.vue'
 import PlatformWeek2 from '../views/platform/Week2View.vue'
+import PlatformWeek3 from '../views/platform/Week3View.vue'
 import DataAnalysisWeek1 from '../views/analysis/Week1View.vue'
 import IoTWeek1 from '../views/iot/Week1View.vue'
 import IoTWeek2 from '../views/iot/Week2View.vue'
@@ -60,6 +63,11 @@ const router = createRouter({
           component: DatabaseWeek2
         },
         {
+          path: 'course/31901-2007/week/3',
+          name: 'database-week3',
+          component: DatabaseWeek3
+        },
+        {
           path: 'course/21901-2012/week/1',
           name: 'platform-week1',
           component: PlatformWeek1
@@ -68,6 +76,11 @@ const router = createRouter({
           path: 'course/21901-2012/week/2',
           name: 'platform-week2',
           component: PlatformWeek2
+        },
+        {
+          path: 'course/21901-2012/week/3',
+          name: 'platform-week3',
+          component: PlatformWeek3
         },
         {
           path: 'course/31901-2012/week/1',
@@ -151,18 +164,17 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
-  const role = (authUser.value?.role || '').toLowerCase()
-  const isTeacher = ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(role)
+router.beforeEach((to, from) => {
+  const isTeacher = isTeacherUser(authUser.value)
 
   if (to.meta.requiresAuth && !isLoggedIn.value) {
-    next('/login')
-  } else if (to.path === '/login' && isLoggedIn.value) {
-    next('/')
-  } else if (to.meta.requiresTeacher && !isTeacher) {
-    next('/')
-  } else {
-    next()
+    return '/login'
+  }
+  if (to.path === '/login' && isLoggedIn.value) {
+    return '/'
+  }
+  if (to.meta.requiresTeacher && !isTeacher) {
+    return '/'
   }
 })
 

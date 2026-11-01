@@ -6,18 +6,14 @@ import { courses } from '../data/courses'
 import StudentRankCard from '@/components/StudentRankCard.vue'
 import { fetchAllCourseData, submissionsStore, courseAssignments, gradesStore } from '../data/gradesStore'
 import { authUser } from '../data/authStore'
-import { studentsList, isStudentInCourse, isStudent } from '../data/studentsStore'
+import { studentsList, isStudentInCourse, isStudent, isTeacherUser } from '../data/studentsStore'
 
 const router = useRouter()
 const route = useRoute()
 
 const course = computed(() => courses.find(c => c.id === route.params.id) || courses[0])
 
-const isTeacher = computed(() => {
-  const r = (authUser.value?.role || '').toLowerCase()
-  const id = (authUser.value?.studentId || authUser.value?.id || '').toLowerCase()
-  return ['teacher', 'อาจารย์', 'ครู', 'admin'].includes(r) || id === 'boss'
-})
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 
 // Teacher preview toggle to simulate Student View
 const isPreviewingStudent = ref(false)

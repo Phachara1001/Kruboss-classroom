@@ -4,7 +4,8 @@ import {
   X, Trophy, Users, Search, CheckCircle2, Clock,
   AlertCircle, Award, FileSpreadsheet, Lock
 } from '@lucide/vue'
-import { studentsList, isStudent, isStudentInCourse } from '@/data/studentsStore'
+import { studentsList, isStudent, isStudentInCourse, isTeacherUser } from '@/data/studentsStore'
+import { authUser } from '@/data/authStore'
 import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 const props = defineProps({
@@ -23,7 +24,8 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-const isVisible = computed(() => props.show || props.isOpen)
+const isTeacher = computed(() => isTeacherUser(authUser.value))
+const isVisible = computed(() => (props.show || props.isOpen) && isTeacher.value)
 
 const searchQuery = ref('')
 const selectedClassroom = ref('all')
