@@ -1081,9 +1081,48 @@ const quizQuestions = [
             <div class="p-4 rounded-2xl bg-slate-950 text-slate-200 font-mono text-xs space-y-2">
               <div class="text-emerald-400">$ git log --oneline</div>
               <div class="text-slate-300 leading-relaxed">
-                <span class="text-amber-400">a3f9b1c</span> (HEAD -> main) feat: add contact form<br />
+                <span class="text-amber-400">a3f9b1c</span> <span class="text-cyan-300 font-semibold">(HEAD -&gt; main)</span> feat: add contact form<br />
                 <span class="text-amber-400">8d2e4f0</span> fix: correct responsive padding<br />
                 <span class="text-amber-400">5c1a7d2</span> feat: initial project structure with .gitignore
+              </div>
+            </div>
+
+            <!-- Tip: What does (HEAD -> branch) mean? -->
+            <div class="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/60 border border-indigo-200/80 shadow-sm space-y-3 text-xs">
+              <div class="flex items-center gap-2 text-indigo-900 font-bold text-sm">
+                <div class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Lightbulb class="w-3.5 h-3.5" />
+                </div>
+                <span>Tip เสริมความรู้: สัญลักษณ์ <code class="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-mono text-xs font-semibold">(HEAD -&gt; main)</code> คืออะไร?</span>
+              </div>
+              <p class="text-slate-600 leading-relaxed sm:pl-8">
+                เมื่อพิมพ์คำสั่ง <code class="font-bold font-mono">git log</code> แล้วสังเกตเห็นข้อความในวงเล็บเขียว/ฟ้า มีความหมายทางสถาปัตยกรรม Git ดังนี้:
+              </p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:pl-8">
+                <div class="p-3 rounded-xl bg-white/90 border border-indigo-100 space-y-1.5 shadow-2xs">
+                  <div class="font-bold text-slate-800 flex items-center gap-1.5 text-xs text-indigo-700">
+                    <Target class="w-3.5 h-3.5 shrink-0" />
+                    <span>1. HEAD (ตัวชี้ตำแหน่งปัจจุบัน)</span>
+                  </div>
+                  <p class="text-[11px] text-slate-600 leading-relaxed">
+                    เปรียบเหมือน <strong>"หัวอ่านของเครื่องเล่นเพลง"</strong> หรือป้าย <strong>"คุณอยู่ที่นี่ (You are here)"</strong> บ่งบอกว่าโฟลเดอร์และไฟล์ในเครื่องของคุณขณะนี้ กำลังซิงค์ตรงกับ Commit จุดนี้
+                  </p>
+                </div>
+                <div class="p-3 rounded-xl bg-white/90 border border-indigo-100 space-y-1.5 shadow-2xs">
+                  <div class="font-bold text-slate-800 flex items-center gap-1.5 text-xs text-blue-700">
+                    <GitBranch class="w-3.5 h-3.5 shrink-0" />
+                    <span>2. -&gt; main (ชื่อ Branch ที่ทำงานอยู่)</span>
+                  </div>
+                  <p class="text-[11px] text-slate-600 leading-relaxed">
+                    สัญลักษณ์ลูกศร <code class="font-mono text-blue-800 font-bold">-&gt;</code> บอกว่า <code class="font-mono text-xs">HEAD</code> กำลังชี้ไปยังกิ่งหลักชื่อ <strong>main</strong> (หรือ master) เมื่อเราสั่ง commit ใหม่ ทั้ง HEAD และ main จะขยับไปข้างหน้าพร้อมกัน
+                  </p>
+                </div>
+              </div>
+              <div class="sm:ml-8 p-2.5 rounded-xl bg-indigo-50/80 border border-indigo-100 text-[11px] text-indigo-950 leading-relaxed flex items-start gap-2">
+                <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <strong>สรุปความเข้าใจง่ายๆ:</strong> <code class="font-mono text-indigo-700 font-bold">(HEAD -&gt; main)</code> หมายถึง <strong>"ปัจจุบันคุณกำลังทำงานอยู่ที่กิ่ง main และอยู่ที่เวอร์ชันล่าสุดนี้"</strong> ส่วน Commit รายการด้านล่างที่ไม่มี HEAD กำกับ คือประวัติเวอร์ชันในอดีตที่ผ่านมาแล้ว
+                </div>
               </div>
             </div>
           </div>
@@ -1214,34 +1253,32 @@ const quizQuestions = [
 
     <!-- Assignment Section -->
     <AssignmentSection course-id="21901-2012" assignment-id="asm-3"
-      assignment-title="ใบงานที่ 3: ปฏิบัติการสร้าง Local Repository และเช็คอินเวอร์ชัน (HTML Versioning Lab)"
-      :max-score="10" work-type="individual">
+      assignment-title="ใบงานที่ 3: สร้าง Local Repository และ Commit 2 เวอร์ชัน" :max-score="10"
+      work-type="individual">
       <template #number>3</template>
       <template #description>
-        ให้นักศึกษาฝึกปฏิบัติการสร้าง Local Repository และบันทึกเวอร์ชันด้วยคำสั่ง Git Command Line โดยสร้างไฟล์ <code class="font-bold font-mono">index.html</code> ใส่ชื่อของตนเองแล้ว Commit เป็นเวอร์ชันที่ 1 จากนั้นแก้ไขไฟล์เพิ่มชื่อเพื่อนร่วมชั้น 1 คน แล้ว Commit เป็นเวอร์ชันที่ 2 พร้อมเรียกดูประวัติด้วย <code class="font-bold font-mono">git log --oneline</code> <strong>เมื่อทำเสร็จเรียบร้อยให้เรียกครูผู้สอนมาตรวจงานที่หน้าจอคอมพิวเตอร์</strong>
+        ให้นักศึกษาสร้าง Local Repository ที่มีไฟล์ <code class="font-bold font-mono">index.html</code>
+        ใส่<strong>ชื่อตนเอง</strong> แล้ว Commit เป็นเวอร์ชันที่ 1 จากนั้นเพิ่ม<strong>ชื่อเพื่อน 1 คน</strong> แล้ว
+        Commit เป็นเวอร์ชันที่ 2 <strong>เมื่อทำเสร็จให้เรียกครูผู้สอนมาตรวจงานที่หน้าจอคอมพิวเตอร์</strong>
 
         <!-- Objectives Box -->
         <div class="mb-6 p-4 rounded-2xl bg-indigo-50/70 border border-indigo-200 mt-4">
           <h4 class="font-bold text-indigo-950 text-sm mb-2 flex items-center gap-2">
             <CheckCircle2 class="w-4 h-4 text-indigo-600" />
-            จุดประสงค์การเรียนรู้ประจำใบงาน (เมื่อทำใบงานนี้เสร็จ ผู้เรียนสามารถ):
+            จุดประสงค์การเรียนรู้ (เมื่อทำใบงานนี้เสร็จ ผู้เรียนสามารถ):
           </h4>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs text-indigo-900">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-indigo-900">
             <div class="flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
-              <span>1. สร้าง Local Repo ด้วยคำสั่ง git init ได้</span>
+              <span>1. สร้าง Local Repo ด้วย git init ได้</span>
             </div>
             <div class="flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
-              <span>2. บันทึก Commit เวอร์ชันที่ 1 (ชื่อตนเอง) ได้</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
-              <span>3. แก้ไขไฟล์และ Commit เวอร์ชันที่ 2 (เพิ่มชื่อเพื่อน) ได้</span>
+              <span>2. Commit ไฟล์เป็นเวอร์ชันที่ 1 และ 2 ได้</span>
             </div>
             <div class="flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
-              <span>4. ตรวจสอบ git log และเรียกครูผู้สอนตรวจงานได้</span>
+              <span>3. ดูประวัติด้วย git log และแสดงผลงานได้</span>
             </div>
           </div>
         </div>
@@ -1249,90 +1286,76 @@ const quizQuestions = [
 
       <template #tasks>
         <ul class="space-y-4 text-slate-700">
+          <!-- ตอนที่ 1 -->
           <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
             <div
               class="w-6 h-6 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">
-              1
-            </div>
+              1</div>
             <div class="space-y-1">
-              <strong>ตอนที่ 1: สร้างโฟลเดอร์และเริ่มต้น Local Repository</strong>
+              <strong>ขั้นตอนที่ 1: สร้างโฟลเดอร์และ Local Repository</strong>
               <p class="text-xs text-gray-500 leading-relaxed">
-                สร้างโฟลเดอร์ใหม่บนเครื่องคอมพิวเตอร์ เช่น ชื่อโฟลเดอร์ <code class="font-bold font-mono">my-profile</code> จากนั้นเปิด Terminal (หรือเปิดโฟลเดอร์ใน VS Code) แล้วพิมพ์คำสั่งเริ่มต้นสร้าง Repository:
+                สร้างโฟลเดอร์ใหม่ เช่น <code class="font-bold font-mono">my-profile</code> เปิด Terminal ในโฟลเดอร์นั้น
+                แล้วพิมพ์:
               </p>
-              <div class="p-2 rounded-lg bg-slate-900 text-cyan-300 font-mono text-xs inline-block">
-                git init
-              </div>
             </div>
           </li>
 
+          <!-- ตอนที่ 2 -->
           <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
             <div
               class="w-6 h-6 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">
-              2
-            </div>
+              2</div>
             <div class="space-y-1.5">
-              <strong>ตอนที่ 2: สร้างไฟล์ HTML มีชื่อตัวเอง และ Commit เป็นเวอร์ชันแรก (Version 1)</strong>
+              <strong>ขั้นตอนที่ 2: สร้างไฟล์ HTML ใส่ชื่อตนเอง แล้ว Commit เวอร์ชันที่ 1</strong>
               <p class="text-xs text-gray-500 leading-relaxed">
-                สร้างไฟล์ชื่อ <code class="font-bold font-mono text-blue-700">index.html</code> ภายในไฟล์ให้พิมพ์โค้ด HTML ระบุ <strong>ชื่อ-นามสกุล และรหัสนักศึกษาของตนเอง</strong> จากนั้นกดบันทึกไฟล์ (Save) แล้วใช้คำสั่ง Git เพื่อเช็คอินเวอร์ชันแรก:
+                สร้างไฟล์ <code class="font-bold font-mono text-blue-700">index.html</code>
+                พิมพ์<strong>ชื่อ-นามสกุลของตนเอง</strong>ลงในไฟล์ กด Save แล้วพิมพ์:
               </p>
-              <div class="p-2.5 rounded-lg bg-slate-900 text-slate-200 font-mono text-xs space-y-1 max-w-lg">
-                <div class="text-slate-400"># 1. เช็กสถานะไฟล์ใหม่</div>
-                <div class="text-cyan-300">git status</div>
-                <div class="text-slate-400 pt-0.5"># 2. นำไฟล์ index.html เข้าสู่ Staging Area</div>
-                <div class="text-cyan-300">git add .</div>
-                <div class="text-slate-400 pt-0.5"># 3. บันทึกจุดเซฟเวอร์ชันแรก</div>
-                <div class="text-emerald-400">git commit -m "feat: add my name to index.html"</div>
-              </div>
             </div>
           </li>
 
+          <!-- ตอนที่ 3 -->
           <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
             <div
               class="w-6 h-6 rounded-lg bg-amber-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">
-              3
-            </div>
+              3</div>
             <div class="space-y-1.5">
-              <strong>ตอนที่ 3: แก้ไขไฟล์เพิ่มชื่อเพื่อน 1 คน และ Commit เป็นเวอร์ชันที่สอง (Version 2)</strong>
+              <strong>ขั้นตอนที่ 3: เพิ่มชื่อเพื่อน 1 คน แล้ว Commit เวอร์ชันที่ 2</strong>
               <p class="text-xs text-gray-500 leading-relaxed">
-                เปิดไฟล์ <code class="font-bold font-mono">index.html</code> เดิมขึ้นมาแก้ไข โดยพิมพ์เพิ่ม <strong>ชื่อ-นามสกุลของเพื่อนร่วมชั้น 1 คน</strong> ต่อท้ายชื่อของตนเอง จากนั้นกดบันทึกไฟล์ (Save) แล้วเช็คอินเวอร์ชันที่สอง:
+                เปิด <code class="font-bold font-mono">index.html</code> เพิ่ม<strong>ชื่อเพื่อนร่วมชั้น 1 คน</strong>
+                กด Save แล้วพิมพ์:
               </p>
-              <div class="p-2.5 rounded-lg bg-slate-900 text-slate-200 font-mono text-xs space-y-1 max-w-lg">
-                <div class="text-slate-400"># 1. ตรวจสอบดูไฟล์ที่มีการแก้ไข (จะเห็นเป็นสีแดง)</div>
-                <div class="text-cyan-300">git status</div>
-                <div class="text-slate-400 pt-0.5"># 2. นำไฟล์ที่แก้ไขเข้าสู่ Staging Area</div>
-                <div class="text-cyan-300">git add .</div>
-                <div class="text-slate-400 pt-0.5"># 3. บันทึกจุดเซฟเวอร์ชันที่สอง</div>
-                <div class="text-emerald-400">git commit -m "feat: add friend name to index.html"</div>
-              </div>
             </div>
           </li>
 
+          <!-- ตอนที่ 4 -->
           <li class="flex items-start gap-3 hover:translate-x-1 transition-transform">
             <div
               class="w-6 h-6 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs">
-              4
-            </div>
+              4</div>
             <div class="space-y-2">
               <div class="flex items-center gap-2">
-                <strong>ตอนที่ 4: ตรวจสอบประวัติ Commit และเรียกครูผู้สอนตรวจงาน</strong>
-                <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200">
+                <strong>เมื่อเสร็จแล้ว : เรียกครูตรวจงาน</strong>
+                <span
+                  class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200">
                   ตรวจหน้าจอ
                 </span>
               </div>
               <p class="text-xs text-gray-500 leading-relaxed">
-                พิมพ์คำสั่งตรวจสอบประวัติการ Commit บน Terminal เพื่อแสดงรายการทั้ง 2 เวอร์ชัน:
+                พิมพ์คำสั่งนี้เพื่อให้แสดง Commit ทั้ง 2 เวอร์ชัน:
               </p>
               <div class="p-2.5 rounded-lg bg-slate-900 text-emerald-400 font-mono text-xs inline-block">
                 git log --oneline
               </div>
-              
-              <!-- Call Teacher Notice Box -->
-              <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-950 space-y-1 max-w-xl">
+
+              <div
+                class="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-950 space-y-1 max-w-xl">
                 <span class="font-bold text-amber-900 flex items-center gap-1.5 text-sm">
                   <CheckCircle2 class="w-4 h-4 text-amber-600" /> ขั้นตอนตรวจงาน:
                 </span>
                 <p class="leading-relaxed">
-                  เมื่อหน้าจอ Terminal แสดงรายการครบทั้ง 2 Commit (เวอร์ชันชื่อตนเอง และ เวอร์ชันเพิ่มชื่อเพื่อน) ให้<strong>ยกมือเรียกครูผู้สอนมาตรวจงานที่หน้าจอคอมพิวเตอร์</strong> เพื่อให้คะแนนทันทีในคาบเรียน (และสามารถแคปภาพหน้าจอ Terminal แนบส่งในระบบเป็นหลักฐานเพิ่มเติมได้)
+                  เมื่อหน้าจอแสดง Commit ครบ 2 รายการ
+                  ให้<strong>ยกมือเรียกครูผู้สอนมาตรวจงานที่หน้าจอคอมพิวเตอร์</strong>เพื่อรับคะแนนทันที
                 </p>
               </div>
             </div>
