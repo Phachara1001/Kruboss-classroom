@@ -14,6 +14,7 @@ import PlatformWeek1 from '../views/platform/Week1View.vue'
 import PlatformWeek2 from '../views/platform/Week2View.vue'
 import PlatformWeek3 from '../views/platform/Week3View.vue'
 import DataAnalysisWeek1 from '../views/analysis/Week1View.vue'
+import DataAnalysisWeek2 from '../views/analysis/Week2View.vue'
 import IoTWeek1 from '../views/iot/Week1View.vue'
 import IoTWeek2 from '../views/iot/Week2View.vue'
 import ToolsView from '../views/ToolsView.vue'
@@ -86,6 +87,11 @@ const router = createRouter({
           path: 'course/31901-2012/week/1',
           name: 'data-analysis-week1',
           component: DataAnalysisWeek1
+        },
+        {
+          path: 'course/31901-2012/week/2',
+          name: 'data-analysis-week2',
+          component: DataAnalysisWeek2
         },
         {
           path: 'course/21901-2007/week/1',

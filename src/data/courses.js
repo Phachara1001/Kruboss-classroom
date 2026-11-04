@@ -401,13 +401,13 @@ export const courses = [
       {
         id: "สัปดาห์ที่ 2",
         weekNumber: 2,
-        name: "Data Collection & Data Types",
+        name: "การสอบถามและการเก็บรวบรวมข้อมูล (Data Inquiry & Data Collection)",
         phase: "Phase 1: Data Analysis (สัปดาห์ที่ 1–6)",
-        desc: "การสำรวจโครงสร้างและจำแนกประเภทข้อมูล (Numerical, Categorical, Time Series) และวิเคราะห์ Dataset",
-        activity: "วิเคราะห์ Dataset และจำแนกประเภทข้อมูล",
-        isOpen: false,
+        desc: "การสอบถามข้อมูลเพื่อระบุความต้องการ, รูปแบบและเครื่องมือการเก็บรวบรวมข้อมูล, การออกแบบแบบสอบถาม และการจัดทำข้อกำหนดชุดข้อมูล",
+        activity: "ออกแบบแบบสอบถามออนไลน์และจัดทำแผนการเก็บรวบรวมข้อมูล",
+        isOpen: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "เปิดให้เรียน",
         image: "bg-blue-600",
       },
       {
