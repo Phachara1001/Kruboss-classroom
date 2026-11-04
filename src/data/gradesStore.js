@@ -119,7 +119,7 @@ export const courseAssignments = {
     {
       id: "asm-2",
       week: 2,
-      title: "ใบงานที่ 2: ปฏิบัติการออกแบบเครื่องมือสอบถามและจัดทำข้อกำหนดการเก็บรวบรวมข้อมูล (Data Inquiry & Collection Workshop)",
+      title: "ใบงานที่ 2: การวิเคราะห์และวางแผนเก็บรวบรวมข้อมูลเพื่อพัฒนาองค์กร (Data Collection for Organizational Development)",
       maxScore: 10,
     },
     {
