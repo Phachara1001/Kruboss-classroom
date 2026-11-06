@@ -228,6 +228,62 @@ const attendancePresentRate = computed(() => {
   return Math.round((presentCount / courseStudents.value.length) * 100)
 })
 
+// Attendance check status for each week: complete (green), partial (yellow), holiday (red), none (default)
+const getWeekAttendanceStatus = (week) => {
+  if (isWeekHoliday(selectedCourseId.value, week)) {
+    return {
+      status: 'holiday',
+      checkedCount: 0,
+      totalCount: courseStudents.value.length,
+      label: 'หยุด'
+    }
+  }
+
+  const total = courseStudents.value.length
+  if (total === 0) {
+    return {
+      status: 'none',
+      checkedCount: 0,
+      totalCount: 0,
+      label: ''
+    }
+  }
+
+  let checkedCount = 0
+  for (const s of courseStudents.value) {
+    const sId = s.studentId || s.id
+    const rec = getAttendanceRecord(sId, week)
+    if (rec && rec.status && rec.status !== 'none') {
+      checkedCount++
+    }
+  }
+
+  if (checkedCount === 0) {
+    return {
+      status: 'none',
+      checkedCount: 0,
+      totalCount: total,
+      label: ''
+    }
+  }
+
+  if (checkedCount >= total) {
+    return {
+      status: 'complete',
+      checkedCount: total,
+      totalCount: total,
+      label: 'เช็คแล้ว'
+    }
+  }
+
+  return {
+    status: 'partial',
+    checkedCount,
+    totalCount: total,
+    label: `เช็คแล้ว ${checkedCount}/${total}`
+  }
+}
+
 const myScoreSummary = computed(() => {
   const sId = currentStudent.value?.studentId || authUser.value?.studentId || authUser.value?.id
   if (!sId) return { totalScore: 0, gradeInfo: { grade: '0', letter: 'F' } }
@@ -1152,17 +1208,62 @@ const handleExportAttendanceExcel = async () => {
               :key="w"
               @click="selectedWeek = w"
               :class="[
-                'min-w-10 h-10 px-2 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1 cursor-pointer relative',
-                selectedWeek === w
-                  ? (isWeekHoliday(selectedCourseId, w) ? 'bg-rose-600 text-white border-rose-600 shadow-xs' : 'bg-blue-600 text-white border-blue-600 shadow-xs')
-                  : (isWeekHoliday(selectedCourseId, w) ? 'bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100' : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100')
+                'min-w-10 h-10 px-2.5 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 cursor-pointer relative whitespace-nowrap',
+                // 1. วันหยุดราชการ (Holiday) -> สีแดง
+                getWeekAttendanceStatus(w).status === 'holiday'
+                  ? (selectedWeek === w
+                      ? 'bg-rose-600 text-white border-rose-600 shadow-xs ring-2 ring-rose-400 ring-offset-1'
+                      : 'bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100')
+                  // 2. เช็คครบแล้ว (Complete) -> สีเขียว
+                  : getWeekAttendanceStatus(w).status === 'complete'
+                    ? (selectedWeek === w
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs ring-2 ring-emerald-400 ring-offset-1'
+                        : 'bg-emerald-50 border-emerald-400 text-emerald-800 hover:bg-emerald-100')
+                    // 3. เช็คไม่ครบ (Partial) -> สีเหลือง
+                    : getWeekAttendanceStatus(w).status === 'partial'
+                      ? (selectedWeek === w
+                          ? 'bg-amber-500 text-white border-amber-600 shadow-xs ring-2 ring-amber-400 ring-offset-1'
+                          : 'bg-amber-50 border-amber-400 text-amber-900 hover:bg-amber-100')
+                      // 4. ยังไม่ได้เช็ค -> สีเดิม (stone-50 / เมื่อถูกเลือกเป็นสีน้ำเงิน)
+                      : (selectedWeek === w
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs ring-2 ring-blue-400 ring-offset-1'
+                          : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100')
               ]"
-              :title="isWeekHoliday(selectedCourseId, w) ? `สัปดาห์ที่ ${w}: ${getWeekHoliday(selectedCourseId, w)?.name || 'วันหยุดราชการ'}` : `สัปดาห์ที่ ${w}`"
+              :title="getWeekAttendanceStatus(w).status === 'holiday'
+                ? `สัปดาห์ที่ ${w}: ${getWeekHoliday(selectedCourseId, w)?.name || 'วันหยุดราชการ'}`
+                : getWeekAttendanceStatus(w).status === 'complete'
+                  ? `สัปดาห์ที่ ${w}: เช็คชื่อครบแล้ว (${getWeekAttendanceStatus(w).totalCount} คน)`
+                  : getWeekAttendanceStatus(w).status === 'partial'
+                    ? `สัปดาห์ที่ ${w}: เช็คชื่อแล้ว ${getWeekAttendanceStatus(w).checkedCount} จาก ${getWeekAttendanceStatus(w).totalCount} คน`
+                    : `สัปดาห์ที่ ${w}: ยังไม่ได้เช็คชื่อ`"
             >
               <span>W{{ w }}</span>
-              <span v-if="isWeekHoliday(selectedCourseId, w)" class="text-[9px] px-1 py-0.2 rounded font-bold"
-                :class="selectedWeek === w ? 'bg-white/20 text-white' : 'bg-rose-200 text-rose-800'">
+
+              <!-- Badge: วันหยุด -->
+              <span
+                v-if="getWeekAttendanceStatus(w).status === 'holiday'"
+                class="text-[9px] px-1 py-0.2 rounded font-bold"
+                :class="selectedWeek === w ? 'bg-white/20 text-white' : 'bg-rose-200 text-rose-800'"
+              >
                 หยุด
+              </span>
+
+              <!-- Badge: เช็คครบแล้ว -> เช็คแล้ว -->
+              <span
+                v-else-if="getWeekAttendanceStatus(w).status === 'complete'"
+                class="text-[10px] px-1.5 py-0.5 rounded font-black leading-none"
+                :class="selectedWeek === w ? 'bg-white/25 text-white' : 'bg-emerald-600 text-white'"
+              >
+                เช็คแล้ว
+              </span>
+
+              <!-- Badge: เช็คไม่ครบ -> เช็คแล้ว n/n -->
+              <span
+                v-else-if="getWeekAttendanceStatus(w).status === 'partial'"
+                class="text-[10px] px-1.5 py-0.5 rounded font-black leading-none"
+                :class="selectedWeek === w ? 'bg-white/25 text-white' : 'bg-amber-500 text-white'"
+              >
+                เช็คแล้ว {{ getWeekAttendanceStatus(w).checkedCount }}/{{ getWeekAttendanceStatus(w).totalCount }}
               </span>
             </button>
           </div>
