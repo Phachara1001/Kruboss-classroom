@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { X, Check, Image as ImageIcon } from '@lucide/vue'
+import StudentAvatar from './StudentAvatar.vue'
 
 const props = defineProps({
   modelValue: {
@@ -76,13 +77,12 @@ const getFrameName = (id) => {
             <p class="text-sm text-stone-400 mb-8 z-10">เลือกกรอบที่ใช่สำหรับคุณ</p>
 
             <div class="relative w-40 h-40 md:w-48 md:h-48 z-10 flex items-center justify-center">
-              <!-- Avatar Circle -->
-              <div class="w-32 h-32 md:w-40 md:h-40 rounded-full bg-stone-100 flex items-center justify-center text-5xl font-black text-stone-700 shadow-xl border-4 border-white overflow-hidden absolute">
-                <img :src="(avatarText && (avatarText.includes('/') || avatarText.includes('http') || avatarText.startsWith('data:'))) ? avatarText : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
-              </div>
-              
-              <!-- Frame Overlay -->
-              <img v-if="tempFrame" :src="tempFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-2xl z-20 transition-all duration-300" />
+              <StudentAvatar
+                :avatar="avatarText"
+                :frame="tempFrame"
+                size="w-32 h-32 md:w-40 md:h-40"
+                borderClass="border-4 border-white shadow-xl"
+              />
             </div>
             
             <div class="mt-8 text-center z-10">
@@ -118,7 +118,8 @@ const getFrameName = (id) => {
                   ]"
                 >
                   <div class="relative w-full h-full flex items-center justify-center">
-                    <img v-if="frame.image" :src="frame.image" class="w-20 h-20 object-contain drop-shadow-sm transition-transform group-hover:scale-110" />
+                    <StudentAvatar v-if="frame.image && (frame.image.startsWith('css:') || frame.image.includes('frame'))" :frame="frame.image" size="w-16 h-16" />
+                    <img v-else-if="frame.image" :src="frame.image" class="w-20 h-20 object-contain drop-shadow-sm transition-transform group-hover:scale-110" />
                     <span v-else class="text-xs font-bold text-stone-400">ไม่มีกรอบ</span>
                   </div>
                   

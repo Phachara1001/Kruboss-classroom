@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, Package, User, Palette, PawPrint, Sparkles, Check, CheckCircle2, X, CircleQuestionMark } from '@lucide/vue'
 import Tooltip from '../components/Tooltip.vue'
+import StudentAvatar from '../components/StudentAvatar.vue'
 import { studentsList } from '../data/studentsStore'
 import { authUser } from '../data/authStore'
 import {
@@ -66,7 +67,7 @@ function getItemEquipType(item) {
   const category = item.category
   const imgStr = item.image || ''
 
-  if (type === 'frame' || imgStr.includes('/img/frame/')) return 'frame'
+  if (type === 'frame' || imgStr.includes('/img/frame/') || imgStr.startsWith('css:')) return 'frame'
   if (type === 'theme') return 'theme'
   if (type === 'pet' || category === 'สัตว์เลี้ยงคู่หู' || imgStr.includes('/img/Gacha/')) return 'pet'
 
@@ -203,17 +204,14 @@ const resetTilt = (e) => {
 
           <div class="relative z-10 flex flex-col items-center px-6 pt-8 pb-5">
             <!-- Avatar + Frame -->
-            <div class="relative w-32 h-32 shrink-0 flex items-center justify-center">
-              <img v-if="myEquipment.frame" :src="myEquipment.frame.image"
-                class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-xl z-20 transition-all duration-300" />
-              <div
-                class="w-full h-full rounded-full bg-slate-100 border-[4px] border-white shadow-lg flex items-center justify-center text-4xl font-black text-slate-400 overflow-hidden relative z-10">
-                <img
-                  :src="(currentStudent.avatar && (currentStudent.avatar.includes('/') || currentStudent.avatar.includes('http') || currentStudent.avatar.startsWith('data:'))) ? currentStudent.avatar : '/placeholder_profile.png'"
-                  class="w-full h-full object-cover object-top"
-                  @error="$event.target.src = '/placeholder_profile.png'" />
-              </div>
-            </div>
+            <StudentAvatar
+              :avatar="currentStudent.avatar"
+              :frame="myEquipment.frame?.image || currentStudent.equippedFrame"
+              :name="currentStudent.name"
+              size="w-32 h-32"
+              borderClass="border-[4px] border-white shadow-lg"
+              avatarClass="bg-slate-100 text-slate-400"
+            />
 
             <h2 class="text-xl font-black text-gray-800 tracking-tight mt-6">{{ currentStudent.name || 'ผู้ใช้งาน' }}
             </h2>
@@ -225,10 +223,17 @@ const resetTilt = (e) => {
             <div class="w-full mt-5 pt-4 border-t border-slate-200">
               <p class="text-[10px] font-black uppercase tracking-[.2em] text-slate-500 text-center mb-3">Equipment</p>
               <div class="flex justify-center gap-4">
-                <button v-for="s in equipSlots" :key="s.type" class="eq-slot" :class="{ has: myEquipment[s.type] }"
+                <button v-for="s in equipSlots" :key="s.type" class="eq-slot" :class="{ has: myEquipment[s.type] || (s.type === 'frame' && currentStudent.equippedFrame) }"
                   :title="myEquipment[s.type]?.name || 'ยังไม่ได้สวมใส่'" @click="selectEquipped(s.type)">
                   <span class="eq-box">
-                    <img v-if="myEquipment[s.type]?.image" :src="myEquipment[s.type].image" :alt="s.label" />
+                    <StudentAvatar
+                      v-if="s.type === 'frame' && (myEquipment.frame?.image || currentStudent.equippedFrame)"
+                      :avatar="currentStudent.avatar"
+                      :frame="myEquipment.frame?.image || currentStudent.equippedFrame"
+                      size="w-10 h-10"
+                      class="pointer-events-none"
+                    />
+                    <img v-else-if="myEquipment[s.type]?.image" :src="myEquipment[s.type].image" :alt="s.label" />
                     <component :is="s.icon" v-else class="w-6 h-6 text-emerald-300" />
                   </span>
                   <span class="eq-label">{{ s.label }}</span>
@@ -293,7 +298,13 @@ const resetTilt = (e) => {
               <button v-if="inv" type="button" class="slot"
                 :class="['c-' + tier(inv.item).key, { 'is-selected': selectedId === inv.item.id }]"
                 @click="selectSlot(inv)" @dblclick="canEquip(inv) && handleEquipToggle(inv)">
-                <img :src="inv.item.image" :alt="inv.item.name" loading="lazy" />
+                <StudentAvatar
+                  v-if="inv.item.itemType === 'frame' || (inv.item.image && (inv.item.image.includes('frame') || inv.item.image.startsWith('css:')))"
+                  :frame="inv.item.image"
+                  size="w-11 h-11"
+                  class="pointer-events-none"
+                />
+                <img v-else :src="inv.item.image" :alt="inv.item.name" loading="lazy" />
                 <div class="absolute top-[0.4rem] right-[0.4rem] z-10">
                   <Tooltip :text="'ระดับ ' + inv.item.rarity" position="bottom" align="right">
                     <i class="gem-icon" aria-hidden="true"></i>
@@ -357,7 +368,15 @@ const resetTilt = (e) => {
                       <i v-for="n in tier(selectedInv.item).particles" :key="n" :style="particleStyle(n)"></i>
                     </div>
 
-                    <img :src="selectedInv.item.image" :alt="selectedInv.item.name" />
+                    <div v-if="selectedInv.item.itemType === 'frame' || (selectedInv.item.image && (selectedInv.item.image.includes('frame') || selectedInv.item.image.startsWith('css:')))" class="relative z-[2] w-full h-full flex items-center justify-center">
+                      <StudentAvatar
+                        :avatar="currentStudent.avatar"
+                        :frame="selectedInv.item.image"
+                        size="w-32 h-32"
+                        class="pointer-events-none transition-transform duration-500 group-hover:scale-110"
+                      />
+                    </div>
+                    <img v-else :src="selectedInv.item.image" :alt="selectedInv.item.name" />
 
                     <div class="rc-foil" aria-hidden="true"></div>
 
@@ -472,6 +491,9 @@ const resetTilt = (e) => {
 /* ===== ช่องไอเทม ===== */
 .slot {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   aspect-ratio: 1;
   border-radius: .85rem;
   border: 2px solid var(--c);
@@ -507,7 +529,7 @@ const resetTilt = (e) => {
   z-index: 2;
 }
 
-.slot img {
+.slot > img {
   position: absolute;
   inset: 11%;
   width: 78%;
@@ -652,7 +674,7 @@ const resetTilt = (e) => {
   border-color: #10b981;
 }
 
-.eq-box img {
+.eq-box > img {
   position: absolute;
   inset: 8%;
   width: 84%;

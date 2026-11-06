@@ -25,7 +25,9 @@ import {
   FlaskConical,
   FileSpreadsheet,
   Info,
-  Users 
+  Users,
+  CalendarOff,
+  Landmark 
 } from '@lucide/vue'
 import { courses } from '../data/courses'
 import { exportAttendanceToExcel } from '../utils/exportAttendanceExcel'
@@ -42,11 +44,16 @@ import {
   submissionsStore,
   fetchAllCourseData,
   formatExternalUrl,
-  checkInSessionsStore
+  checkInSessionsStore,
+  holidaysStore,
+  isWeekHoliday,
+  getWeekHoliday,
+  setWeekHoliday
 } from '../data/gradesStore'
 import { addCoins, deductCoins, getStudentCoins } from '../data/shopStore'
 import { authUser } from '../data/authStore'
 import { triggerTestReward, resetClaimedRewards } from '../data/rewardNotificationStore'
+import StudentAvatar from '@/components/StudentAvatar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -173,6 +180,16 @@ const getSubmission = (studentId, assignmentId) => {
 
 // Quick attendance status for a student in selectedWeek
 const getAttendanceRecord = (studentId, week) => {
+  // If this week is marked as a public holiday -> return holiday status
+  if (isWeekHoliday(selectedCourseId.value, week)) {
+    const holiday = getWeekHoliday(selectedCourseId.value, week)
+    return {
+      status: 'holiday',
+      checkedAt: '-',
+      note: holiday?.name || 'วันหยุดราชการ'
+    }
+  }
+
   const key = `${selectedCourseId.value}_${studentId}_${week}`
   const rec = attendanceStore.value[key]
   if (rec) return rec
@@ -198,11 +215,15 @@ const classAverageScore = computed(() => {
 })
 
 const attendancePresentRate = computed(() => {
+  // If the week is a holiday, attendance rate is 100% (no deductions)
+  if (isWeekHoliday(selectedCourseId.value, selectedWeek.value)) {
+    return 100
+  }
   if (courseStudents.value.length === 0) return 0
   let presentCount = 0
   courseStudents.value.forEach(s => {
     const rec = getAttendanceRecord(s.studentId, selectedWeek.value)
-    if (rec.status === 'present' || rec.status === 'leave') presentCount++
+    if (rec.status === 'present' || rec.status === 'leave' || rec.status === 'holiday') presentCount++
   })
   return Math.round((presentCount / courseStudents.value.length) * 100)
 })
@@ -381,16 +402,70 @@ const handleGeneralScoreInput = (studentId, field, event, maxScore) => {
   updateGradeItem(selectedCourseId.value, studentId, field, val)
 }
 
-// Attendance Check-in action
-const handleSetAttendance = (studentId, status) => {
+// Holiday Management State (วันหยุดราชการ)
+const showHolidayModal = ref(false)
+const holidayTargetWeek = ref(1)
+const holidayReason = ref('วันหยุดราชการ')
+const holidayPresets = [
+  'วันหยุดราชการ',
+  'วันหยุดชดเชย',
+  'วันหยุดนักขัตฤกษ์',
+  'วันพ่อแห่งชาติ',
+  'วันแม่แห่งชาติ',
+  'วันปิยมหาราช',
+  'วันสงกรานต์',
+  'วันขึ้นปีใหม่',
+  'วันครู / กิจกรรมวิทยาลัย'
+]
+
+const handleOpenHolidayModal = (week) => {
   if (!isTeacher.value) return
+  holidayTargetWeek.value = week || selectedWeek.value
+  const existing = getWeekHoliday(selectedCourseId.value, holidayTargetWeek.value)
+  holidayReason.value = existing?.name || 'วันหยุดราชการ'
+  showHolidayModal.value = true
+}
+
+const handleConfirmHoliday = async () => {
+  if (!isTeacher.value) return
+  const finalName = holidayReason.value.trim() || 'วันหยุดราชการ'
+  await setWeekHoliday(selectedCourseId.value, holidayTargetWeek.value, true, finalName)
+  showHolidayModal.value = false
+  showAlert(`กำหนดสัปดาห์ที่ ${holidayTargetWeek.value} เป็น "${finalName}" เรียบร้อย`)
+}
+
+const handleRemoveHoliday = async (week) => {
+  if (!isTeacher.value) return
+  const targetW = week || selectedWeek.value
+  if (!confirm(`ต้องการยกเลิกวันหยุดราชการของสัปดาห์ที่ ${targetW} และเปิดให้เช็คชื่อตามปกติใช่หรือไม่?`)) {
+    return
+  }
+  await setWeekHoliday(selectedCourseId.value, targetW, false)
+  showAlert(`ยกเลิกวันหยุดสัปดาห์ที่ ${targetW} เรียบร้อยแล้ว`)
+}
+
+// Attendance Check-in action
+const handleSetAttendance = async (studentId, status) => {
+  if (!isTeacher.value) return
+  if (isWeekHoliday(selectedCourseId.value, selectedWeek.value)) {
+    if (!confirm(`สัปดาห์ที่ ${selectedWeek.value} ถูกกำหนดเป็นวันหยุดราชการอยู่ หากท่านทำการเช็คชื่อ ระบบจะเปลี่ยนสัปดาห์นี้กลับเป็นการเรียนการสอนปกติ ต้องการดำเนินการต่อหรือไม่?`)) {
+      return
+    }
+    await setWeekHoliday(selectedCourseId.value, selectedWeek.value, false)
+  }
   setAttendanceCheckIn(selectedCourseId.value, studentId, selectedWeek.value, status)
   showAlert('บันทึกการเช็คอินเรียบร้อย')
 }
 
 // Batch Check-in
-const handleBatchAllPresent = () => {
+const handleBatchAllPresent = async () => {
   if (!isTeacher.value) return
+  if (isWeekHoliday(selectedCourseId.value, selectedWeek.value)) {
+    if (!confirm(`สัปดาห์ที่ ${selectedWeek.value} ถูกกำหนดเป็นวันหยุดราชการอยู่ หากท่านเช็คชื่อมาเรียนทุกคน ระบบจะเปลี่ยนสัปดาห์นี้กลับเป็นการเรียนการสอนปกติ ต้องการดำเนินการต่อหรือไม่?`)) {
+      return
+    }
+    await setWeekHoliday(selectedCourseId.value, selectedWeek.value, false)
+  }
   courseStudents.value.forEach(s => {
     setAttendanceCheckIn(selectedCourseId.value, s.studentId, selectedWeek.value, 'present')
   })
@@ -718,11 +793,14 @@ const handleExportAttendanceExcel = async () => {
                 <!-- Student Info -->
                 <td class="py-3 px-4">
                   <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center shrink-0 text-xs overflow-hidden">
-                      <img :src="(student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.includes('localhost') || student.avatar.startsWith('data:'))) ? (student.avatar.startsWith('http') ? student.avatar : (student.avatar.startsWith('data:') ? student.avatar : `http://${student.avatar.replace(/^http:\/\//, '')}`)) : '/placeholder_profile.png'" 
-                           class="w-full h-full object-cover" 
-                           @error="$event.target.src = '/placeholder_profile.png'" />
-                    </div>
+                    <StudentAvatar
+                      :avatar="student.avatar"
+                      :frame="student.equippedFrame"
+                      :name="student.name"
+                      size="w-8 h-8"
+                      avatarClass="bg-emerald-100 text-emerald-800 text-xs"
+                      class="shrink-0"
+                    />
                     <div>
                       <div class="flex items-center gap-1.5">
                         <span class="font-bold text-stone-900 block">{{ student.name }}</span>
@@ -1074,19 +1152,47 @@ const handleExportAttendanceExcel = async () => {
               :key="w"
               @click="selectedWeek = w"
               :class="[
-                'w-10 h-10 rounded-xl text-xs font-bold transition-all border flex items-center justify-center cursor-pointer',
+                'min-w-10 h-10 px-2 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1 cursor-pointer relative',
                 selectedWeek === w
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                  : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
+                  ? (isWeekHoliday(selectedCourseId, w) ? 'bg-rose-600 text-white border-rose-600 shadow-xs' : 'bg-blue-600 text-white border-blue-600 shadow-xs')
+                  : (isWeekHoliday(selectedCourseId, w) ? 'bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100' : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100')
               ]"
+              :title="isWeekHoliday(selectedCourseId, w) ? `สัปดาห์ที่ ${w}: ${getWeekHoliday(selectedCourseId, w)?.name || 'วันหยุดราชการ'}` : `สัปดาห์ที่ ${w}`"
             >
-              W{{ w }}
+              <span>W{{ w }}</span>
+              <span v-if="isWeekHoliday(selectedCourseId, w)" class="text-[9px] px-1 py-0.2 rounded font-bold"
+                :class="selectedWeek === w ? 'bg-white/20 text-white' : 'bg-rose-200 text-rose-800'">
+                หยุด
+              </span>
             </button>
           </div>
         </div>
 
-        <!-- Quick Batch Check-in & Export Excel (Teacher Only) -->
+        <!-- Quick Batch Check-in, Holiday & Export Excel (Teacher Only) -->
         <div v-if="isTeacher" class="flex flex-wrap items-center gap-2 self-stretch md:self-auto">
+          <!-- Button: Mark / Unmark Holiday -->
+          <button
+            v-if="!isWeekHoliday(selectedCourseId, selectedWeek)"
+            @click="handleOpenHolidayModal(selectedWeek)"
+            type="button"
+            class="w-full md:w-auto px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="กำหนดให้สัปดาห์นี้เป็นวันหยุดราชการ (ไม่หักคะแนนเข้าเรียน)"
+          >
+            <CalendarOff class="w-4 h-4 text-rose-500" />
+            <span>ตั้งเป็นวันหยุดราชการ</span>
+          </button>
+
+          <button
+            v-else
+            @click="handleRemoveHoliday(selectedWeek)"
+            type="button"
+            class="w-full md:w-auto px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="ยกเลิกวันหยุดและเปิดให้เช็คชื่อปกติ"
+          >
+            <RotateCcw class="w-4 h-4" />
+            <span>ยกเลิกวันหยุด (สัปดาห์ที่ {{ selectedWeek }})</span>
+          </button>
+
           <button
             @click="handleExportAttendanceExcel"
             :disabled="isExportingExcel"
@@ -1099,13 +1205,44 @@ const handleExportAttendanceExcel = async () => {
           
           <button
             @click="handleBatchAllPresent"
-            class="w-full md:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            :disabled="isWeekHoliday(selectedCourseId, selectedWeek)"
+            class="w-full md:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <UserCheck class="w-4 h-4" />
             <span>มาเรียนตรงเวลาทุกคน (Quick Check-in)</span>
           </button>
         </div>
 
+      </div>
+
+      <!-- Holiday Alert Banner (When Selected Week is a Holiday) -->
+      <div v-if="isWeekHoliday(selectedCourseId, selectedWeek)" class="p-4 bg-gradient-to-r from-rose-50 via-orange-50 to-rose-50 border border-rose-200 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs text-rose-950 shadow-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <CalendarOff class="w-5 h-5" />
+          </div>
+          <div>
+            <div class="font-bold text-sm text-rose-900 flex items-center gap-2 flex-wrap">
+              <span>สัปดาห์ที่ {{ selectedWeek }} เป็นวันหยุดราชการ</span>
+              <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold">
+                {{ getWeekHoliday(selectedCourseId, selectedWeek)?.name || 'วันหยุดราชการ' }}
+              </span>
+            </div>
+            <p class="text-rose-700 text-xs mt-0.5">
+              สัปดาห์นี้ไม่มีการเรียนการสอนและการเช็คชื่อเข้าเรียน ระบบจะไม่หักคะแนนจิตพิสัยของนักศึกษาทุกคน
+            </p>
+          </div>
+        </div>
+
+        <div v-if="isTeacher" class="flex items-center gap-2">
+          <button
+            @click="handleRemoveHoliday(selectedWeek)"
+            type="button"
+            class="px-3.5 py-2 rounded-xl bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-bold text-xs shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
+          >
+            <RotateCcw class="w-3.5 h-3.5 text-rose-600" /> ยกเลิกวันหยุด (เปิดให้เช็คชื่อปกติ)
+          </button>
+        </div>
       </div>
 
       <!-- Warning / Deduction Policy Alert Banner -->
@@ -1175,8 +1312,17 @@ const handleExportAttendanceExcel = async () => {
 
               <!-- Status Action Buttons Group (Teacher) / Read-only Badges (Student) -->
               <td class="py-3 px-4 text-center">
-                <!-- Student Read-only Badges -->
-                <div v-if="!isTeacher" class="inline-flex items-center justify-center">
+                <!-- If Week is a Holiday -->
+                <div v-if="isWeekHoliday(selectedCourseId, selectedWeek)" class="inline-flex items-center justify-center">
+                  <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-800 font-bold text-xs inline-flex items-center gap-1.5 border border-rose-200">
+                    <CalendarOff class="w-3.5 h-3.5 text-rose-600" />
+                    <span>วันหยุดราชการ</span>
+                    <span class="text-rose-600/70 text-[10px]">({{ getWeekHoliday(selectedCourseId, selectedWeek)?.name || 'งดเรียน' }})</span>
+                  </span>
+                </div>
+
+                <!-- Student Read-only Badges (Normal Week) -->
+                <div v-else-if="!isTeacher" class="inline-flex items-center justify-center">
                   <span 
                     v-if="getAttendanceRecord(student.studentId, selectedWeek).status === 'present'"
                     class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs inline-flex items-center gap-1 border border-emerald-200"
@@ -1271,7 +1417,12 @@ const handleExportAttendanceExcel = async () => {
 
               <!-- Checked At -->
               <td class="py-3 px-4 text-center font-mono text-xs text-stone-500">
-                {{ getAttendanceRecord(student.studentId, selectedWeek).checkedAt }}
+                <span v-if="isWeekHoliday(selectedCourseId, selectedWeek)" class="text-rose-600 font-sans font-medium">
+                  - (วันหยุด)
+                </span>
+                <span v-else>
+                  {{ getAttendanceRecord(student.studentId, selectedWeek).checkedAt }}
+                </span>
               </td>
 
               <!-- Current Total Attendance Score Out of 10 -->
@@ -1286,6 +1437,109 @@ const handleExportAttendanceExcel = async () => {
         </table>
       </div>
 
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: กำหนดวันหยุดราชการ (Holiday Modal) -->
+    <!-- ========================================== -->
+    <div
+      v-if="showHolidayModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      @click.self="showHolidayModal = false"
+    >
+      <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-5 animate-scaleIn">
+        
+        <!-- Header -->
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+              <CalendarOff class="w-5 h-5 text-rose-600" />
+            </div>
+            <div>
+              <h3 class="text-base font-black text-stone-900">
+                กำหนดวันหยุดราชการ: สัปดาห์ที่ {{ holidayTargetWeek }}
+              </h3>
+              <p class="text-xs text-stone-500 mt-0.5">
+                วิชา: {{ currentCourse?.name }}
+              </p>
+            </div>
+          </div>
+          <button
+            @click="showHolidayModal = false"
+            type="button"
+            class="text-stone-400 hover:text-stone-600 p-1 rounded-lg transition-colors cursor-pointer"
+          >
+            <XCircle class="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- Info Description -->
+        <div class="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-xs text-rose-900 leading-relaxed space-y-1">
+          <div class="font-bold flex items-center gap-1.5">
+            <ShieldCheck class="w-4 h-4 text-rose-600" />
+            สัปดาห์นี้จะถูกยกเว้นการหักคะแนนเข้าเรียน
+          </div>
+          <p class="text-rose-700 text-[11px]">
+            เมื่อตั้งเป็นวันหยุดราชการ นักศึกษาทุกคนจะไม่ถูกหักคะแนนจิตพิสัย และระบบเช็คชื่อสัปดาห์นี้จะถูกปิดอัตโนมัติ
+          </p>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-stone-700">
+            เลือกประเภท / ชื่อวันหยุดด่วน:
+          </label>
+          <div class="flex flex-wrap gap-1.5">
+            <button
+              v-for="preset in holidayPresets"
+              :key="preset"
+              @click="holidayReason = preset"
+              type="button"
+              class="px-2.5 py-1 rounded-xl text-xs font-semibold transition-all border cursor-pointer"
+              :class="holidayReason === preset 
+                ? 'bg-rose-600 text-white border-rose-600 shadow-2xs font-bold' 
+                : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'"
+            >
+              {{ preset }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Reason Input -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-stone-700">
+            หรือระบุชื่อวันหยุดเอง:
+          </label>
+          <input
+            v-model="holidayReason"
+            type="text"
+            maxlength="60"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-xs text-stone-800"
+            placeholder="เช่น วันหยุดราชการ, วันเฉลิมพระชนมพรรษา..."
+            @keyup.enter="handleConfirmHoliday"
+          />
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+          <button
+            @click="showHolidayModal = false"
+            type="button"
+            class="px-4 py-2 rounded-xl text-xs font-bold text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer"
+          >
+            ยกเลิก
+          </button>
+          <button
+            @click="handleConfirmHoliday"
+            type="button"
+            class="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <CalendarOff class="w-3.5 h-3.5" />
+            <span>ยืนยันตั้งเป็นวันหยุดราชการ</span>
+          </button>
+        </div>
+
+      </div>
     </div>
 
   </div>

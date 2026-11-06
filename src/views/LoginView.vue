@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { login, loginFirstTime, requestPasswordReset } from '../data/authStore'
 import { studentsList, getAvatarInitial } from '../data/studentsStore'
+import StudentAvatar from '@/components/StudentAvatar.vue'
 import { LogIn, KeyRound, User, ArrowRight, ShieldAlert, CheckCircle2, ChevronLeft } from '@lucide/vue'
 
 const router = useRouter()
@@ -15,7 +16,8 @@ const isLoading = ref(false)
 const studentObj = ref(null)
 
 const handleNextStep = () => {
-  if (!username.value) {
+  const rawInput = String(username.value || '').trim()
+  if (!rawInput) {
     errorMsg.value = 'กรุณากรอกชื่อผู้ใช้งาน'
     return
   }
@@ -24,14 +26,26 @@ const handleNextStep = () => {
   errorMsg.value = ''
 
   setTimeout(() => {
-    if (username.value === 'boss' || username.value === 'ครูบอส') {
+    const isBossInput = rawInput.toLowerCase() === 'boss' || rawInput === 'ครูบอส'
+    if (isBossInput) {
+      username.value = 'boss'
+      const bossInList = studentsList.value.find(
+        st => String(st.studentId || '').toLowerCase() === 'boss' || st.name === 'ครูบอส'
+      )
+      if (bossInList) {
+        studentObj.value = bossInList
+      }
       step.value = 'enterPassword'
       isLoading.value = false
       return
     }
 
-    const s = studentsList.value.find(st => st.studentId === username.value)
+    username.value = rawInput
+    const s = studentsList.value.find(
+      st => String(st.studentId || '').trim().toLowerCase() === rawInput.toLowerCase()
+    )
     if (s) {
+      username.value = s.studentId
       studentObj.value = s
       if (s.password) {
         step.value = 'enterPassword'
@@ -46,7 +60,8 @@ const handleNextStep = () => {
 }
 
 const handleLoginSubmit = () => {
-  if (!password.value) {
+  const cleanPass = String(password.value || '').trim()
+  if (!cleanPass) {
     errorMsg.value = 'กรุณากรอกรหัสผ่าน'
     return
   }
@@ -55,9 +70,23 @@ const handleLoginSubmit = () => {
   errorMsg.value = ''
 
   setTimeout(async () => {
-    const res = await login(username.value, password.value)
+    // If password in DB was stored as plain text (not bcrypt hashed) and matches input, auto-hash via setup-password
+    const storedPass = studentObj.value?.password
+    if (storedPass && !/^\$2[aby]\$/.test(storedPass) && storedPass === cleanPass) {
+      const upgradeRes = await loginFirstTime(username.value, cleanPass)
+      if (upgradeRes.success) {
+        router.push('/')
+        isLoading.value = false
+        return
+      }
+    }
+
+    const res = await login(username.value, cleanPass)
     if (res.success) {
       router.push('/')
+    } else if (res.requireSetup) {
+      step.value = 'setPassword'
+      errorMsg.value = ''
     } else {
       errorMsg.value = res.message
     }
@@ -130,17 +159,15 @@ const goBack = () => {
               </div>
             </template>
             <template v-else>
-              <div
-                class="w-28 h-28 relative flex items-center justify-center transition-transform hover:scale-105 duration-300 drop-shadow-md">
-                <!-- Avatar circle slightly smaller to fit inside frame -->
-                <div
-                  class="absolute inset-0 m-auto w-[76%] h-[76%] bg-emerald-100 rounded-full overflow-hidden flex items-center justify-center border-2 border-emerald-200/50 shadow-inner z-0">
-                  <img :src="(studentObj.avatar && (studentObj.avatar.includes('/') || studentObj.avatar.includes('http') || studentObj.avatar.startsWith('data:'))) ? studentObj.avatar : '/placeholder_profile.png'" class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
-                </div>
-                <!-- Frame on top -->
-                <img v-if="studentObj.equippedFrame" :src="studentObj.equippedFrame"
-                  class="absolute inset-0 w-full h-full object-contain z-10 pointer-events-none" />
-              </div>
+              <StudentAvatar
+                :avatar="studentObj.avatar"
+                :frame="studentObj.equippedFrame"
+                :name="studentObj.name"
+                size="w-24 h-24"
+                avatarClass="bg-emerald-100"
+                borderClass="border-2 border-emerald-200/50 shadow-inner"
+                class="transition-transform hover:scale-105 duration-300 drop-shadow-md"
+              />
             </template>
           </div>
 

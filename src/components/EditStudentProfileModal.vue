@@ -7,6 +7,7 @@ import { getStudentItems, directShopItems } from '../data/shopStore'
 import ConfirmModal from './ConfirmModal.vue'
 import FrameSelectionModal from './FrameSelectionModal.vue'
 import ImageCropperModal from './ImageCropperModal.vue'
+import StudentAvatar from './StudentAvatar.vue'
 import { API_UPLOAD_URL } from '@/config/api'
 
 // Confirm Modal State
@@ -209,7 +210,7 @@ const baseAvailableFrames = computed(() => {
   return [
     { id: '', name: 'ไม่มีกรอบ', image: '' },
     ...directShopItems.value.map(item => ({
-      id: item.id,
+      id: item.image || item.id,
       name: item.name,
       image: item.image
     }))
@@ -221,18 +222,20 @@ const availableFrames = computed(() => {
   if (!props.student) return [baseAvailableFrames.value[0]]
 
   const inventory = getStudentItems(props.student.studentId) || []
-  const ownedFrameImagePaths = inventory.filter(item => item.itemType === 'frame').map(item => item.image)
+  const ownedFrameImagePaths = inventory
+    .filter(inv => (inv.item || inv)?.itemType === 'frame')
+    .map(inv => (inv.item || inv)?.image)
 
   return baseAvailableFrames.value.filter(frame => {
     // Empty frame is always available
     if (frame.id === '') return true
     // Otherwise, check if they own it
-    return ownedFrameImagePaths.includes(frame.id)
+    return ownedFrameImagePaths.includes(frame.image) || ownedFrameImagePaths.includes(frame.id)
   })
 })
 
 const getFrameName = (id) => {
-  const f = baseAvailableFrames.value.find(f => f.id === id)
+  const f = baseAvailableFrames.value.find(f => f.id === id || f.image === id)
   return f ? f.name : 'ไม่มีกรอบ'
 }
 
@@ -254,13 +257,13 @@ const getFrameName = (id) => {
           <div
             class="px-6 py-5 bg-gradient-to-r from-stone-800 to-stone-900 text-white flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
-              <div
-                class="relative w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md shadow-sm border border-white/20 shrink-0">
-                <!-- Frame overlay in header -->
-                <img v-if="equippedFrame" :src="equippedFrame"
-                  class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-md z-10" />
-                <User class="w-6 h-6 text-emerald-400" />
-              </div>
+              <StudentAvatar
+                :avatar="student.avatar"
+                :frame="equippedFrame"
+                size="md"
+                avatarClass="bg-white/10 text-white backdrop-blur-md"
+                borderClass="border border-white/20"
+              />
               <div>
                 <h3 class="font-black text-lg text-white leading-tight">แก้ไขข้อมูลส่วนตัวนักศึกษา</h3>
                 <p class="text-xs text-stone-300">รหัส {{ student.studentId }} • ห้อง {{ student.classroom }}</p>
@@ -291,19 +294,22 @@ const getFrameName = (id) => {
 
             <!-- Profile Picture Upload -->
             <div class="p-4 bg-stone-50 rounded-2xl border border-stone-200 flex flex-col items-center justify-center gap-3">
-              <div class="relative w-20 h-20 group">
-                <img v-if="equippedFrame" :src="equippedFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-md z-10" />
-                <div class="w-full h-full rounded-full bg-white flex items-center justify-center text-3xl font-black text-stone-700 border-2 border-white shadow-sm overflow-hidden relative z-0">
-                  <img :src="croppedAvatar ? croppedAvatar : ((student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.startsWith('data:'))) ? student.avatar : '/placeholder_profile.png')" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
-                  
-                  <!-- Overlay for upload -->
+              <StudentAvatar
+                :avatar="croppedAvatar || student.avatar"
+                :frame="equippedFrame"
+                size="lg"
+                class="group cursor-pointer"
+                borderClass="border-2 border-white shadow-sm"
+              >
+                <!-- Overlay for upload -->
+                <template #overlay>
                   <label class="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                     <ImageIcon class="w-5 h-5 mb-0.5" />
                     <span class="text-[9px] font-bold">เปลี่ยนรูป</span>
                     <input type="file" accept="image/*" class="hidden" @change="handleFileSelect" />
                   </label>
-                </div>
-              </div>
+                </template>
+              </StudentAvatar>
               <p class="text-[10px] text-stone-500 text-center max-w-[200px] leading-tight">
                 คลิกที่รูปเพื่ออัปโหลดโปรไฟล์ใหม่ <br/><span class="text-stone-400">(ระบบจะให้คุณปรับสัดส่วนรูป 1:1)</span>
               </p>
@@ -388,10 +394,13 @@ const getFrameName = (id) => {
               </label>
               <div class="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                  <div class="relative w-12 h-12 rounded-full bg-stone-200 flex items-center justify-center font-bold text-stone-600 border border-stone-300 overflow-hidden">
-                    <img :src="(student?.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.startsWith('data:'))) ? student.avatar : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
-                    <img v-if="equippedFrame" :src="equippedFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-sm z-10" />
-                  </div>
+                  <StudentAvatar
+                    :avatar="student?.avatar"
+                    :frame="equippedFrame"
+                    size="md"
+                    avatarClass="bg-stone-200 text-stone-600"
+                    borderClass="border border-stone-300"
+                  />
                   <div class="text-left">
                     <p class="text-sm font-bold text-stone-800">{{ equippedFrame ? 'กำลังสวมใส่' : 'ไม่มีกรอบโปรไฟล์' }}</p>
                     <p class="text-xs text-stone-500">ไปที่เมนูกระเป๋าเพื่อเปลี่ยนกรอบรูป</p>

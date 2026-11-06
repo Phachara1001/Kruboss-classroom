@@ -8,6 +8,7 @@ const STORAGE_KEY_ATTENDANCE = "kmutnb_database_classroom_attendance_v1";
 const STORAGE_KEY_SESSIONS = "kmutnb_database_classroom_checkin_sessions_v1";
 const STORAGE_KEY_SUBMISSIONS = "kmutnb_database_classroom_submissions_v1";
 const STORAGE_KEY_ASSIGNMENT_SETTINGS = "kmutnb_database_classroom_assignment_settings_v1";
+const STORAGE_KEY_HOLIDAYS = "kmutnb_database_classroom_holidays_v1";
 
 
 
@@ -284,11 +285,22 @@ const loadAssignmentSettings = () => {
   return {};
 };
 
+const loadHolidays = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_HOLIDAYS);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.warn("Failed to load holidays from localStorage:", e);
+  }
+  return {};
+};
+
 export const gradesStore = ref(loadGrades());
 export const attendanceStore = ref(loadAttendance());
 export const checkInSessionsStore = ref(loadCheckInSessions());
 export const submissionsStore = ref(loadSubmissions());
 export const assignmentSettingsStore = ref(loadAssignmentSettings());
+export const holidaysStore = ref(loadHolidays());
 
 // Watchers for LocalStorage Cache (Offline backup)
 watch(
@@ -326,6 +338,16 @@ watch(
   (val) => {
     try {
       localStorage.setItem(STORAGE_KEY_SUBMISSIONS, JSON.stringify(val));
+    } catch (e) {}
+  },
+  { deep: true },
+);
+
+watch(
+  holidaysStore,
+  (val) => {
+    try {
+      localStorage.setItem(STORAGE_KEY_HOLIDAYS, JSON.stringify(val));
     } catch (e) {}
   },
   { deep: true },
@@ -389,6 +411,13 @@ export const fetchAttendance = async (courseId) => {
           checkedAt: a.checkedAt,
           note: a.note || "",
         };
+        // Auto-sync holiday state
+        if (a.status === "holiday") {
+          holidaysStore.value[`${a.courseId}_${a.week}`] = {
+            isHoliday: true,
+            name: a.note || "วันหยุดราชการ",
+          };
+        }
       });
     }
   } catch (e) {
@@ -702,11 +731,105 @@ export const cancelCheckInSession = async (courseId, week) => {
   }
 };
 
+// ==========================================
+// Holiday Management (วันหยุดราชการ)
+// ==========================================
+export const isWeekHoliday = (courseId, week) => {
+  return Boolean(holidaysStore.value[`${courseId}_${week}`]?.isHoliday);
+};
+
+export const getWeekHoliday = (courseId, week) => {
+  return holidaysStore.value[`${courseId}_${week}`] || null;
+};
+
+export const setWeekHoliday = async (
+  courseId,
+  week,
+  isHoliday,
+  name = "วันหยุดราชการ",
+) => {
+  const sessionKey = `${courseId}_${week}`;
+
+  if (isHoliday) {
+    // 1. Mark in holidaysStore
+    holidaysStore.value[sessionKey] = {
+      isHoliday: true,
+      name: name || "วันหยุดราชการ",
+      updatedAt: new Date().toISOString(),
+    };
+
+    // 2. Close any active check-in session for this week
+    if (checkInSessionsStore.value[sessionKey]?.isOpen) {
+      checkInSessionsStore.value[sessionKey].isOpen = false;
+      checkInSessionsStore.value[sessionKey].endTime = new Date().toISOString();
+    }
+
+    // 3. Mark all students in course as holiday
+    const studentsInCourse = studentsList.value.filter(
+      (s) => isStudent(s) && isStudentInCourse(s, courseId),
+    );
+    const holidayBatch = [];
+    studentsInCourse.forEach((s) => {
+      const sId = s.studentId || s.id;
+      const rec = {
+        courseId,
+        studentId: sId,
+        week,
+        status: "holiday",
+        checkedAt: "-",
+        note: name || "วันหยุดราชการ",
+      };
+      attendanceStore.value[`${courseId}_${sId}_${week}`] = rec;
+      holidayBatch.push(rec);
+    });
+
+    try {
+      if (holidayBatch.length > 0) {
+        await fetch(`${API_BASE_URL}/attendance/batch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            courseId,
+            week,
+            records: holidayBatch,
+          }),
+        });
+      }
+    } catch (e) {
+      // offline fallback
+    }
+  } else {
+    // Unmark holiday
+    delete holidaysStore.value[sessionKey];
+
+    // Remove holiday records from attendanceStore for this week
+    const suffix = `_${week}`;
+    Object.keys(attendanceStore.value).forEach((key) => {
+      if (key.startsWith(`${courseId}_`) && key.endsWith(suffix)) {
+        if (attendanceStore.value[key]?.status === "holiday") {
+          delete attendanceStore.value[key];
+        }
+      }
+    });
+
+    try {
+      await fetch(`${API_BASE_URL}/attendance/session/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId, week }),
+      });
+    } catch (e) {
+      // offline fallback
+    }
+  }
+};
+
 // Helper: Calculate student's Attendance score out of 10 points
 // Rule: Start with 10. Deduct proportionally based on course level (ปวช = 18 weeks, ปวส = 15 weeks).
 // - Present: no deduction
 // - Late: deduct half of weekly weight
 // - Absent / Missed closed session: deduct full weekly weight
+// - Holiday (วันหยุดราชการ): ไม่มีการหักคะแนนใดๆ
 export const calculateStudentAttendanceScore = (
   courseId,
   studentId,
@@ -720,6 +843,11 @@ export const calculateStudentAttendanceScore = (
   const deductionPerLate = deductionPerAbsent / 2.0;
 
   for (let w = 1; w <= totalWeeks; w++) {
+    // ถ้าสัปดาห์นี้เป็นวันหยุดราชการ ยกเว้นการหักคะแนนเข้าเรียน
+    if (isWeekHoliday(courseId, w)) {
+      continue;
+    }
+
     const recordKey = `${courseId}_${studentId}_${w}`;
     const sessionKey = `${courseId}_${w}`;
 

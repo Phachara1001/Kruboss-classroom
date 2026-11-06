@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, onBeforeUnmount } from 'vue'
 import { celebration } from '../composables/celebration'
+import StudentAvatar from './StudentAvatar.vue'
 
 /* ---------- ธีมต่อระดับ ---------- */
 const THEMES = {
@@ -271,7 +272,17 @@ onBeforeUnmount(stopAll)
             <div v-if="banner.itemImage" class="flex justify-center my-6 mt-8">
               <div class="relative w-48 sm:w-56 max-w-full shrink-0 aspect-square flex items-center justify-center">
                 <div class="absolute inset-0 bg-white/20 rounded-full blur-2xl animate-pulse"></div>
-                <img :src="banner.itemImage" class="w-full h-full object-contain relative z-10 drop-shadow-2xl animate-[cele-float_3s_ease-in-out_infinite]" />
+                <StudentAvatar 
+                  v-if="typeof banner.itemImage === 'string' && (banner.itemImage.startsWith('css:') || banner.itemImage.includes('frame') || ['neon','rainbow','gold','fire','cosmic','angel','witch','zombie','demon','flame','ramen','sleep'].includes(banner.itemImage.toLowerCase()))"
+                  :frame="banner.itemImage"
+                  size="w-36 h-36 sm:w-40 sm:h-40"
+                  class="relative z-10 drop-shadow-2xl animate-[cele-float_3s_ease-in-out_infinite]"
+                />
+                <img 
+                  v-else
+                  :src="banner.itemImage" 
+                  class="w-full h-full object-contain relative z-10 drop-shadow-2xl animate-[cele-float_3s_ease-in-out_infinite]" 
+                />
               </div>
             </div>
 

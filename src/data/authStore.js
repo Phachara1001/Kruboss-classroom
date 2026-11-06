@@ -76,11 +76,16 @@ export async function rejectPasswordReset(reqId) {
 
 // Pass in studentsList to avoid circular import issues
 export async function login(username, password) {
+  const rawUser = String(username || '').trim();
+  const isBoss = rawUser.toLowerCase() === 'boss' || rawUser === 'ครูบอส';
+  const normalizedUsername = isBoss ? 'boss' : rawUser;
+  const normalizedPassword = String(password || '').trim();
+
   try {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username: normalizedUsername, password: normalizedPassword })
     });
     
     const data = await response.json();
@@ -93,6 +98,40 @@ export async function login(username, password) {
       localStorage.setItem('auth_token', data.token); // Save token for future requests
       return { success: true };
     } else {
+      // Auto-heal teacher 'boss' account if password in DB was unhashed, null, or not yet seeded
+      if (isBoss && normalizedPassword) {
+        try {
+          if (data.message && data.message.includes('ไม่พบรหัสนักศึกษา')) {
+            await fetch(`${API_BASE_URL}/students`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                studentId: 'boss',
+                name: 'ครูบอส',
+                role: 'teacher',
+                classroom: 'teacher_room',
+                courseIds: ['31901-2007', '31901-2012', '21901-2012', '21901-2007']
+              })
+            });
+          }
+
+          // If boss password was never hashed (e.g. plain text in DB or null) or matches default teacher password '100147'
+          const shouldSyncBossPassword =
+            data.requireSetup ||
+            (data.message && data.message.includes('ตั้งรหัสผ่าน')) ||
+            normalizedPassword === '100147';
+
+          if (shouldSyncBossPassword) {
+            const setupRes = await loginFirstTime('boss', normalizedPassword);
+            if (setupRes.success) {
+              return { success: true };
+            }
+          }
+        } catch (healErr) {
+          console.error('Failed to auto-sync boss account:', healErr);
+        }
+      }
+
       if (data.requireSetup) {
         return { success: false, requireSetup: true, message: data.message };
       }

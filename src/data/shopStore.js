@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import { studentsList } from './studentsStore'
 import { API_BASE_URL } from '@/config/api'
+import { recordCoinTransaction } from './coinLedgerStore'
 
 const STORAGE_KEY_BOXES = 'kmutnb_classroom_gacha_boxes_v1'
 const STORAGE_KEY_COINS = 'kmutnb_classroom_student_coins_v1'
@@ -398,7 +399,7 @@ export async function equipItem(studentId, item) {
   const imgStr = item.image || ''
   let itemType = item.itemType
   if (!itemType) {
-    if (imgStr.includes('/img/frame/')) itemType = 'frame'
+    if (imgStr.includes('/img/frame/') || imgStr.startsWith('css:')) itemType = 'frame'
     else if (item.category === 'สัตว์เลี้ยงคู่หู' || imgStr.includes('/img/Gacha/')) itemType = 'pet'
   }
 
@@ -536,7 +537,7 @@ export function getStudentCoins(studentId) {
   return Number(studentCoins.value[studentId]) || 0
 }
 
-export async function addCoins(studentId, amount) {
+export async function addCoins(studentId, amount, meta = null) {
   const current = getStudentCoins(studentId)
   const newCoins = Math.max(0, current + Number(amount))
   const sIdStr = String(studentId).trim()
@@ -560,6 +561,13 @@ export async function addCoins(studentId, amount) {
     }
     studentCoins.value[studentId] = targetCoins
     saveCoins()
+    if (meta && Number(amount) > 0) {
+      recordCoinTransaction(sIdStr, {
+        type: 'income',
+        amount: Number(amount),
+        ...meta
+      })
+    }
     return targetCoins
   } catch(e) {
     console.error('Failed to add coins:', e)
@@ -567,10 +575,11 @@ export async function addCoins(studentId, amount) {
   }
 }
 
-export async function deductCoins(studentId, amount) {
+export async function deductCoins(studentId, amount, meta = null) {
   const current = getStudentCoins(studentId)
   if (current < amount) return false
   const newCoins = Math.max(0, current - Number(amount))
+  const sIdStr = String(studentId).trim()
   
   try {
     const res = await fetch(`${API_BASE}/students/${studentId}`, {
@@ -589,6 +598,13 @@ export async function deductCoins(studentId, amount) {
     }
     studentCoins.value[studentId] = targetCoins
     saveCoins()
+    if (meta && Number(amount) > 0) {
+      recordCoinTransaction(sIdStr, {
+        type: 'expense',
+        amount: Number(amount),
+        ...meta
+      })
+    }
     return true
   } catch(e) {
     console.error('Failed to deduct coins:', e)

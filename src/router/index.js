@@ -160,6 +160,11 @@ const router = createRouter({
           component: () => import('../views/InventoryView.vue')
         },
         {
+          path: 'wallet',
+          name: 'wallet',
+          component: () => import('../views/CoinStatementView.vue')
+        },
+        {
           path: 'announcements',
           name: 'announcements',
           component: () => import('../views/AnnouncementManagementView.vue'),

@@ -76,27 +76,82 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 // ==========================================
 
 app.post('/api/auth/login', async (req, res) => {
-    const { username, password } = req.body;
-
+    const rawUsername = String(req.body?.username || '').trim();
+    const password = String(req.body?.password || '').trim();
+    const isBossAlias = rawUsername.toLowerCase() === 'boss' || rawUsername === 'ครูบอส';
+    const username = isBossAlias ? 'boss' : rawUsername;
 
     try {
-        // Student login logic
-        const student = await prisma.user.findUnique({ where: { studentId: username } });
-        
+        let student = await prisma.user.findUnique({ where: { studentId: username } });
+
+        // Auto-seed teacher 'boss' if missing in DB
+        if (!student && isBossAlias) {
+            const defaultHashedPassword = await bcrypt.hash(password || '100147', 10);
+            student = await prisma.user.create({
+                data: {
+                    studentId: 'boss',
+                    name: 'ครูบอส',
+                    password: defaultHashedPassword,
+                    role: 'teacher',
+                    classroom: 'teacher_room',
+                    avatar: '/Me.png',
+                    equippedFrame: '/img/frame/Teacher.png',
+                    courseIds: ['31901-2007', '31901-2012', '21901-2012', '21901-2007'],
+                    coins: 9999,
+                    quote: 'อาจารย์ผู้สอน'
+                }
+            });
+        }
+
         if (!student) {
             return res.status(400).json({ success: false, message: 'ไม่พบรหัสนักศึกษาในระบบ' });
         }
 
         if (student.password) {
-            const isMatch = await bcrypt.compare(password, student.password);
+            const isBcryptHash = /^\$2[aby]\$/.test(student.password);
+            let isMatch = false;
+
+            if (isBcryptHash) {
+                isMatch = await bcrypt.compare(password, student.password);
+            } else {
+                // Support plain-text password in DB and auto-upgrade to bcrypt hash
+                isMatch = (password === student.password);
+                if (isMatch) {
+                    const upgradedHash = await bcrypt.hash(password, 10);
+                    await prisma.user.update({
+                        where: { studentId: student.studentId },
+                        data: { password: upgradedHash }
+                    });
+                }
+            }
+
+            // Fallback for teacher 'boss' default password ('100147')
+            if (!isMatch && isBossAlias && password === '100147') {
+                const bossHash = await bcrypt.hash('100147', 10);
+                await prisma.user.update({
+                    where: { studentId: 'boss' },
+                    data: { password: bossHash }
+                });
+                isMatch = true;
+            }
+
             if (!isMatch) {
                 return res.status(400).json({ success: false, message: 'รหัสผ่านไม่ถูกต้อง' });
             }
         } else {
-            if (!password) {
+            if (isBossAlias && password) {
+                // Auto-initialize password for 'boss' if password was null in DB
+                const bossHash = await bcrypt.hash(password, 10);
+                student = await prisma.user.update({
+                    where: { studentId: 'boss' },
+                    data: { password: bossHash }
+                });
+            } else {
+                if (!password) {
+                    return res.status(400).json({ success: false, requireSetup: true, message: 'กรุณาตั้งรหัสผ่านก่อนเข้าใช้งาน' });
+                }
                 return res.status(400).json({ success: false, requireSetup: true, message: 'กรุณาตั้งรหัสผ่านก่อนเข้าใช้งาน' });
             }
-            return res.status(400).json({ success: false, message: 'กรุณาตั้งรหัสผ่านให้เรียบร้อย' });
         }
 
         const token = jwt.sign({ id: student.studentId, role: student.role }, JWT_SECRET, { expiresIn: '1d' });

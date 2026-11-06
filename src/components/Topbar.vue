@@ -1,5 +1,5 @@
 <script setup>
-import { Bell, Search, Menu, ShoppingBag, Package } from '@lucide/vue'
+import { Bell, Search, Menu, ShoppingBag, Package, FileText, Coins } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { activeStudentIdForShop, getStudentCoins } from '../data/shopStore'
 import { computed } from 'vue'
@@ -43,6 +43,15 @@ const currentCoins = computed(() => getStudentCoins(activeStudentIdForShop.value
 
     <!-- Right: Quick Actions -->
     <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+      <!-- Shop Quick Link -->
+      <button 
+        @click="router.push('/shop')"
+        class="p-2 sm:p-2.5 rounded-xl bg-amber-50/80 hover:bg-amber-100 text-amber-700 border border-amber-200/70 transition-all active:scale-95 shadow-2xs cursor-pointer flex items-center justify-center group"
+        title="ร้านค้าและกล่องสุ่ม"
+      >
+        <ShoppingBag class="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+      </button>
+
       <!-- Inventory Quick Link -->
       <button 
         @click="router.push('/inventory')"
@@ -52,13 +61,13 @@ const currentCoins = computed(() => getStudentCoins(activeStudentIdForShop.value
         <Package class="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-12 transition-transform" />
       </button>
 
-      <!-- Coin Wallet Quick Link -->
+      <!-- Coin Wallet & Statement Quick Link -->
       <button 
-        @click="router.push('/shop')"
-        class="px-2.5 sm:px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-400/20 via-amber-300/30 to-amber-400/20 border border-amber-300/90 text-amber-900 font-black text-xs flex items-center gap-1 sm:gap-1.5 shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer group"
-        title="ไปที่ร้านค้าและกล่องสุ่ม"
+        @click="router.push('/wallet')"
+        class="px-2.5 sm:px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-400/20 via-amber-300/30 to-amber-400/20 border border-amber-300/90 text-amber-900 font-black text-xs flex items-center gap-1.5 shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer group"
+        title="ดูประวัติการใช้เหรียญ (Statement)"
       >
-        <span class="text-sm sm:text-base leading-none group-hover:scale-110 transition-transform">🪙</span>
+        <Coins class="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
         <span class="font-mono text-xs sm:text-sm font-black">{{ currentCoins }}</span>
         <span class="text-[10px] text-amber-800/80 font-bold hidden sm:inline">Coins</span>
       </button>

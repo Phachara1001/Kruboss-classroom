@@ -19,6 +19,8 @@ import {
 import AddStudentModal from '@/components/AddStudentModal.vue'
 import EditStudentProfileModal from '@/components/EditStudentProfileModal.vue'
 import MemberCard from '@/components/MemberCard.vue'
+import StudentAvatar from '@/components/StudentAvatar.vue'
+import StudentProfileModal from '@/components/StudentProfileModal.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { courses } from '../data/courses'
 import { studentsList, courseClassrooms, isStudentInCourse, isStudent, isTeacherUser } from '../data/studentsStore'
@@ -202,21 +204,6 @@ const handleStudentUpdated = (updated) => {
     selectedStudent.value = updated
   }
 }
-
-const canEditSelectedStudentProfile = computed(() => {
-  if (!selectedStudent.value) return false
-  if (isTeacher.value) return true
-  const myId = authUser.value?.studentId || authUser.value?.id
-  return !!(myId && myId === selectedStudent.value.studentId)
-})
-
-// สีแถบหัวโปรไฟล์ตามตำแหน่ง
-const modalAccent = computed(() => {
-  const role = selectedStudent.value?.role
-  if (role === 'หัวหน้าห้อง') return 'from-amber-500 via-amber-400 to-orange-400'
-  if (role === 'รองหัวหน้าห้อง') return 'from-sky-600 via-sky-500 to-cyan-500'
-  return 'from-emerald-700 via-emerald-600 to-teal-500'
-})
 </script>
 
 <template>
@@ -328,21 +315,21 @@ const modalAccent = computed(() => {
 
       <!-- Root: Teacher -->
       <div class="flex flex-col items-center text-center relative z-10 pb-1">
-        <div class="relative w-32 h-32">
-          <span
-            class="absolute inset-[-10px] rounded-full bg-gradient-to-br from-emerald-200 via-emerald-100 to-transparent blur-md opacity-80"></span>
-          <img v-if="teacher.equippedFrame" :src="teacher.equippedFrame" alt=""
-            class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-lg z-10" />
-          <div
-            class="relative w-full h-full rounded-full bg-[#E3DCD2] border-4 border-white shadow-xl overflow-hidden flex items-center justify-center ring-2 ring-emerald-500">
-            <img :src="teacher.avatar || '/placeholder_profile.png'" alt="อาจารย์ผู้สอน" class="w-full h-full object-cover object-top"
-              @error="$event.target.src = '/placeholder_profile.png'" />
-          </div>
-          <div
-            class="absolute -bottom-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-stone-900 text-white text-[11px] font-bold rounded-full shadow-md whitespace-nowrap z-20">
-            อาจารย์ผู้สอน
-          </div>
-        </div>
+        <StudentAvatar
+          :avatar="teacher.avatar"
+          :frame="teacher.equippedFrame"
+          :name="teacher.name"
+          size="w-32 h-32"
+          avatarClass="bg-[#E3DCD2]"
+          borderClass="border-4 border-white shadow-xl ring-2 ring-emerald-500"
+        >
+          <template #badge>
+            <div
+              class="absolute -bottom-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-stone-900 text-white text-[11px] font-bold rounded-full shadow-md whitespace-nowrap z-20">
+              อาจารย์ผู้สอน
+            </div>
+          </template>
+        </StudentAvatar>
         <h3 class="font-black text-xl text-stone-900 mt-6">{{ teacher.name }}</h3>
         <p class="text-xs text-stone-500">{{ teacher.role }}</p>
       </div>
@@ -417,165 +404,13 @@ const modalAccent = computed(() => {
       </div>
     </section>
 
-    <!-- Student Profile Modal -->
-    <Teleport to="body">
-      <div v-if="showProfileModal && selectedStudent" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" @click="closeProfileModal"></div>
-
-        <div
-          class="relative bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden animate-[bounceIn_0.3s_ease-out] flex flex-col max-h-[92vh] overflow-y-auto">
-
-          <div :class="['h-28 bg-gradient-to-r relative shrink-0', modalAccent]">
-            <button @click="closeProfileModal" aria-label="ปิด"
-              class="absolute top-4 right-4 text-white bg-black/20 hover:bg-black/40 p-2 rounded-full transition-all cursor-pointer">
-              <X class="w-4 h-4" />
-            </button>
-          </div>
-
-          <div class="px-6 pb-6 flex flex-col items-center -mt-14 relative z-10">
-            <div class="relative w-24 h-24 mb-3">
-              <img v-if="selectedStudent.equippedFrame" :src="selectedStudent.equippedFrame" alt=""
-                class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-md z-10" />
-              <div
-                class="w-full h-full rounded-full bg-white flex items-center justify-center text-4xl font-black text-stone-700 border-4 border-white shadow-lg overflow-hidden">
-                <img :src="avatarSrc(selectedStudent.avatar)"
-                  :alt="selectedStudent.name" class="w-full h-full object-cover object-top"
-                  @error="$event.target.src = '/placeholder_profile.png'" />
-              </div>
-            </div>
-
-            <h3 class="font-black text-xl text-stone-800 mb-0.5 text-center">{{ selectedStudent.name }}</h3>
-            <p class="text-stone-600 mb-3 font-medium text-xs">
-              ชื่อเล่น: {{ selectedStudent.nickname && selectedStudent.nickname !== '-' ? selectedStudent.nickname :
-                '(ยังไม่ได้ระบุ)' }}
-            </p>
-
-            <div class="flex items-center gap-2 mb-3">
-              <span :class="[
-                'px-3 py-1 text-xs font-bold rounded-full border flex items-center gap-1',
-                selectedStudent.role === 'หัวหน้าห้อง' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                  selectedStudent.role === 'รองหัวหน้าห้อง' ? 'bg-sky-100 text-sky-800 border-sky-200' :
-                    'bg-stone-100 text-stone-700 border-stone-200'
-              ]">
-                <ShieldCheck v-if="selectedStudent.role === 'หัวหน้าห้อง'" class="w-3.5 h-3.5 text-amber-600" />
-                <Shield v-else-if="selectedStudent.role === 'รองหัวหน้าห้อง'" class="w-3.5 h-3.5 text-sky-600" />
-                <span>{{ selectedStudent.role || 'นักศึกษา' }}</span>
-              </span>
-
-              <span
-                class="px-2.5 py-1 text-xs font-semibold rounded-full bg-stone-100 text-stone-600 border border-stone-200">
-                {{ selectedStudent.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + selectedStudent.classroom
-                }}
-              </span>
-            </div>
-
-            <p v-if="selectedStudent.quote" class="text-stone-500 italic text-xs mb-5 text-center px-4">
-              “{{ selectedStudent.quote }}”
-            </p>
-
-            <div class="w-full bg-stone-50 rounded-2xl p-4 border border-stone-200/80 space-y-3 text-xs">
-
-              <!-- Rank -->
-              <div
-                class="flex items-center gap-3 p-2.5 rounded-xl bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 text-white border border-stone-700 shadow-sm">
-                <div
-                  class="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-white/20 p-1">
-                  <img v-if="getStudentRankTier(selectedStudent.studentId).id !== 'unranked'"
-                    :src="getStudentRankTier(selectedStudent.studentId).logo" class="w-full h-full object-contain" />
-                  <Lock v-else class="w-4 h-4 text-stone-400" />
-                </div>
-                <div class="flex flex-col flex-1">
-                  <div class="flex items-center justify-between">
-                    <span class="text-[10px] text-stone-400 font-bold">ระดับแรงค์ประจำวิชา</span>
-                  </div>
-                  <span class="font-black text-sm text-white flex items-center gap-1.5">
-                    <Lock v-if="getStudentRankTier(selectedStudent.studentId).id === 'unranked'"
-                      class="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                    {{ getStudentRankTier(selectedStudent.studentId).name }}
-                    <span class="text-xs font-normal text-stone-300 ml-1">({{
-                      getStudentRankTier(selectedStudent.studentId).nameTh }})</span>
-                  </span>
-                </div>
-              </div>
-
-              <!-- Student ID -->
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-8 h-8 rounded-full bg-stone-200/60 flex items-center justify-center text-stone-600 shrink-0">
-                  <GraduationCap class="w-4 h-4" />
-                </div>
-                <div class="flex flex-col">
-                  <span class="text-[11px] text-stone-400 font-medium">รหัสนักศึกษา</span>
-                  <span class="font-bold font-mono text-stone-800">{{ selectedStudent.studentId }}</span>
-                </div>
-              </div>
-
-              <!-- Phone -->
-              <div class="w-full h-px bg-stone-200/60"></div>
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 shrink-0">
-                  <Phone class="w-4 h-4" />
-                </div>
-                <div class="flex flex-col">
-                  <span class="text-[11px] text-stone-400 font-medium">เบอร์โทรศัพท์</span>
-                  <a v-if="selectedStudent.phone" :href="`tel:${selectedStudent.phone}`"
-                    class="font-bold text-stone-800 hover:text-green-600">
-                    {{ selectedStudent.phone }}
-                  </a>
-                  <span v-else class="text-stone-400 italic">(ยังไม่ได้ระบุ)</span>
-                </div>
-              </div>
-
-              <!-- Facebook -->
-              <div class="w-full h-px bg-stone-200/60"></div>
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 shrink-0">
-                  <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path
-                      d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                </div>
-                <div class="flex flex-col">
-                  <span class="text-[11px] text-stone-400 font-medium">Facebook</span>
-                  <a v-if="selectedStudent.facebook"
-                    :href="selectedStudent.facebookUrl || `https://facebook.com/search/top?q=${selectedStudent.facebook}`"
-                    target="_blank" rel="noopener" class="font-bold text-blue-600 hover:underline">
-                    {{ selectedStudent.facebook }}
-                  </a>
-                  <span v-else class="text-stone-400 italic">(ยังไม่ได้ระบุ)</span>
-                </div>
-              </div>
-
-              <!-- Instagram -->
-              <div class="w-full h-px bg-stone-200/60"></div>
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-700 shrink-0">
-                  <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path
-                      d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.07M12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
-                  </svg>
-                </div>
-                <div class="flex flex-col">
-                  <span class="text-[11px] text-stone-400 font-medium">Instagram</span>
-                  <a v-if="selectedStudent.ig"
-                    :href="selectedStudent.igUrl || `https://instagram.com/${selectedStudent.ig}`" target="_blank"
-                    rel="noopener" class="font-bold text-pink-600 hover:underline">
-                    {{ selectedStudent.ig.startsWith('@') ? selectedStudent.ig : `@${selectedStudent.ig}` }}
-                  </a>
-                  <span v-else class="text-stone-400 italic">(ยังไม่ได้ระบุ)</span>
-                </div>
-              </div>
-            </div>
-
-            <button v-if="canEditSelectedStudentProfile" @click="openEditModalFromProfile"
-              class="w-full mt-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
-              <Pencil class="w-3.5 h-3.5" />
-              <span>{{ isTeacher ? 'แก้ไขข้อมูลนักศึกษา (สำหรับอาจารย์)' : 'แก้ไขข้อมูลโปรไฟล์ของฉัน' }}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <!-- Student Profile Modal Component -->
+    <StudentProfileModal
+      v-model="showProfileModal"
+      :student="selectedStudent"
+      :course-id="course?.id"
+      @edit="openEditModalFromProfile"
+    />
 
     <AddStudentModal v-model="showAddModal" :default-course-id="course.id"
       :default-classroom="selectedClassroom !== 'all' ? selectedClassroom : ''" @added="handleStudentAdded" />

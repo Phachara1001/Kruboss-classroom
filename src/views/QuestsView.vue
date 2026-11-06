@@ -15,6 +15,7 @@ import {
 import { authUser } from '../data/authStore'
 import { studentsList, isStudent, fetchStudents, isTeacherUser } from '../data/studentsStore'
 import { directShopItems } from '../data/shopStore'
+import StudentAvatar from '@/components/StudentAvatar.vue'
 import { 
   Target, 
   Plus, 
@@ -476,7 +477,8 @@ const getRewardImage = (reward) => {
                   <div v-for="(reward, idx) in quest.rewards" :key="idx"
                     class="flex flex-col items-center justify-center bg-stone-50 border border-stone-200 rounded-2xl p-2 w-16 h-16 shadow-sm relative group overflow-hidden">
                     <div class="absolute inset-0 bg-gradient-to-br from-amber-100/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <img v-if="getRewardImage(reward)" :src="getRewardImage(reward)" class="w-7 h-7 object-contain mb-1 relative z-10 drop-shadow-sm" />
+                    <StudentAvatar v-if="reward.type === 'frame' && getRewardImage(reward)" :frame="getRewardImage(reward)" size="w-7 h-7" class="mb-1 relative z-10 pointer-events-none" />
+                    <img v-else-if="getRewardImage(reward)" :src="getRewardImage(reward)" class="w-7 h-7 object-contain mb-1 relative z-10 drop-shadow-sm" />
                     <span v-else-if="reward.type === 'coin'" class="text-2xl mb-1 relative z-10 leading-none">🪙</span>
                     <component v-else :is="getRewardIcon(reward.type)" class="w-6 h-6 text-amber-500 mb-1 relative z-10" />
                     <span class="text-[10px] font-black text-stone-600 relative z-10 mt-0.5">x{{ reward.type === 'coin' ? (reward.amount || 1) : 1 }}</span>
@@ -563,7 +565,8 @@ const getRewardImage = (reward) => {
                 <!-- Reward Preview -->
                 <div class="w-16 h-16 shrink-0 rounded-xl bg-white border border-indigo-200 flex flex-col items-center justify-center shadow-sm relative overflow-hidden mt-1">
                   <div class="absolute inset-0 bg-gradient-to-br from-amber-50 to-transparent"></div>
-                  <img v-if="getRewardImage(reward)" :src="getRewardImage(reward)" class="w-8 h-8 object-contain mb-1 relative z-10 drop-shadow-sm" />
+                  <StudentAvatar v-if="reward.type === 'frame' && getRewardImage(reward)" :frame="getRewardImage(reward)" size="w-8 h-8" class="mb-1 relative z-10 pointer-events-none" />
+                  <img v-else-if="getRewardImage(reward)" :src="getRewardImage(reward)" class="w-8 h-8 object-contain mb-1 relative z-10 drop-shadow-sm" />
                   <span v-else-if="reward.type === 'coin'" class="text-2xl mb-1 relative z-10 leading-none">🪙</span>
                   <component v-else :is="getRewardIcon(reward.type)" class="w-7 h-7 text-amber-500 mb-1 relative z-10" />
                   <span class="text-[10px] font-black text-indigo-900 relative z-10 leading-none">x{{ reward.type === 'coin' ? (reward.amount || 1) : 1 }}</span>
@@ -865,20 +868,15 @@ const getRewardImage = (reward) => {
                     </div>
 
                     <!-- Avatar + Frame -->
-                    <div class="relative w-10 h-10 shrink-0">
-                      <img 
-                        v-if="student.equippedFrame" 
-                        :src="student.equippedFrame"
-                        class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-sm z-10" 
-                      />
-                      <div class="w-full h-full rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800 font-bold overflow-hidden border border-emerald-200 relative z-0 text-xs">
-                        <img 
-                          :src="(student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.includes('localhost') || student.avatar.startsWith('data:'))) ? (student.avatar.startsWith('http') ? student.avatar : (student.avatar.startsWith('data:') ? student.avatar : `http://${student.avatar}`)) : '/placeholder_profile.png'"
-                          class="w-full h-full object-cover object-top" 
-                          @error="$event.target.src = '/placeholder_profile.png'"
-                        />
-                      </div>
-                    </div>
+                    <StudentAvatar
+                      :avatar="student.avatar"
+                      :frame="student.equippedFrame"
+                      :name="student.name"
+                      size="w-10 h-10"
+                      class="shrink-0"
+                      avatarClass="bg-emerald-100 text-emerald-800"
+                      borderClass="border border-emerald-200"
+                    />
 
                     <!-- Student Name & Classroom -->
                     <div class="flex-1 min-w-0">

@@ -40,6 +40,7 @@ import { studentsList, isStudentInCourse, isStudent, isTeacherUser } from '../da
 import { getStudentFullScore } from '../data/gradesStore'
 import { getStudentEquipment } from '../data/shopStore'
 import { authUser } from '../data/authStore'
+import StudentAvatar from './StudentAvatar.vue'
 
 const props = defineProps({
   courseId: {
@@ -330,22 +331,20 @@ const showRoadmapModal = ref(false)
                 class="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-1.5 transition-transform duration-500 group-hover:scale-105 shadow-2xl flex items-center justify-center bg-gradient-to-tr"
                 :class="studentEquipment?.theme?.colorClass || studentRank.themeGradient || 'from-stone-700 to-stone-500'"
               >
-                <!-- Inner Circular Student Avatar -->
-                <div class="w-full h-full rounded-full bg-stone-900 border-2 border-white/25 overflow-hidden flex items-center justify-center relative shadow-inner">
-                  <!-- Photo Avatar (with placeholder fallback) -->
-                  <img 
-                    :src="(currentStudent.avatar && (currentStudent.avatar.includes('/') || currentStudent.avatar.includes('http') || currentStudent.avatar.startsWith('data:'))) ? currentStudent.avatar : '/placeholder_profile.png'" 
-                    :alt="currentStudent.name"
-                    class="w-full h-full object-cover" 
-                    @error="$event.target.src = '/placeholder_profile.png'"
-                  />
-
-                  <!-- Online Status Dot -->
-                  <div class="absolute top-2 right-2 w-3.5 h-3.5 rounded-full border-2 border-stone-900 bg-emerald-500 shadow-xs"></div>
-                </div>
-
-                <!-- Equipped Frame -->
-                <img v-if="currentStudent.equippedFrame" :src="currentStudent.equippedFrame" class="absolute inset-0 w-full h-full object-cover scale-[1.25] pointer-events-none z-30 drop-shadow-lg" />
+                <!-- Central Student Avatar using StudentAvatar component -->
+                <StudentAvatar
+                  :avatar="currentStudent.avatar"
+                  :frame="currentStudent.equippedFrame"
+                  :name="currentStudent.name"
+                  size="w-full h-full"
+                  avatarClass="bg-stone-900 shadow-inner"
+                  borderClass="border-2 border-white/25"
+                >
+                  <template #badge>
+                    <!-- Online Status Dot -->
+                    <div class="absolute top-2 right-2 w-3.5 h-3.5 rounded-full border-2 border-stone-900 bg-emerald-500 shadow-xs z-20"></div>
+                  </template>
+                </StudentAvatar>
 
                 <!-- Equipped Pet -->
                 <div v-if="studentEquipment?.pet" class="absolute -top-4 -left-4 w-20 h-20 sm:w-24 sm:h-24 z-40 pointer-events-none drop-shadow-xl animate-bounce" style="animation-duration: 3s">

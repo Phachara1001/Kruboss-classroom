@@ -2,6 +2,7 @@
 // src/components/MemberCard.vue
 import { computed } from 'vue'
 import { Crown, Shield, Pencil, Lock } from '@lucide/vue'
+import StudentAvatar from './StudentAvatar.vue'
 
 const props = defineProps({
     student: { type: Object, required: true },
@@ -82,30 +83,33 @@ const cfg = computed(() => configs[props.variant] || configs.student)
         <button type="button"
             class="flex flex-col items-center w-full cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-500"
             @click="emit('view', student)">
-            <div class="relative mb-3" :class="[cfg.avatar, variant === 'president' ? 'mt-3' : '']">
+            <StudentAvatar
+                :avatar="student.avatar"
+                :frame="student.equippedFrame"
+                :name="student.name"
+                :size="cfg.avatar"
+                :borderClass="'border-2 border-white ' + cfg.ring"
+                :avatarClass="cfg.avatarBg"
+                :class="['mb-3', variant === 'president' ? 'mt-3' : '']"
+            >
                 <!-- Crown for president -->
-                <div v-if="variant === 'president'"
-                    class="absolute -top-5 left-1/2 -translate-x-1/2 z-20 w-9 h-9 rounded-full bg-amber-400 text-white flex items-center justify-center shadow-md ring-4 ring-white">
-                    <Crown class="w-5 h-5" />
-                </div>
-
-                <img v-if="student.equippedFrame" :src="student.equippedFrame" alt=""
-                    class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-md z-10" />
-                <div
-                    :class="['w-full h-full rounded-full overflow-hidden flex items-center justify-center font-black border-2 border-white', cfg.ring, cfg.avatarBg]">
-                    <img :src="avatarSrc" :alt="student.name"
-                        class="w-full h-full object-cover object-top"
-                        @error="$event.target.src = '/placeholder_profile.png'" />
-                </div>
+                <template #top>
+                    <div v-if="variant === 'president'"
+                        class="absolute -top-5 left-1/2 -translate-x-1/2 z-20 w-9 h-9 rounded-full bg-amber-400 text-white flex items-center justify-center shadow-md ring-4 ring-white">
+                        <Crown class="w-5 h-5" />
+                    </div>
+                </template>
 
                 <!-- Rank badge on avatar (student leaf) -->
-                <div v-if="variant === 'student'" :title="isRanked ? (rank?.name || 'Ranked') : 'Unranked'"
-                    class="absolute -bottom-1 -right-1 z-20 w-6 h-6 rounded-full bg-stone-900 border-2 border-white flex items-center justify-center p-0.5 shadow-xs">
-                    <img v-if="isRanked && (rank?.badgeImg || rank?.logo)" :src="rank.badgeImg || rank.logo"
-                        :alt="rank.name" class="w-full h-full object-contain" />
-                    <Lock v-else class="w-3 h-3 text-stone-400" />
-                </div>
-            </div>
+                <template #badge>
+                    <div v-if="variant === 'student'" :title="isRanked ? (rank?.name || 'Ranked') : 'Unranked'"
+                        class="absolute -bottom-1 -right-1 z-20 w-6 h-6 rounded-full bg-stone-900 border-2 border-white flex items-center justify-center p-0.5 shadow-xs">
+                        <img v-if="isRanked && (rank?.badgeImg || rank?.logo)" :src="rank.badgeImg || rank.logo"
+                            :alt="rank.name" class="w-full h-full object-contain" />
+                        <Lock v-else class="w-3 h-3 text-stone-400" />
+                    </div>
+                </template>
+            </StudentAvatar>
 
             <h4 :class="['font-bold text-stone-900 leading-snug transition-colors line-clamp-1 w-full', cfg.name]">
                 {{ student.name }}

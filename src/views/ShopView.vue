@@ -2,6 +2,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { celebrate } from '../composables/celebration'
 import PurchaseCelebration from '../components/PurchaseCelebration.vue'
+import StudentAvatar from '../components/StudentAvatar.vue'
 import {
   Package,
   Sparkles,
@@ -696,7 +697,8 @@ const resetTilt = (e) => {
                   class="w-9 h-9 rounded-xl bg-white/5 border p-1 flex items-center justify-center shrink-0 relative group/item"
                   :class="rarityConfig[item.rarity]?.border || 'border-white/20'"
                   :title="item.rarity === 'Secret' ? '??? (Secret - ความลับที่รอการค้นพบ)' : `${item.name} (${item.rarity} - ${item.rate}%)`">
-                  <img :src="item.image" class="w-full h-full object-contain transition-all"
+                  <StudentAvatar v-if="item.itemType === 'frame' || (item.image && (item.image.includes('frame') || item.image.startsWith('css:')))" :frame="item.image" size="w-7 h-7" />
+                  <img v-else :src="item.image" class="w-full h-full object-contain transition-all"
                     :class="item.rarity === 'Secret' ? 'brightness-0 drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]' : ''" />
                   <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full"
                     :style="{ backgroundColor: rarityConfig[item.rarity]?.particleColor || '#fff' }"></span>
@@ -779,7 +781,10 @@ const resetTilt = (e) => {
                   <i v-for="n in tier(item).particles" :key="n" :style="particleStyle(n)"></i>
                 </div>
 
-                <img :src="item.image" :alt="item.name" />
+                <div v-if="item.image && item.image.startsWith('css:')" class="relative z-[2] w-full h-full flex items-center justify-center">
+                  <StudentAvatar :frame="item.image" size="w-32 h-32" class="pointer-events-none transition-transform duration-500 group-hover:scale-110" />
+                </div>
+                <img v-else :src="item.image" :alt="item.name" />
 
                 <div class="rc-foil" aria-hidden="true"></div>
 
@@ -876,7 +881,8 @@ const resetTilt = (e) => {
                 <div class="flex items-center gap-3">
                   <div
                     class="w-12 h-12 rounded-xl bg-stone-950 p-1 flex items-center justify-center shrink-0 border border-white/15">
-                    <img :src="item.image" class="w-full h-full object-contain"
+                    <StudentAvatar v-if="item.itemType === 'frame' || (item.image && (item.image.includes('frame') || item.image.startsWith('css:')))" :frame="item.image" size="w-10 h-10" />
+                    <img v-else :src="item.image" class="w-full h-full object-contain"
                       :class="item.rarity === 'Secret' ? 'brightness-0 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]' : ''" />
                   </div>
                   <div>
@@ -1014,20 +1020,21 @@ const resetTilt = (e) => {
             <h3 class="text-lg font-black text-white mb-6">พรีวิวไอเทม</h3>
 
             <!-- Avatar Preview with Frame -->
-            <div class="relative w-36 h-36 mb-6 flex items-center justify-center">
-              <!-- Frame Overlay (อยู่นอก overflow-hidden เพื่อไม่ให้ขอบของกรอบรูปโดนบัง/ตัดขอบ) -->
-              <img v-if="previewItem.itemType === 'frame'" :src="previewItem.image"
-                class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-2xl z-20 object-contain transition-all duration-300" />
-
-              <!-- Avatar Inner Circle -->
-              <div class="w-full h-full rounded-full bg-stone-800 flex items-center justify-center border-4 border-stone-700 shadow-inner overflow-hidden relative z-10">
-                <img :src="(currentStudent?.avatar && (currentStudent.avatar.includes('/') || currentStudent.avatar.includes('http') || currentStudent.avatar.startsWith('data:'))) ? currentStudent.avatar : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
-              </div>
-
-              <!-- Other Item Type -->
-              <img v-if="previewItem.itemType !== 'frame'" :src="previewItem.image"
-                class="absolute -bottom-2 -right-2 w-16 h-16 object-contain pointer-events-none drop-shadow-xl z-20" />
-            </div>
+            <StudentAvatar
+              :avatar="currentStudent?.avatar"
+              :frame="previewItem.itemType === 'frame' ? previewItem.image : currentStudent?.equippedFrame"
+              :name="currentStudent?.name"
+              size="w-36 h-36"
+              class="mb-6"
+              avatarClass="bg-stone-800"
+              borderClass="border-4 border-stone-700 shadow-inner"
+            >
+              <template #badge>
+                <!-- Other Item Type -->
+                <img v-if="previewItem.itemType !== 'frame'" :src="previewItem.image"
+                  class="absolute -bottom-2 -right-2 w-16 h-16 object-contain pointer-events-none drop-shadow-xl z-30" />
+              </template>
+            </StudentAvatar>
 
             <div class="text-center space-y-2 w-full">
               <div

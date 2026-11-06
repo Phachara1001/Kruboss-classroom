@@ -84,7 +84,7 @@
   overflow: hidden;
 }
 
-.rc-stage img {
+.rc-stage > img {
   position: relative;
   z-index: 2;
   width: 100%;
@@ -94,7 +94,7 @@
   transition: scale .5s ease;
 }
 
-.rc-card:hover .rc-stage img {
+.rc-card:hover .rc-stage > img {
   scale: 1.1;
 }
 

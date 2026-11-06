@@ -4,6 +4,7 @@ import {
   X, RotateCcw, Package, Volume2, VolumeX, FastForward, Check,
   Circle, Leaf, Droplets, Zap, Trophy, Crown, Gem
 } from '@lucide/vue'
+import StudentAvatar from './StudentAvatar.vue'
 
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
@@ -605,8 +606,14 @@ const onImgError = (e) => {
               </div>
               <p class="gx-in mt-3 text-sm text-white/75 sm:text-base" style="--d: .3s">{{ tier.msg }}</p>
 
-              <div ref="focusEl" class="gx-art gx-pop relative mt-6">
-                <img :src="drawnItem.image" :alt="drawnItem.name" class="gx-art-img gx-float" @error="onImgError" />
+              <div ref="focusEl" class="gx-art gx-pop relative mt-6 flex items-center justify-center">
+                <StudentAvatar 
+                  v-if="drawnItem.itemType === 'frame' || (drawnItem.image && (drawnItem.image.startsWith('css:') || drawnItem.image.includes('/frame/')))"
+                  :frame="drawnItem.image"
+                  size="w-40 h-40 sm:w-48 sm:h-48"
+                  class="gx-float"
+                />
+                <img v-else :src="drawnItem.image" :alt="drawnItem.name" class="gx-art-img gx-float" @error="onImgError" />
               </div>
 
               <h1 class="gx-name gx-in mt-8" :class="{ 'gx-shimmer': finalIdx >= 5 }"

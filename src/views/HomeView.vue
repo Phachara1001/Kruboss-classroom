@@ -21,6 +21,7 @@ import { studentsList, isStudent, fetchStudents, isTeacherUser } from '../data/s
 import { questsList, fetchQuests, fetchQuestProgress, getStudentQuestCompletions } from '../data/questsStore'
 import { directShopItems } from '../data/shopStore'
 import AnnouncementModal from '../components/AnnouncementModal.vue'
+import StudentAvatar from '../components/StudentAvatar.vue'
 import { API_BASE_URL } from '@/config/api'
 
 const router = useRouter()
@@ -385,14 +386,13 @@ const deleteComment = async (post, commentId) => {
         <!-- Create Post Card -->
         <div v-if="isLoggedIn" class="bg-white rounded-3xl p-6 shadow-sm border border-emerald-100/50">
           <div class="flex gap-4">
-            <div class="relative w-12 h-12 rounded-2xl shrink-0">
-              <img v-if="authUser.equippedFrame" :src="authUser.equippedFrame"
-                class="absolute inset-0 w-full h-full object-cover z-10 scale-125 pointer-events-none drop-shadow-sm" />
-              <div class="w-full h-full rounded-xl overflow-hidden bg-gray-100">
-                <img :src="(authUser.avatar && (authUser.avatar.includes('/') || authUser.avatar.includes('http') || authUser.avatar.startsWith('data:'))) ? authUser.avatar : '/placeholder_profile.png'"
-                  class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
-              </div>
-            </div>
+            <StudentAvatar
+              :avatar="authUser.avatar"
+              :frame="authUser.equippedFrame"
+              :name="authUser.name"
+              size="w-12 h-12"
+              class="shrink-0"
+            />
             <div class="flex-1 space-y-3">
               <textarea v-model="newPostContent" rows="3"
                 class="w-full bg-gray-50/50 border border-gray-200 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 resize-none transition-all"
@@ -434,13 +434,13 @@ const deleteComment = async (post, commentId) => {
             <!-- Post Header -->
             <div class="flex justify-between items-start mb-4">
               <div class="flex items-center gap-4">
-                <div class="relative w-14 h-14 rounded-2xl shrink-0 mt-1">
-                  <img v-if="post.author.frame" :src="post.author.frame"
-                    class="absolute inset-0 w-full h-full object-cover z-10 scale-125 pointer-events-none drop-shadow-md" />
-                  <div class="w-full h-full rounded-2xl overflow-hidden bg-gray-100">
-                    <img :src="post.author.avatar || '/placeholder_profile.png'" class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
-                  </div>
-                </div>
+                <StudentAvatar
+                  :avatar="post.author.avatar"
+                  :frame="post.author.frame"
+                  :name="post.author.name"
+                  size="w-14 h-14"
+                  class="shrink-0 mt-1"
+                />
                 <div>
                   <div class="flex items-center gap-2">
                     <h4 class="font-bold text-gray-900">{{ post.author.name }}</h4>
@@ -520,9 +520,12 @@ const deleteComment = async (post, commentId) => {
 
               <!-- Comment List -->
               <div v-for="comment in post.commentsList" :key="comment.id" class="flex gap-3 group/comment items-start">
-                <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-100 shrink-0 mt-0.5">
-                  <img :src="comment.avatar || '/placeholder_profile.png'" class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
-                </div>
+                <StudentAvatar
+                  :avatar="comment.avatar"
+                  :name="comment.author"
+                  size="xs"
+                  class="shrink-0 mt-0.5"
+                />
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start justify-between gap-2">
                     <!-- Comment Bubble -->
@@ -558,10 +561,12 @@ const deleteComment = async (post, commentId) => {
 
               <!-- Add Comment Input -->
               <div class="flex gap-3 items-center mt-2" v-if="isLoggedIn">
-                <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-100 shrink-0">
-                  <img :src="(authUser.avatar && (authUser.avatar.includes('/') || authUser.avatar.includes('http') || authUser.avatar.startsWith('data:'))) ? authUser.avatar : '/placeholder_profile.png'"
-                    class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
-                </div>
+                <StudentAvatar
+                  :avatar="authUser.avatar"
+                  :name="authUser.name"
+                  size="xs"
+                  class="shrink-0"
+                />
                 <div class="flex-1 relative">
                   <input v-model="post.newCommentText" @keyup.enter="submitComment(post)" type="text"
                     class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all pr-10"
@@ -604,23 +609,21 @@ const deleteComment = async (post, commentId) => {
                     :class="index === 0 ? 'text-amber-500' : index === 1 ? 'text-gray-400' : 'text-amber-700/80'">
                     {{ index + 1 }}
                   </span>
-                  <div class="relative w-9 h-9 rounded-xl shrink-0">
-                    <img v-if="student.equippedFrame" :src="student.equippedFrame"
-                      class="absolute inset-0 w-full h-full object-cover z-10 scale-125 pointer-events-none drop-shadow-sm" />
-                    <div class="w-full h-full rounded-xl overflow-hidden bg-gray-200"
-                      :class="index === 0 ? 'ring-2 ring-amber-400' : index === 1 ? 'ring-2 ring-gray-300' : 'ring-2 ring-amber-700/40'">
-                      <img
-                        :src="(student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.startsWith('data:'))) ? student.avatar : '/placeholder_profile.png'"
-                        class="w-full h-full object-cover" @error="$event.target.src = '/placeholder_profile.png'" />
-                    </div>
-                  </div>
+                  <StudentAvatar
+                    :avatar="student.avatar"
+                    :frame="student.equippedFrame"
+                    :name="student.name"
+                    size="w-9 h-9"
+                    class="shrink-0"
+                    :borderClass="index === 0 ? 'ring-2 ring-amber-400' : index === 1 ? 'ring-2 ring-gray-300' : 'ring-2 ring-amber-700/40'"
+                  />
                   <div class="truncate min-w-0">
                     <span class="text-sm font-bold text-gray-800 truncate block">{{ student.name }}</span>
                     <span class="text-[10px] text-gray-400 font-medium">รหัส : {{ student.studentId }}</span>
                   </div>
                 </div>
                 <span class="text-xs font-black text-emerald-600 bg-emerald-100/50 px-2.5 py-1 rounded-lg shrink-0">
-                  {{ student.coins || 0 }} 🪙
+                  {{ student.coins || 0 }} Coins
                 </span>
               </div>
               <div v-if="topStudents.length === 0" class="text-center py-4 text-xs text-stone-400 font-medium">
@@ -678,8 +681,8 @@ const deleteComment = async (post, commentId) => {
                   <div v-for="(rew, rIdx) in (quest.rewards || []).slice(0, 2)" :key="rIdx"
                     class="flex flex-col items-center justify-center bg-stone-50 border border-stone-200 rounded-lg w-8 h-8 shadow-sm">
                     <span v-if="rew.type === 'coin'" class="text-sm leading-none -mt-0.5">🪙</span>
-                    <img v-else-if="rew.type === 'frame'" :src="getRewardFrameImage(rew.itemId)"
-                      class="w-3.5 h-3.5 object-contain" onerror="this.style.display='none'" />
+                    <StudentAvatar v-else-if="rew.type === 'frame'" :frame="getRewardFrameImage(rew.itemId)"
+                      size="w-4 h-4" class="pointer-events-none" />
                     <span v-else class="text-xs leading-none">🎁</span>
                     <span class="text-[7px] font-black text-stone-600 mt-0.5">
                       {{ rew.type === 'coin' ? `x${rew.amount}` : 'x1' }}

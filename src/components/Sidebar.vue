@@ -1,10 +1,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { BookOpen, Home, Settings, Users, ChevronLeft, ChevronRight, GraduationCap, Wrench, Contact, CalendarDays, Award, ShoppingBag, Package, LogOut, User, BarChart2, MoreVertical, ShieldAlert, Target, Coins } from '@lucide/vue'
+import { BookOpen, Home, Settings, Users, ChevronLeft, ChevronRight, GraduationCap, Wrench, Contact, CalendarDays, Award, ShoppingBag, Package, LogOut, User, BarChart2, MoreVertical, ShieldAlert, Target, Coins, FileText } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
 import { studentsList, isTeacherUser } from '../data/studentsStore'
 import MyProfileModal from './MyProfileModal.vue'
 import ResetPasswordRequestsModal from './ResetPasswordRequestsModal.vue'
+import StudentAvatar from './StudentAvatar.vue'
 import { passwordResetRequests, fetchPasswordResetRequests } from '../data/authStore'
 
 const props = defineProps({
@@ -47,7 +48,8 @@ const navGroups = [
     name: 'กาชาและของรางวัล',
     items: [
       { name: 'ร้านค้าและกล่องสุ่ม', path: '/shop', icon: ShoppingBag, roles: ['teacher', 'student'] },
-      { name: 'กระเป๋าไอเทม', path: '/inventory', icon: Package, roles: ['teacher', 'student'] }
+      { name: 'กระเป๋าไอเทม', path: '/inventory', icon: Package, roles: ['teacher', 'student'] },
+      { name: 'ประวัติการใช้เหรียญ', path: '/wallet', icon: FileText, roles: ['teacher', 'student'] }
     ]
   }
 ]
@@ -227,15 +229,17 @@ const openProfileEdit = () => {
 
       <div @click="toggleProfileMenu" class="p-3.5 border-t border-emerald-800/70 bg-emerald-950/60 backdrop-blur-xs flex items-center cursor-pointer hover:bg-emerald-900/80 transition-all select-none"
         :class="{ 'justify-center': isCollapsed }">
-        <div class="relative w-10 h-10 shrink-0">
-          <!-- Frame -->
-          <img v-if="activeFrame" :src="activeFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-sm z-10" />
-          <div class="w-full h-full rounded-full bg-emerald-200 flex items-center justify-center text-emerald-900 font-bold overflow-hidden border border-emerald-400 relative z-0">
-            <img :src="(currentUser?.avatar && (currentUser.avatar.includes('/') || currentUser.avatar.includes('http') || currentUser.avatar.startsWith('data:'))) ? currentUser.avatar : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
-          </div>
-          <!-- Notification Badge -->
-          <div v-if="isTeacher && pendingRequestsCount > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 border-2 border-emerald-950 rounded-full animate-pulse z-20"></div>
-        </div>
+        <StudentAvatar
+          :avatar="currentUser?.avatar"
+          :frame="activeFrame"
+          :name="currentUser?.name"
+          size="sm"
+          avatarClass="bg-emerald-200 text-emerald-900 border-emerald-400"
+        >
+          <template #badge>
+            <div v-if="isTeacher && pendingRequestsCount > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 border-2 border-emerald-950 rounded-full animate-pulse z-20"></div>
+          </template>
+        </StudentAvatar>
         
         <div v-if="!isCollapsed" class="ml-3 overflow-hidden flex-1 flex items-center justify-between">
           <div class="min-w-0">

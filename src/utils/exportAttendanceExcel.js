@@ -2,7 +2,7 @@ import * as xlsx from "xlsx";
 import ExcelJS from "exceljs";
 import { courses } from "@/data/courses";
 import { isStudent, isStudentInCourse } from "@/data/studentsStore";
-import { attendanceStore, checkInSessionsStore } from "@/data/gradesStore";
+import { attendanceStore, checkInSessionsStore, isWeekHoliday } from "@/data/gradesStore";
 
 /**
  * ส่งออกตารางการเข้าเรียนโดยดึงไฟล์ Template จริง: public/Student_CheckIn_Template.xls
@@ -31,12 +31,13 @@ const WEEK_COLS = 15; // N..AB = week 1..15
 const LAST_COL = 27; // AB
 const COL_FOOTER_SUMMARY = 11; // L
 
-// สัญลักษณ์ตามคำอธิบายใน Template: / เข้าเรียน | X ขาด | ล ลา | ส มาสาย
+// สัญลักษณ์ตามคำอธิบายใน Template: / เข้าเรียน | X ขาด | ล ลา | ส มาสาย | ห วันหยุดราชการ
 const ATTENDANCE_SYMBOL = {
   present: "/",
   absent: "X",
   leave: "ล",
   late: "ส",
+  holiday: "ห",
 };
 
 export const getAttendanceSymbol = (status) => ATTENDANCE_SYMBOL[status] ?? "";
@@ -45,6 +46,8 @@ export const getAttendanceSymbol = (status) => ATTENDANCE_SYMBOL[status] ?? "";
  * ดึงสถานะการเช็คชื่อของนักศึกษาในสัปดาห์นั้นๆ
  */
 export const getStudentWeekAttendance = (courseId, studentId, week) => {
+  if (isWeekHoliday(courseId, week)) return "holiday";
+
   const key = `${courseId}_${studentId}_${week}`;
   const rec = attendanceStore.value[key];
   if (rec && rec.status) return rec.status;

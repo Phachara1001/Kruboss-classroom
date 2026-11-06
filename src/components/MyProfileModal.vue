@@ -6,6 +6,7 @@ import { getStudentItems, directShopItems, fetchStudentInventory } from '../data
 import { authUser, updateAuthUser } from '../data/authStore'
 import { useRouter } from 'vue-router'
 import ImageCropperModal from './ImageCropperModal.vue'
+import StudentAvatar from './StudentAvatar.vue'
 import { API_UPLOAD_URL } from '@/config/api'
 
 const props = defineProps({
@@ -212,11 +213,13 @@ const getFrameName = (id) => {
           <div
             class="px-6 py-5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
-              <div class="relative w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-md shadow-sm border border-white/30 shrink-0 overflow-hidden z-0">
-                <!-- Frame overlay in header -->
-                <img v-if="activeFrame" :src="activeFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-md z-10" />
-                <img :src="avatar && (avatar.startsWith('data:') || avatar.includes('/') || avatar.includes('http')) ? avatar : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
-              </div>
+              <StudentAvatar
+                :avatar="avatar"
+                :frame="activeFrame"
+                size="md"
+                avatarClass="bg-white/20 text-white backdrop-blur-md"
+                borderClass="border border-white/30"
+              />
               <div>
                 <h3 class="font-black text-lg text-white leading-tight">โปรไฟล์ของฉัน</h3>
                 <p class="text-xs text-emerald-100">ปรับแต่งข้อมูลและรูปโปรไฟล์ของคุณ</p>
@@ -270,19 +273,22 @@ const getFrameName = (id) => {
 
             <!-- Profile Picture Upload -->
             <div class="p-4 bg-stone-50 rounded-2xl border border-stone-200 flex flex-col items-center justify-center gap-3">
-              <div class="relative w-20 h-20 group">
-                <img v-if="activeFrame" :src="activeFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-md z-10" />
-                <div class="w-full h-full rounded-full bg-white flex items-center justify-center text-3xl font-black text-stone-700 border-2 border-white shadow-sm overflow-hidden relative z-0">
-                  <img :src="avatar && (avatar.startsWith('data:') || avatar.includes('/') || avatar.includes('http')) ? avatar : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
-                  
-                  <!-- Overlay for upload -->
+              <StudentAvatar
+                :avatar="avatar"
+                :frame="activeFrame"
+                size="lg"
+                class="group cursor-pointer"
+                borderClass="border-2 border-white shadow-sm"
+              >
+                <!-- Overlay for upload -->
+                <template #overlay>
                   <label class="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                     <ImageIcon class="w-5 h-5 mb-0.5" />
                     <span class="text-[9px] font-bold">เปลี่ยนรูป</span>
                     <input type="file" accept="image/*" class="hidden" @change="handleFileSelect" />
                   </label>
-                </div>
-              </div>
+                </template>
+              </StudentAvatar>
               <p class="text-[10px] text-stone-500 text-center max-w-[200px] leading-tight">
                 คลิกที่รูปเพื่ออัปโหลดโปรไฟล์ใหม่ <br/><span class="text-stone-400">(ระบบจะให้คุณปรับสัดส่วนรูป 1:1)</span>
               </p>
@@ -292,7 +298,7 @@ const getFrameName = (id) => {
                 <label class="block text-[10px] font-bold text-stone-700 flex items-center gap-1.5 justify-center">
                   <Smile class="w-3 h-3 text-stone-500" /> หรือตั้งเป็นตัวอักษร/Emoji
                 </label>
-                <input v-model="avatar" type="text" placeholder="เช่น น, A, 🐱"
+                <input v-model="avatar" type="text" placeholder="เช่น น, A, K"
                   class="w-full px-3 py-1.5 text-center bg-white border border-stone-300 rounded-xl text-xs focus:ring-2 focus:ring-teal-500 focus:bg-white outline-none" />
               </div>
               <div v-else class="w-full mt-2 flex justify-center">

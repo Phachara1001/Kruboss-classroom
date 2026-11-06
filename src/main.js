@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import './style.css'
+import './assets/avatar-frames.css'
 import App from './App.vue'
 import router from './router'
 

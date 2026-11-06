@@ -4,12 +4,14 @@ import { authUser } from '@/data/authStore'
 import { 
   attendanceStore, setAttendanceCheckIn, 
   checkInSessionsStore, openCheckInSession, closeCheckInSession, cancelCheckInSession,
-  fetchCheckInSessions, fetchAttendance
+  fetchCheckInSessions, fetchAttendance,
+  isWeekHoliday, getWeekHoliday, setWeekHoliday
 } from '@/data/gradesStore'
 import { courses } from '@/data/courses'
 import { 
   CheckCircle, XCircle, Clock, MousePointer2, 
-  Settings, Power, AlertCircle, RotateCcw, Calendar, FileSpreadsheet
+  Settings, Power, AlertCircle, RotateCcw, Calendar, FileSpreadsheet,
+  CalendarOff
 } from '@lucide/vue'
 import { addCoins } from '@/data/shopStore'
 import { studentsList, isTeacherUser } from '@/data/studentsStore'
@@ -77,11 +79,29 @@ watch(openSessionEntry, (newVal) => {
 
 // Helper: check week status label for dropdown
 const getWeekStatusText = (w) => {
+  if (isWeekHoliday(props.courseId, w)) {
+    const h = getWeekHoliday(props.courseId, w)
+    return `(วันหยุด: ${h?.name || 'วันหยุดราชการ'})`
+  }
   const key = `${props.courseId}_${w}`
   const sess = checkInSessionsStore.value[key]
   if (sess?.isOpen) return '(กำลังเปิดเช็คชื่อ)'
   if (sess?.endTime) return '(เคยบันทึกแล้ว)'
   return '(ยังไม่เคยเช็ค)'
+}
+
+// Holiday state for active week
+const isHolidayWeek = computed(() => {
+  return isWeekHoliday(props.courseId, activeWeek.value)
+})
+
+const activeWeekHoliday = computed(() => {
+  return getWeekHoliday(props.courseId, activeWeek.value)
+})
+
+const handleRemoveHoliday = async () => {
+  if (!confirm(`ต้องการยกเลิกวันหยุดราชการของสัปดาห์ที่ ${activeWeek.value} และเปิดให้เช็คชื่อตามปกติใช่หรือไม่?`)) return
+  await setWeekHoliday(props.courseId, activeWeek.value, false)
 }
 
 // Student Attendance State for active week
@@ -228,6 +248,21 @@ onUnmounted(() => {
           <Clock class="w-4 h-4 animate-spin text-emerald-400" />
           <span>เวลาที่เปิดไปแล้ว: {{ getDuration(currentSession?.startTime) }}</span>
         </p>
+
+        <!-- Holiday Notice for Teacher -->
+        <div v-if="isHolidayWeek" class="p-3 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <CalendarOff class="w-4 h-4 text-rose-400 shrink-0" />
+            <span>สัปดาห์ที่ {{ activeWeek }} ถูกกำหนดเป็น: <strong>{{ activeWeekHoliday?.name || 'วันหยุดราชการ' }}</strong> (ไม่มีการหักคะแนนจิตพิสัย)</span>
+          </div>
+          <button
+            @click="handleRemoveHoliday"
+            type="button"
+            class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs transition-all cursor-pointer shrink-0"
+          >
+            ยกเลิกวันหยุด
+          </button>
+        </div>
       </div>
       
       <!-- Action Buttons -->
@@ -282,7 +317,34 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- ================= STUDENT VIEW ================= -->
+    <!-- ================= STUDENT VIEW: HOLIDAY ================= -->
+    <div v-else-if="isHolidayWeek" class="bg-gradient-to-r from-rose-600 via-rose-700 to-orange-600 rounded-3xl p-6 md:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+      <!-- Background Graphic -->
+      <div class="absolute -right-10 -top-10 opacity-15 pointer-events-none">
+        <CalendarOff class="w-48 h-48" />
+      </div>
+      
+      <div class="relative z-10 space-y-2 text-center md:text-left">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold mb-0.5">
+          <CalendarOff class="w-3.5 h-3.5" />
+          <span>วันหยุดราชการ</span>
+        </div>
+        <h2 class="text-2xl font-black flex items-center justify-center md:justify-start gap-2">
+          สัปดาห์ที่ {{ activeWeek }}: {{ activeWeekHoliday?.name || 'วันหยุดราชการ' }}
+        </h2>
+        <p class="text-rose-100 text-sm">
+          สัปดาห์นี้ไม่มีการเรียนการสอนและการเช็คชื่อเข้าเรียน (ไม่หักคะแนนจิตพิสัยของนักศึกษาทุกคน)
+        </p>
+      </div>
+
+      <div class="relative z-10 shrink-0 text-center">
+        <div class="bg-white/15 backdrop-blur-md rounded-2xl p-4 border border-white/25 text-white font-bold flex items-center justify-center gap-2 text-base">
+          <CalendarOff class="w-5 h-5 text-rose-200" /> งดการเช็คชื่อเข้าเรียน
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= STUDENT VIEW: NORMAL ================= -->
     <div v-else class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-6 md:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
       
       <!-- Background Graphic -->

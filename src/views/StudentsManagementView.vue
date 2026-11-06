@@ -35,6 +35,7 @@ import {
 import AddStudentModal from '@/components/AddStudentModal.vue'
 import EditStudentProfileModal from '@/components/EditStudentProfileModal.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import StudentAvatar from '@/components/StudentAvatar.vue'
 
 const courseIcons = {
   '31901-2007': Database,
@@ -429,12 +430,14 @@ const handleExecuteBatchEnroll = () => {
               <!-- Name & Avatar -->
               <td class="py-3.5 px-4">
                 <div class="flex items-center gap-3">
-                  <div class="relative w-10 h-10 shrink-0">
-                    <img v-if="student.equippedFrame" :src="student.equippedFrame" class="absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-sm z-10" />
-                    <div class="w-full h-full rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center border border-emerald-200 text-sm relative z-0 overflow-hidden">
-                      <img :src="(student.avatar && (student.avatar.includes('/') || student.avatar.includes('http') || student.avatar.includes('localhost') || student.avatar.startsWith('data:'))) ? (student.avatar.startsWith('http') ? student.avatar : (student.avatar.startsWith('data:') ? student.avatar : `http://${student.avatar}`)) : '/placeholder_profile.png'" class="w-full h-full object-cover object-top" @error="$event.target.src = '/placeholder_profile.png'" />
-                    </div>
-                  </div>
+                  <StudentAvatar
+                    :avatar="student.avatar"
+                    :frame="student.equippedFrame"
+                    :name="student.name"
+                    size="w-10 h-10"
+                    avatarClass="bg-emerald-100 text-emerald-800"
+                    borderClass="border border-emerald-200"
+                  />
                   <div>
                     <span class="font-bold text-stone-900 block text-sm">{{ student.name }}</span>
                     <span class="text-stone-400 text-[11px]">
