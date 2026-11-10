@@ -10,17 +10,13 @@ import {
   Trophy, Lock, FileSpreadsheet, AlertCircle, Coffee
 } from '@lucide/vue'
 
-import DragDropGame from '@/components/games/DragDropGame.vue'
-import MatchingGame from '@/components/games/MatchingGame.vue'
-import PopQuiz from '@/components/games/PopQuiz.vue'
-import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
+import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
 
 import { authUser } from '@/data/authStore'
 import { isStudent, isTeacherUser } from '@/data/studentsStore'
-import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 const router = useRouter()
 
@@ -31,7 +27,7 @@ const currentWeek = 1
 // Modal States
 const showPdfModal = ref(false)
 const showSubmitModal = ref(false)
-const showTeacherModal = ref(false)
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 
 // Grading Criteria Data (เหมือนกับวิชาอื่นๆ: 20 - 40 - 20 - 20 รวม 100)
 const grading = [
@@ -40,33 +36,6 @@ const grading = [
   { name: 'สอบกลางภาค (Midterm Practical)', score: 20, color: 'bg-blue-600' },
   { name: 'สอบปลายภาค (Final Presentation)', score: 20, color: 'bg-cyan-700' }
 ]
-
-// Week Games Config
-const weekGames = [
-  { id: 'game-1', name: 'มินิเกม 1 (บทบาทสายงานข้อมูล Data Roles)', maxScore: 6, isQuiz: false },
-  { id: 'game-2', name: 'มินิเกม 2 (ระดับของการวิเคราะห์ข้อมูล)', maxScore: 5, isQuiz: false },
-  { id: 'quiz', name: 'แบบทดสอบหลังเรียน (Post-test 10 ข้อ)', maxScore: 10, isQuiz: true }
-]
-
-onMounted(() => {
-  fetchGameScores(currentCourseId, currentWeek)
-})
-
-const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
-const isTeacher = computed(() => isTeacherUser(authUser.value))
-
-const studentWeekScores = computed(() => {
-  if (!currentStudentId.value) return {}
-  const key = `${currentCourseId}_${currentWeek}_${currentStudentId.value}`
-  return gameScoresStore.value[key]?.scores || {}
-})
-
-const studentNorm = computed(() => {
-  return calculateNormalizedScore(studentWeekScores.value, weekGames)
-})
-
-// Mini-game State
-const activeGame = ref('sort') // 'sort' | 'match' | 'quiz'
 
 // Game 1: Drag & Drop (Data Careers / Roles)
 const dragItemsData = [
@@ -885,173 +854,23 @@ const quizQuestions = [
       </div>
     </section>
 
-    <!-- Mini-Games & Interactive Lab Section (Identical design to other courses) -->
-    <section class="space-y-6">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="p-3 bg-sky-100 rounded-xl text-sky-600 shadow-sm">
-            <Gamepad2 class="w-6 h-6" />
-          </div>
-          <div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน
-            </h2>
-            <p class="text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10
-              คะแนน</p>
-          </div>
-        </div>
-
-        <!-- Teacher Scoreboard Button -->
-        <button v-if="isTeacher" @click="showTeacherModal = true"
-          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-sky-900 to-blue-900 hover:from-sky-800 hover:to-blue-800 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-sky-700 shrink-0">
-          <FileSpreadsheet class="w-4 h-4 text-amber-400" />
-          <span>ดูตารางคะแนนมินิเกม (สำหรับคุณครู)</span>
-        </button>
-      </div>
-
-      <!-- Student Score Summary Banner -->
-      <div class="rounded-2xl border border-sky-100 bg-white p-5 shadow-sm">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-          <div>
-            <span class="text-xs font-bold text-sky-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่
-              1</span>
-            <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
-              <span>สถานะ:</span>
-              <span v-if="studentNorm.isAllCompleted"
-                class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                ✓ ทำครบทุกกิจกรรมแล้ว (3/3)
-              </span>
-              <span v-else-if="studentNorm.completedCount > 0"
-                class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                ⏳ กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
-              </span>
-              <span v-else
-                class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
-                ยังไม่ได้เริ่มทำ
-              </span>
-            </div>
-          </div>
-
-          <!-- Total Normalized Score (Scaled to 10) -->
-          <div
-            class="flex items-center gap-3 bg-gradient-to-r from-sky-50 to-blue-50 px-4 py-2.5 rounded-xl border border-sky-100">
-            <Trophy class="w-7 h-7 text-amber-500 shrink-0" />
-            <div>
-              <span class="text-xs text-sky-900 font-semibold block">คะแนนรวมทั้งหมด (หารเฉลี่ยเต็ม 10)</span>
-              <div class="text-xl font-black text-sky-950 leading-tight">
-                <span>{{ studentNorm.normalized }}</span>
-                <span class="text-xs font-bold text-gray-400"> / 10.0 คะแนน</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3 Activity Status Badges -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-xs font-medium">
-          <!-- Game 1 -->
-          <div :class="[
-            'p-3 rounded-xl border flex items-center justify-between',
-            studentWeekScores['game-1'] ? 'bg-sky-50/70 border-sky-200 text-sky-900' : 'bg-gray-50 border-gray-200 text-gray-600'
-          ]">
-            <div>
-              <span class="font-bold block">1. บทบาทสายงานข้อมูล</span>
-              <span class="text-[11px] text-gray-500">เต็ม 6 คะแนน</span>
-            </div>
-            <span class="font-black text-sm">
-              {{ studentWeekScores['game-1'] ? `${studentWeekScores['game-1'].score} / 6` : 'ยังไม่ได้เล่น' }}
-            </span>
-          </div>
-
-          <!-- Game 2 -->
-          <div :class="[
-            'p-3 rounded-xl border flex items-center justify-between',
-            studentWeekScores['game-2'] ? 'bg-indigo-50/70 border-indigo-200 text-indigo-900' : 'bg-gray-50 border-gray-200 text-gray-600'
-          ]">
-            <div>
-              <span class="font-bold block">2. ระดับการวิเคราะห์ข้อมูล</span>
-              <span class="text-[11px] text-gray-500">เต็ม 5 คะแนน</span>
-            </div>
-            <span class="font-black text-sm">
-              {{ studentWeekScores['game-2'] ? `${studentWeekScores['game-2'].score} / 5` : 'ยังไม่ได้เล่น' }}
-            </span>
-          </div>
-
-          <!-- Post-test -->
-          <div :class="[
-            'p-3 rounded-xl border flex items-center justify-between',
-            studentWeekScores['quiz'] ? 'bg-cyan-50/70 border-cyan-200 text-cyan-900' : 'bg-gray-50 border-gray-200 text-gray-600'
-          ]">
-            <div>
-              <span class="font-bold block">3. แบบทดสอบหลังเรียน 10 ข้อ</span>
-              <span class="text-[11px] text-gray-500">เต็ม 10 คะแนน</span>
-            </div>
-            <span class="font-black text-sm">
-              {{ studentWeekScores['quiz'] ? `${studentWeekScores['quiz'].score} / 10` : 'ยังไม่ได้ทำ' }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Game Tabs (มินิเกม -> มินิเกม -> สุดท้ายคือแบบทดสอบหลังเรียน) -->
-      <div class="flex flex-wrap gap-3">
-        <button @click="activeGame = 'sort'" :class="[
-          activeGame === 'sort' ? 'bg-sky-600 text-white shadow-lg scale-105' : 'bg-white text-sky-700 hover:bg-sky-50 border border-sky-200',
-          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
-        ]">
-          <MousePointer2 class="w-4 h-4" />
-          <span>มินิเกมที่ 1: บทบาทสายงานข้อมูล</span>
-          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
-            บันทึกแล้ว</span>
-        </button>
-
-        <button @click="activeGame = 'match'" :class="[
-          activeGame === 'match' ? 'bg-indigo-600 text-white shadow-lg scale-105' : 'bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200',
-          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
-        ]">
-          <ListOrdered class="w-4 h-4" />
-          <span>มินิเกมที่ 2: ระดับการวิเคราะห์ข้อมูล</span>
-          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
-            บันทึกแล้ว</span>
-        </button>
-
-        <button @click="activeGame = 'quiz'" :class="[
-          activeGame === 'quiz' ? 'bg-cyan-600 text-white shadow-lg scale-105' : 'bg-white text-cyan-700 hover:bg-cyan-50 border border-cyan-200',
-          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
-        ]">
-          <FileQuestion class="w-4 h-4" />
-          <span>กิจกรรมสุดท้าย: แบบทดสอบหลังเรียน (Post-test 10 ข้อ)</span>
-          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓
-            บันทึกแล้ว</span>
-        </button>
-      </div>
-
-      <!-- Game 1: Drag & Drop (Data Careers / Roles) -->
-      <DragDropGame v-if="activeGame === 'sort'" :course-id="currentCourseId" :week="currentWeek" game-id="game-1"
-        game-title="เกมลากวาง: จำแนกบทบาทสายงานข้อมูล (Data Roles)"
-        title="ลากแล้ววาง: จำแนกบทบาทสายงานข้อมูล (Data Roles)"
-        subtitle="ลากลักษณะงานและหน้าที่ด้านล่างไปใส่กล่องอาชีพสายงานข้อมูลให้ถูกต้องครบทั้ง 3 สายงาน!"
-        :initialItems="dragItemsData" :zones="dragZonesData" />
-
-      <!-- Game 2: Matching Game -->
-      <MatchingGame v-if="activeGame === 'match'" :course-id="currentCourseId" :week="currentWeek" game-id="game-2"
-        game-title="เกมจับคู่: ระดับของการวิเคราะห์ข้อมูล (Types of Analytics)"
-        title="ระดับของการวิเคราะห์ข้อมูล & ธรรมาภิบาล"
-        subtitle="จับคู่ระดับการวิเคราะห์ข้อมูลทางธุรกิจด้านซ้าย กับนิยามและวัตถุประสงค์ด้านขวาให้ถูกต้องครบ 5 คู่"
-        :initialLeftTerms="matchLeftTerms" :initialRightDefs="matchRightDefs" />
-
-      <!-- Game 3: Pop Quiz (Post-test) -->
-      <PopQuiz v-if="activeGame === 'quiz'" :course-id="currentCourseId" :week="currentWeek" game-id="quiz"
-        game-title="แบบทดสอบหลังเรียน Week 1 (Data Analytics & Visualization)"
-        title="แบบทดสอบหลังเรียน: สัปดาห์ที่ 1 (Data Analytics)"
-        subtitle="แบบทดสอบ 4 ตัวเลือก 10 ข้อ วัดความเข้าใจรอบด้าน ทำได้เพียงครั้งเดียวเท่านั้น"
-        :questions="quizQuestions">
-        <template #actions>
-          <RouterLink to="/courses"
-            class="px-8 py-4 bg-sky-500 border-2 border-sky-400 text-white font-bold rounded-xl hover:bg-sky-400 transition-all shadow-[0_0_20px_rgba(56,189,248,0.4)] flex items-center gap-2">
-            กลับสู่หน้ารายวิชา
-          </RouterLink>
-        </template>
-      </PopQuiz>
-    </section>
+    <!-- Mini-Games & Interactive Lab Section -->
+    <GameCenterSection
+      :course-id="currentCourseId"
+      :week="currentWeek"
+      drag-title="ลากแล้ววาง: จำแนกบทบาทสายงานข้อมูล (Data Roles)"
+      drag-subtitle="ลากลักษณะงานและหน้าที่ด้านล่างไปใส่กล่องอาชีพสายงานข้อมูลให้ถูกต้องครบทั้ง 3 สายงาน!"
+      drag-tab-label="มินิเกมที่ 1: บทบาทสายงานข้อมูล"
+      :drag-items="dragItemsData"
+      :drag-zones="dragZonesData"
+      match-title="ระดับของการวิเคราะห์ข้อมูล & ธรรมาภิบาล"
+      match-subtitle="จับคู่ระดับการวิเคราะห์ข้อมูลทางธุรกิจด้านซ้าย กับนิยามและวัตถุประสงค์ด้านขวาให้ถูกต้องครบ 5 คู่"
+      match-tab-label="มินิเกมที่ 2: ระดับการวิเคราะห์ข้อมูล"
+      :match-left-terms="matchLeftTerms"
+      :match-right-defs="matchRightDefs"
+      quiz-title="แบบทดสอบหลังเรียน: สัปดาห์ที่ 1 (Data Analytics)"
+      :quiz-questions="quizQuestions"
+    />
 
     <!-- Assignment Section (Identical design to other courses) -->
     <!-- Assignment Section (Identical design to other courses) -->
@@ -1396,10 +1215,6 @@ const quizQuestions = [
         </div>
       </div>
     </AssignmentPdfModal>
-
-    <!-- Teacher Scoreboard Modal -->
-    <TeacherScoreboardModal :is-open="showTeacherModal" :course-id="currentCourseId" :week="currentWeek"
-      :games="weekGames" @close="showTeacherModal = false" />
 
   </div>
 </template>

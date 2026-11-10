@@ -126,7 +126,7 @@ export const courseAssignments = {
     {
       id: "asm-3",
       week: 3,
-      title: "ใบงานที่ 3: ตรวจสอบคุณภาพข้อมูล 5 มิติ (Data Quality)",
+      title: "ใบงานที่ 3: ปฏิบัติการตรวจสอบคุณภาพข้อมูลและช่วยกัน Clean ชุดข้อมูลองค์กร 500 แถว (Data Quality & Data Wrangling Workshop)",
       maxScore: 10,
     },
     {
@@ -157,8 +157,8 @@ export const courseAssignments = {
     },
     {
       id: "asm-3",
-      week: 6,
-      title: "ใบงานที่ 3: การเชื่อมต่อเซนเซอร์วัดอุณหภูมิและความชื้น (DHT)",
+      week: 3,
+      title: "ใบงานที่ 3: ระบบปุ่มกดควบคุมสถานะสัญญาณเตือนภัย (Push Button, State & Buzzer Controller) บน Tinkercad",
       maxScore: 10,
     },
     {

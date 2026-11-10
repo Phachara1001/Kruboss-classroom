@@ -12,46 +12,17 @@ import {
   Sparkles, RotateCw, ArrowRight, Gauge, Boxes, Tag, BookOpen
 } from '@lucide/vue'
 
-import DragDropGame from '@/components/games/DragDropGame.vue'
-import MatchingGame from '@/components/games/MatchingGame.vue'
-import PopQuiz from '@/components/games/PopQuiz.vue'
-import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
+import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 
 import { authUser } from '@/data/authStore'
 import { isStudent, isTeacherUser } from '@/data/studentsStore'
-import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 // Course Context
 const currentCourseId = '21901-2007'
 const currentWeek = 2
-const showTeacherModal = ref(false)
-
-// Week Games Config
-const weekGames = [
-  { id: 'game-1', name: 'มินิเกม 1 (จัดกลุ่มคำสั่ง C++ และ Function)', maxScore: 6, isQuiz: false },
-  { id: 'game-2', name: 'มินิเกม 2 (จับคู่คำสั่งและแนวคิดวงจรไฟวิ่ง)', maxScore: 5, isQuiz: false },
-  { id: 'quiz', name: 'แบบทดสอบหลังเรียนสัปดาห์ที่ 2 (Post-test 10 ข้อ)', maxScore: 10, isQuiz: true }
-]
-
-onMounted(() => {
-  fetchGameScores(currentCourseId, currentWeek)
-})
-
-const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
 const isTeacher = computed(() => isTeacherUser(authUser.value))
-
-const studentWeekScores = computed(() => {
-  if (!currentStudentId.value) return {}
-  const key = `${currentCourseId}_${currentWeek}_${currentStudentId.value}`
-  return gameScoresStore.value[key]?.scores || {}
-})
-
-const studentNorm = computed(() => {
-  return calculateNormalizedScore(studentWeekScores.value, weekGames)
-})
-
 const router = useRouter()
 
 // Tinkercad Section Data
@@ -908,176 +879,22 @@ const quizQuestions = [
     </section>
 
     <!-- Interactive Game Center -->
-    <section class="space-y-6">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="p-3 bg-orange-100 rounded-2xl text-orange-600 shadow-sm">
-            <Gamepad2 class="w-6 h-6" />
-          </div>
-          <div>
-            <h2 class="text-2xl sm:text-3xl font-black text-gray-900">Game Center: ทดสอบความเข้าใจหัวข้อที่ 2</h2>
-            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน</p>
-          </div>
-        </div>
-
-        <!-- Teacher Scoreboard Button -->
-        <button v-if="isTeacher" @click="showTeacherModal = true"
-          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-orange-900 to-amber-900 hover:from-orange-800 hover:to-amber-800 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-orange-700 shrink-0">
-          <FileSpreadsheet class="w-4 h-4 text-orange-400" />
-          <span>ดูตารางคะแนนมินิเกม (สำหรับคุณครู)</span>
-        </button>
-      </div>
-
-      <!-- Student Score Summary Banner -->
-      <div class="rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-          <div>
-            <span class="text-xs font-bold text-orange-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำหัวข้อที่ 2</span>
-            <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
-              <span>สถานะ:</span>
-              <span v-if="studentNorm.isAllCompleted" class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
-                <CheckCircle class="w-3.5 h-3.5" /> ทำครบทุกกิจกรรมแล้ว (3/3)
-              </span>
-              <span v-else-if="studentNorm.completedCount > 0" class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 inline-flex items-center gap-1">
-                <Activity class="w-3.5 h-3.5" /> กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
-              </span>
-              <span v-else class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
-                ยังไม่ได้เริ่มทำ
-              </span>
-            </div>
-          </div>
-
-          <!-- Total Normalized Score (Scaled to 10) -->
-          <div class="flex items-center gap-3 bg-gradient-to-r from-orange-50 to-amber-50 px-4 py-2.5 rounded-2xl border border-orange-100">
-            <Trophy class="w-7 h-7 text-orange-500 shrink-0" />
-            <div>
-              <span class="text-xs text-orange-900 font-semibold block">คะแนนรวมทั้งหมด (หารเฉลี่ยเต็ม 10)</span>
-              <div class="text-xl font-black text-orange-950 leading-tight">
-                <span>{{ studentNorm.normalized }}</span>
-                <span class="text-xs font-bold text-gray-400"> / 10.0 คะแนน</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3 Activity Status Badges -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-xs font-medium">
-          <!-- Game 1 -->
-          <div :class="[
-            'p-3.5 rounded-2xl border flex items-center justify-between',
-            studentWeekScores['game-1'] ? 'bg-indigo-50/70 border-indigo-200 text-indigo-900' : 'bg-gray-50 border-gray-200 text-gray-600'
-          ]">
-            <div>
-              <span class="font-bold block">1. จัดกลุ่มคำสั่ง C++ และ Function</span>
-              <span class="text-[11px] text-gray-500">เต็ม 6 คะแนน</span>
-            </div>
-            <span class="font-black text-sm">
-              {{ studentWeekScores['game-1'] ? `${studentWeekScores['game-1'].score} / 6` : 'ยังไม่ได้เล่น' }}
-            </span>
-          </div>
-
-          <!-- Game 2 -->
-          <div :class="[
-            'p-3.5 rounded-2xl border flex items-center justify-between',
-            studentWeekScores['game-2'] ? 'bg-cyan-50/70 border-cyan-200 text-cyan-900' : 'bg-gray-50 border-gray-200 text-gray-600'
-          ]">
-            <div>
-              <span class="font-bold block">2. จับคู่คำสั่งและแนวคิดไฟวิ่ง</span>
-              <span class="text-[11px] text-gray-500">เต็ม 5 คะแนน</span>
-            </div>
-            <span class="font-black text-sm">
-              {{ studentWeekScores['game-2'] ? `${studentWeekScores['game-2'].score} / 5` : 'ยังไม่ได้เล่น' }}
-            </span>
-          </div>
-
-          <!-- Post-test -->
-          <div :class="[
-            'p-3.5 rounded-2xl border flex items-center justify-between',
-            studentWeekScores['quiz'] ? 'bg-orange-50/70 border-orange-200 text-orange-900' : 'bg-gray-50 border-gray-200 text-gray-600'
-          ]">
-            <div>
-              <span class="font-bold block">3. แบบทดสอบหลังเรียน 10 ข้อ</span>
-              <span class="text-[11px] text-gray-500">เต็ม 10 คะแนน</span>
-            </div>
-            <span class="font-black text-sm">
-              {{ studentWeekScores['quiz'] ? `${studentWeekScores['quiz'].score} / 10` : 'ยังไม่ได้ทำ' }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Game Tabs -->
-      <div class="flex flex-wrap gap-3">
-        <button @click="activeGame = 'sort'" :class="[
-          activeGame === 'sort' ? 'bg-indigo-600 text-white shadow-lg scale-105' : 'bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200',
-          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
-        ]">
-          <MousePointer2 class="w-4 h-4" />
-          <span>มินิเกมที่ 1: จัดกลุ่มคำสั่ง C++ & Function</span>
-          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
-        </button>
-
-        <button @click="activeGame = 'match'" :class="[
-          activeGame === 'match' ? 'bg-cyan-600 text-white shadow-lg scale-105' : 'bg-white text-cyan-700 hover:bg-cyan-50 border border-cyan-200',
-          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
-        ]">
-          <ListOrdered class="w-4 h-4" />
-          <span>มินิเกมที่ 2: จับคู่คำสั่งและแนวคิดไฟวิ่ง</span>
-          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
-        </button>
-
-        <button @click="activeGame = 'quiz'" :class="[
-          activeGame === 'quiz' ? 'bg-orange-600 text-white shadow-lg scale-105' : 'bg-white text-orange-700 hover:bg-orange-50 border border-orange-200',
-          'px-5 py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm cursor-pointer'
-        ]">
-          <FileQuestion class="w-4 h-4" />
-          <span>กิจกรรมสุดท้าย: แบบทดสอบหลังเรียน (Post-test 10 ข้อ)</span>
-          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
-        </button>
-      </div>
-
-      <!-- Game 1: Drag & Drop -->
-      <DragDropGame v-if="activeGame === 'sort'"
-        :course-id="currentCourseId"
-        :week="currentWeek"
-        game-id="game-1"
-        game-title="มินิเกม 1: จัดกลุ่มคำสั่งภาษา C++ สำหรับ Arduino และการใช้ Function"
-        title="จัดกลุ่มคำสั่ง C++ และ Function สำหรับ Arduino"
-        subtitle="ลากชื่อคำสั่งไปใส่ในหมวดหมู่ที่ถูกต้อง: โครงสร้างหลัก, คำสั่ง I/O, หรือการสร้าง/เรียกใช้งาน Function"
-        :initialItems="dragItemsData"
-        :zones="dragZonesData"
-      />
-
-      <!-- Game 2: Matching -->
-      <MatchingGame v-if="activeGame === 'match'"
-        :course-id="currentCourseId"
-        :week="currentWeek"
-        game-id="game-2"
-        game-title="มินิเกม 2: จับคู่คำสั่งและแนวคิดสำคัญของวงจรไฟวิ่ง Arduino"
-        title="จับคู่คำสั่งและแนวคิดวงจรไฟวิ่ง Arduino"
-        subtitle="จับคู่ชื่อคำสั่งและอุปกรณ์ด้านซ้ายกับหน้าที่การทำงานด้านขวาให้ถูกต้องครบทั้ง 5 คู่"
-        :initialLeftTerms="matchLeftTerms"
-        :initialRightDefs="matchRightDefs"
-      />
-
-      <!-- Game 3: Pop Quiz (Post-test) -->
-      <PopQuiz v-if="activeGame === 'quiz'"
-        :course-id="currentCourseId"
-        :week="currentWeek"
-        game-id="quiz"
-        game-title="แบบทดสอบหลังเรียน Week 2 (Tinkercad Circuits, Arduino C++ & Running LED)"
-        title="แบบทดสอบหลังเรียน: สัปดาห์ที่ 2 (Tinkercad, C++ & วงจรไฟวิ่ง)"
-        subtitle="แบบทดสอบ 4 ตัวเลือก 10 ข้อ วัดความเข้าใจรอบด้าน ทำได้เพียงครั้งเดียวเท่านั้น"
-        :questions="quizQuestions"
-      >
-        <template #actions>
-          <RouterLink to="/courses"
-            class="px-8 py-4 bg-orange-600 border-2 border-orange-500 text-white font-bold rounded-xl hover:bg-orange-500 transition-all shadow-[0_0_20px_rgba(234,88,12,0.4)] flex items-center gap-2">
-            กลับสู่หน้ารายวิชา
-          </RouterLink>
-        </template>
-      </PopQuiz>
-    </section>
+    <GameCenterSection
+      :course-id="currentCourseId"
+      :week="currentWeek"
+      drag-title="จัดกลุ่มคำสั่ง C++ และ Function สำหรับ Arduino"
+      drag-subtitle="ลากชื่อคำสั่งไปใส่ในหมวดหมู่ที่ถูกต้อง: โครงสร้างหลัก, คำสั่ง I/O, หรือการสร้าง/เรียกใช้งาน Function"
+      drag-tab-label="มินิเกมที่ 1: จัดกลุ่มคำสั่ง C++ & Function"
+      :drag-items="dragItemsData"
+      :drag-zones="dragZonesData"
+      match-title="จับคู่คำสั่งและแนวคิดวงจรไฟวิ่ง Arduino"
+      match-subtitle="จับคู่ชื่อคำสั่งและอุปกรณ์ด้านซ้ายกับหน้าที่การทำงานด้านขวาให้ถูกต้องครบทั้ง 5 คู่"
+      match-tab-label="มินิเกมที่ 2: จับคู่คำสั่งและแนวคิดไฟวิ่ง"
+      :match-left-terms="matchLeftTerms"
+      :match-right-defs="matchRightDefs"
+      quiz-title="แบบทดสอบหลังเรียน: สัปดาห์ที่ 2 (Tinkercad, C++ & วงจรไฟวิ่ง)"
+      :quiz-questions="quizQuestions"
+    />
 
     <!-- Assignment Section (5-LED Running Light Assignment Challenge - 3 Tiers) -->
     <AssignmentSection :course-id="currentCourseId" assignment-id="asm-2"
@@ -1251,15 +1068,6 @@ const quizQuestions = [
 
       </template>
     </AssignmentSection>
-
-    <!-- Teacher Scoreboard Modal -->
-    <TeacherScoreboardModal
-      :is-open="showTeacherModal"
-      :course-id="currentCourseId"
-      :week="currentWeek"
-      :games="weekGames"
-      @close="showTeacherModal = false"
-    />
 
   </div>
 </template>

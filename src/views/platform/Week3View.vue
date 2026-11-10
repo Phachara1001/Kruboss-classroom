@@ -13,17 +13,13 @@ import {
   Check, Copy, FileCode, Sliders, FileSpreadsheet
 } from '@lucide/vue'
 
-import DragDropGame from '@/components/games/DragDropGame.vue'
-import MatchingGame from '@/components/games/MatchingGame.vue'
-import PopQuiz from '@/components/games/PopQuiz.vue'
-import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
+import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 
 import { authUser } from '@/data/authStore'
 import { isStudent, isTeacherUser } from '@/data/studentsStore'
-import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 // Current Course & Week Context
 const currentCourseId = '21901-2012'
@@ -33,32 +29,9 @@ const currentWeek = 3
 const route = useRoute()
 const router = useRouter()
 
-// Modal & Game Config
-const showTeacherModal = ref(false)
+// Modal Config
 const showPdfModal = ref(false)
-
-const weekGames = [
-  { id: 'game-1', name: 'มินิเกม 1 (จัดกลุ่ม 3 พื้นที่หลักของ Git)', maxScore: 6, isQuiz: false },
-  { id: 'game-2', name: 'มินิเกม 2 (จับคู่คำสั่ง Git Command และหน้าที่)', maxScore: 6, isQuiz: false },
-  { id: 'quiz', name: 'แบบทดสอบหลังเรียนสัปดาห์ที่ 3 (Post-test 10 ข้อ)', maxScore: 10, isQuiz: true }
-]
-
-onMounted(() => {
-  fetchGameScores(currentCourseId, currentWeek)
-})
-
-const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
 const isTeacher = computed(() => isTeacherUser(authUser.value))
-
-const studentWeekScores = computed(() => {
-  if (!currentStudentId.value) return {}
-  const key = `${currentCourseId}_${currentWeek}_${currentStudentId.value}`
-  return gameScoresStore.value[key]?.scores || {}
-})
-
-const studentNorm = computed(() => {
-  return calculateNormalizedScore(studentWeekScores.value, weekGames)
-})
 
 // Copy Code Snippet Helper
 const copiedSnippet = ref('')
@@ -75,9 +48,6 @@ const copyText = (text, id) => {
     }, 2000)
   })
 }
-
-// Active Game Selector
-const activeGame = ref('sort') // 'sort' | 'match' | 'quiz'
 
 // Game 1: Drag & Drop (จัดกลุ่ม 3 พื้นที่หลักของ Git)
 const dragItemsData = [
@@ -1132,124 +1102,22 @@ const quizQuestions = [
     </section>
 
     <!-- Game Center & Evaluation Section -->
-    <section>
-      <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div class="flex items-center gap-3">
-          <div class="p-3 bg-indigo-100 rounded-xl text-indigo-600 shadow-sm">
-            <Gamepad2 class="w-6 h-6" />
-          </div>
-          <div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">
-              Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน
-            </h2>
-            <p class="text-sm text-gray-500 mt-0.5">
-              เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน
-            </p>
-          </div>
-        </div>
-
-        <!-- Teacher Scoreboard Button -->
-        <button v-if="isTeacher" @click="showTeacherModal = true"
-          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-900 to-indigo-800 hover:from-indigo-800 hover:to-indigo-700 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-indigo-700 shrink-0">
-          <FileSpreadsheet class="w-4 h-4 text-amber-400" />
-          <span>ดูตารางคะแนนมินิเกม (สำหรับคุณครู)</span>
-        </button>
-      </div>
-
-      <!-- Score Summary Card -->
-      <div class="rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm mb-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-          <div>
-            <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider block">
-              สรุปคะแนนของคุณประจำสัปดาห์ที่ 3
-            </span>
-            <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
-              <span>สถานะ:</span>
-              <span v-if="studentNorm.isAllCompleted"
-                class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
-                <CheckCircle2 class="w-3.5 h-3.5" /> ทำครบทุกกิจกรรมแล้ว (3/3)
-              </span>
-              <span v-else-if="studentNorm.completedCount > 0"
-                class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 inline-flex items-center gap-1">
-                <Clock class="w-3.5 h-3.5" /> กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
-              </span>
-              <span v-else
-                class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
-                ยังไม่ได้เริ่มทำ
-              </span>
-            </div>
-          </div>
-
-          <div class="text-right">
-            <span class="text-[11px] text-gray-400 font-bold uppercase block">คะแนนเฉลี่ยรวมสัปดาห์นี้</span>
-            <span class="text-3xl font-black text-indigo-600 font-mono">{{ studentNorm.normalizedScore }}</span>
-            <span class="text-xs text-gray-400 font-bold ml-1 font-mono">/ 10</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Game Tab Buttons -->
-      <div class="flex flex-wrap items-center gap-2 mb-6">
-        <button @click="activeGame = 'sort'" :class="[
-          'flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all',
-          activeGame === 'sort'
-            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-        ]">
-          <MousePointer2 class="w-4 h-4" />
-          <span>มินิเกมที่ 1: จัดกลุ่ม 3 พื้นที่หลักของ Git</span>
-          <span v-if="studentWeekScores['game-1'] !== undefined"
-            class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
-        </button>
-
-        <button @click="activeGame = 'match'" :class="[
-          'flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all',
-          activeGame === 'match'
-            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-        ]">
-          <ListOrdered class="w-4 h-4" />
-          <span>มินิเกมที่ 2: จับคู่คำสั่ง Git Command</span>
-          <span v-if="studentWeekScores['game-2'] !== undefined"
-            class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
-        </button>
-
-        <button @click="activeGame = 'quiz'" :class="[
-          'flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all',
-          activeGame === 'quiz'
-            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-        ]">
-          <FileQuestion class="w-4 h-4" />
-          <span>แบบทดสอบหลังเรียน (4 ตัวเลือก 10 ข้อ)</span>
-          <span v-if="studentWeekScores['quiz'] !== undefined"
-            class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
-        </button>
-      </div>
-
-      <!-- Games -->
-      <DragDropGame v-if="activeGame === 'sort'" :course-id="currentCourseId" :week="currentWeek" game-id="game-1"
-        title="มินิเกมที่ 1: จัดกลุ่ม 3 พื้นที่หลักของ Git (Three Trees Sorting)"
-        subtitle="ลากการ์ดข้อความแต่ละใบไปวางในพื้นที่ของ Git ให้ถูกต้องตามบทบาทหน้าที่" :initial-items="dragItemsData"
-        :zones="dragZonesData" />
-
-      <MatchingGame v-else-if="activeGame === 'match'" :course-id="currentCourseId" :week="currentWeek" game-id="game-2"
-        title="มินิเกมที่ 2: จับคู่คำสั่ง Git Command และคำอธิบายหน้าที่การทำงาน"
-        subtitle="คลิกเลือกจับคู่ระหว่างคำสั่ง Git ในแถบซ้าย และความหมายการทำงานในแถบขวาให้ถูกต้องครบทั้ง 6 คู่"
-        :initial-left-terms="matchLeftTerms" :initial-right-defs="matchRightDefs" />
-
-      <PopQuiz v-else :course-id="currentCourseId" :week="currentWeek" game-id="quiz"
-        title="แบบทดสอบวัดความรู้หลังเรียน สัปดาห์ที่ 3 (Post-test: Git Basics & Repository)"
-        subtitle="แบบทดสอบ 4 ตัวเลือก วัดความเข้าใจเรื่อง Git พื้นที่ 3 ส่วน และการบันทึก Commit (10 ข้อ)"
-        :questions="quizQuestions" />
-
-      <!-- Teacher Scoreboard Modal -->
-      <TeacherScoreboardModal :show="showTeacherModal" :is-open="showTeacherModal" :course-id="currentCourseId"
-        course-name="การพัฒนาระบบร่วมกันด้วยแพลตฟอร์ม" :week="currentWeek"
-        week-title="สัปดาห์ที่ 3: หลักการพื้นฐานของกิต (GIT) และพื้นที่เก็บข้อมูล (Repository)" :games="weekGames"
-        @close="showTeacherModal = false" />
-    </section>
+    <GameCenterSection
+      :course-id="currentCourseId"
+      :week="currentWeek"
+      drag-title="มินิเกมที่ 1: จัดกลุ่ม 3 พื้นที่หลักของ Git (Three Trees Sorting)"
+      drag-subtitle="ลากการ์ดข้อความแต่ละใบไปวางในพื้นที่ของ Git ให้ถูกต้องตามบทบาทหน้าที่"
+      drag-tab-label="มินิเกมที่ 1: จัดกลุ่ม 3 พื้นที่หลักของ Git"
+      :drag-items="dragItemsData"
+      :drag-zones="dragZonesData"
+      match-title="มินิเกมที่ 2: จับคู่คำสั่ง Git Command และคำอธิบายหน้าที่การทำงาน"
+      match-subtitle="คลิกเลือกจับคู่ระหว่างคำสั่ง Git ในแถบซ้าย และความหมายการทำงานในแถบขวาให้ถูกต้องครบทั้ง 6 คู่"
+      match-tab-label="มินิเกมที่ 2: จับคู่คำสั่ง Git Command"
+      :match-left-terms="matchLeftTerms"
+      :match-right-defs="matchRightDefs"
+      quiz-title="แบบทดสอบวัดความรู้หลังเรียน สัปดาห์ที่ 3 (Post-test: Git Basics & Repository)"
+      :quiz-questions="quizQuestions"
+    />
 
     <!-- Assignment Section -->
     <AssignmentSection course-id="21901-2012" assignment-id="asm-3"

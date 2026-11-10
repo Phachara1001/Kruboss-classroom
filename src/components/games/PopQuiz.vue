@@ -12,7 +12,7 @@ const props = defineProps({
   title: { type: String, default: 'แบบทดสอบหลังเรียน (Post-test)' },
   subtitle: { type: String, default: 'แบบทดสอบ 4 ตัวเลือก วัดความรู้ความเข้าใจหลังเรียน ทำได้เพียงครั้งเดียวเท่านั้น' },
   // [{ id, question, options: [{ id, text, isCorrect }], explanation }]
-  questions: { type: Array, required: true },
+  questions: { type: Array, default: () => [] },
   gameId: { type: String, default: 'quiz' },
   courseId: { type: String, default: '' },
   week: { type: Number, default: 1 }
@@ -32,8 +32,8 @@ const soundOn = ref(true)
 const isSubmitting = ref(false)
 const examScore = ref(0)
 
-const q = computed(() => props.questions[current.value])
-const total = computed(() => props.questions.length)
+const q = computed(() => (props.questions && props.questions[current.value]) || null)
+const total = computed(() => (props.questions || []).length)
 const answeredCount = computed(() => Object.keys(selectedAnswers).length)
 const isLast = computed(() => current.value === total.value - 1)
 

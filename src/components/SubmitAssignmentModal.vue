@@ -79,6 +79,7 @@ const currentSubmission = computed(() => {
 
 // Quick Link Title Presets
 const linkTitlePresets = [
+  'Google Sheets (ระบุบรรทัดที่ทำ)',
   'Google Drive / ไฟล์งาน',
   'วงจร Tinkercad Circuits',
   'วิดีโอสาธิตการทำงาน',

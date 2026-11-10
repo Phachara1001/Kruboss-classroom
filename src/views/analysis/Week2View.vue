@@ -13,10 +13,7 @@ import {
   Building2
 } from '@lucide/vue'
 
-import DragDropGame from '@/components/games/DragDropGame.vue'
-import MatchingGame from '@/components/games/MatchingGame.vue'
-import PopQuiz from '@/components/games/PopQuiz.vue'
-import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
+import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 import SlidePreviewModal from '@/components/SlidePreviewModal.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
@@ -24,7 +21,6 @@ import CheckInSystem from '@/components/CheckInSystem.vue'
 
 import { authUser } from '@/data/authStore'
 import { isStudent, isTeacherUser } from '@/data/studentsStore'
-import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 const router = useRouter()
 
@@ -34,35 +30,8 @@ const currentWeek = 2
 
 // Modal States
 const showPdfModal = ref(false)
-const showTeacherModal = ref(false)
 const showSlideModal = ref(false)
-
-// Week Games Config
-const weekGames = [
-  { id: 'game-1', name: 'มินิเกม 1 (จำแนกช่องทางการเก็บรวบรวมข้อมูล)', maxScore: 6, isQuiz: false },
-  { id: 'game-2', name: 'มินิเกม 2 (จับคู่วัตถุประสงค์กับการสอบถามข้อมูล)', maxScore: 5, isQuiz: false },
-  { id: 'quiz', name: 'แบบทดสอบหลังเรียนสัปดาห์ที่ 2 (Post-test 10 ข้อ)', maxScore: 10, isQuiz: true }
-]
-
-onMounted(() => {
-  fetchGameScores(currentCourseId, currentWeek)
-})
-
-const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
 const isTeacher = computed(() => isTeacherUser(authUser.value))
-
-const studentWeekScores = computed(() => {
-  if (!currentStudentId.value) return {}
-  const key = `${currentCourseId}_${currentWeek}_${currentStudentId.value}`
-  return gameScoresStore.value[key]?.scores || {}
-})
-
-const studentNorm = computed(() => {
-  return calculateNormalizedScore(studentWeekScores.value, weekGames)
-})
-
-// Mini-game State
-const activeGame = ref('sort') // 'sort' | 'match' | 'quiz'
 
 // Interactive Demo State for 6 Form Input Types (Internal IT & Workplace Service Survey)
 const activeDemoTab = ref('mc') // 'mc' | 'scale' | 'discrete' | 'continuous' | 'datetime' | 'text'
@@ -1562,74 +1531,22 @@ const quizQuestions = [
     </section>
 
     <!-- Game Center & Evaluation Section -->
-    <section>
-      <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div class="flex items-center gap-3">
-          <div class="p-3 bg-sky-100 rounded-xl text-sky-600 shadow-sm">
-            <Gamepad2 class="w-6 h-6" />
-          </div>
-          <div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">
-              Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน
-            </h2>
-            <p class="text-sm text-gray-500 mt-0.5">
-              เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน
-            </p>
-          </div>
-        </div>
-
-        <!-- Teacher Scoreboard Button -->
-        <button v-if="isTeacher" @click="showTeacherModal = true"
-          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-sky-900 to-sky-800 hover:from-sky-800 hover:to-sky-700 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-sky-700 shrink-0">
-          <Trophy class="w-5 h-5 text-yellow-400" />
-          <span>แดชบอร์ดครูผู้สอน</span>
-        </button>
-      </div>
-
-      <!-- Navigation Tabs between Games -->
-      <div class="flex gap-2 p-1.5 bg-gray-100 rounded-2xl max-w-xl mb-6">
-        <button @click="activeGame = 'sort'"
-          class="flex-1 py-2.5 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-          :class="activeGame === 'sort' ? 'bg-white text-sky-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
-          <Shuffle class="w-4 h-4" />
-          มินิเกม 1 (จำแนกช่องทางเก็บข้อมูล)
-        </button>
-        <button @click="activeGame = 'match'"
-          class="flex-1 py-2.5 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-          :class="activeGame === 'match' ? 'bg-white text-sky-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
-          <MousePointer2 class="w-4 h-4" />
-          มินิเกม 2 (จับคู่วิธีการ)
-        </button>
-        <button @click="activeGame = 'quiz'"
-          class="flex-1 py-2.5 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-          :class="activeGame === 'quiz' ? 'bg-white text-sky-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
-          <Star class="w-4 h-4" />
-          แบบทดสอบหลังเรียน (10 ข้อ)
-        </button>
-      </div>
-
-      <!-- Game Container Cards -->
-      <div class="space-y-6">
-        <!-- Game 1: Drag and Drop -->
-        <DragDropGame v-if="activeGame === 'sort'" :courseId="currentCourseId" :week="currentWeek" gameId="game-1"
-          title="มินิเกม 1: จัดกลุ่มรูปแบบการสอบถามและช่องทางการเก็บรวบรวมข้อมูล"
-          subtitle="ลากสถานการณ์การเก็บข้อมูลด้านล่างไปใส่ลงในกล่องช่องทางการรวบรวมข้อมูลที่ถูกต้อง"
-          :initialItems="dragItemsData" :zones="dragZonesData" />
-
-        <!-- Game 2: Matching -->
-        <MatchingGame v-if="activeGame === 'match'" :courseId="currentCourseId" :week="currentWeek" gameId="game-2"
-          title="มินิเกม 2: จับคู่วัตถุประสงค์กับเครื่องมือสอบถามข้อมูล"
-          subtitle="จับคู่เครื่องมือหรือรูปแบบการสอบถามทางฝั่งซ้าย กับคำอธิบายวัตถุประสงค์ที่ถูกต้องทางฝั่งขวา"
-          :initialLeftTerms="matchLeftTerms" :initialRightDefs="matchRightDefs" />
-
-        <!-- Game 3: PopQuiz -->
-        <PopQuiz v-if="activeGame === 'quiz'" :courseId="currentCourseId" :week="currentWeek" gameId="quiz"
-          title="แบบทดสอบหลังเรียน (Post-test): สัปดาห์ที่ 2"
-          subtitle="ทดสอบความรู้ความเข้าใจเกี่ยวกับการสอบถามข้อมูล รูปแบบการเก็บรวบรวมข้อมูล และการออกแบบคำถาม (10 ข้อ 10 คะแนน)"
-          :questions="quizQuestions" />
-      </div>
-    </section>
+    <GameCenterSection
+      :course-id="currentCourseId"
+      :week="currentWeek"
+      drag-title="มินิเกม 1: จัดกลุ่มรูปแบบการสอบถามและช่องทางการเก็บรวบรวมข้อมูล"
+      drag-subtitle="ลากสถานการณ์การเก็บข้อมูลด้านล่างไปใส่ลงในกล่องช่องทางการรวบรวมข้อมูลที่ถูกต้อง"
+      drag-tab-label="มินิเกมที่ 1: จำแนกช่องทางเก็บข้อมูล"
+      :drag-items="dragItemsData"
+      :drag-zones="dragZonesData"
+      match-title="มินิเกม 2: จับคู่วัตถุประสงค์กับเครื่องมือสอบถามข้อมูล"
+      match-subtitle="จับคู่เครื่องมือหรือรูปแบบการสอบถามทางฝั่งซ้าย กับคำอธิบายวัตถุประสงค์ที่ถูกต้องทางฝั่งขวา"
+      match-tab-label="มินิเกมที่ 2: จับคู่วิธีการ"
+      :match-left-terms="matchLeftTerms"
+      :match-right-defs="matchRightDefs"
+      quiz-title="แบบทดสอบหลังเรียน (Post-test): สัปดาห์ที่ 2"
+      :quiz-questions="quizQuestions"
+    />
 
     <!-- Lab Assignment Section -->
     <AssignmentSection :courseId="currentCourseId" assignmentId="asm-2"
@@ -2047,10 +1964,6 @@ const quizQuestions = [
         </div>
       </template>
     </AssignmentPdfModal>
-
-    <!-- Teacher Scoreboard Modal -->
-    <TeacherScoreboardModal v-model="showTeacherModal" :courseId="currentCourseId" :weekNumber="currentWeek"
-      courseName="การวิเคราะห์และนำเสนอข้อมูล" :games="weekGames" />
 
     <!-- Slide Preview Modal -->
     <SlidePreviewModal v-model="showSlideModal" />

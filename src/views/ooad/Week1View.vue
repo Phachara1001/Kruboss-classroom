@@ -13,10 +13,7 @@ import {
   UtensilsCrossed, Library, Building2, Clock, Trophy, Lock, FileSpreadsheet
 } from '@lucide/vue'
 
-import DragDropGame from '@/components/games/DragDropGame.vue'
-import MatchingGame from '@/components/games/MatchingGame.vue'
-import PopQuiz from '@/components/games/PopQuiz.vue'
-import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
+import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
@@ -24,7 +21,6 @@ import { courses } from '@/data/courses'
 
 import { authUser } from '@/data/authStore'
 import { isStudent, isTeacherUser } from '@/data/studentsStore'
-import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 // Router
 const route = useRoute()
@@ -38,9 +34,9 @@ const currentWeek = 1
 const ooadCourse = courses.find(c => c.id === '21900-1004')
 const showFullCurriculum = ref(false)
 
-// PDF & Submit Modal State
+// PDF Modal State
 const showPdfModal = ref(false)
-const showTeacherModal = ref(false)
+const isTeacher = computed(() => isTeacherUser(authUser.value))
 
 // Grading Criteria Data
 const grading = [
@@ -49,30 +45,6 @@ const grading = [
   { name: 'สอบกลางภาค (Midterm Examination)', score: 20, color: 'bg-violet-600' },
   { name: 'สอบปลายภาค (Final Examination)', score: 20, color: 'bg-fuchsia-600' }
 ]
-
-// Week Games Config
-const weekGames = [
-  { id: 'game-1', name: 'มินิเกม 1 (Input vs Output ของระบบ)', maxScore: 6, isQuiz: false },
-  { id: 'game-2', name: 'มินิเกม 2 (5 ขั้นตอนในวงจร SDLC)', maxScore: 5, isQuiz: false },
-  { id: 'quiz', name: 'แบบทดสอบหลังเรียน (Post-test 10 ข้อ)', maxScore: 10, isQuiz: true }
-]
-
-onMounted(() => {
-  fetchGameScores(currentCourseId, currentWeek)
-})
-
-const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id || '')
-const isTeacher = computed(() => isTeacherUser(authUser.value))
-
-const studentWeekScores = computed(() => {
-  if (!currentStudentId.value) return {}
-  const key = `${currentCourseId}_${currentWeek}_${currentStudentId.value}`
-  return gameScoresStore.value[key]?.scores || {}
-})
-
-const studentNorm = computed(() => {
-  return calculateNormalizedScore(studentWeekScores.value, weekGames)
-})
 
 // แบบทดสอบหลังเรียน (Post-test) 4 ตัวเลือก 10 ข้อ
 const quizQuestions = [
@@ -1358,171 +1330,22 @@ const matchRightDefs = [
     </section>
 
     <!-- Mini-Game Interactive Section -->
-    <section class="space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="p-3 bg-purple-100 rounded-2xl text-purple-700 shadow-sm">
-            <Gamepad2 class="w-6 h-6" />
-          </div>
-          <div>
-            <h2 class="text-2xl sm:text-3xl font-black text-gray-800">Game Center: ทดสอบความเข้าใจ & แบบทดสอบหลังเรียน</h2>
-            <p class="text-gray-500 text-sm mt-0.5">เล่นได้ครั้งเดียวเท่านั้น ระบบจะบันทึกคะแนนและหารเฉลี่ยรวมเต็ม 10 คะแนน</p>
-          </div>
-        </div>
-
-        <!-- Teacher Scoreboard Button -->
-        <button v-if="isTeacher" @click="showTeacherModal = true"
-          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-purple-900 to-indigo-900 hover:from-purple-800 hover:to-indigo-800 text-white font-bold text-sm shadow-md transition hover:scale-105 active:scale-95 border border-purple-700 shrink-0">
-          <FileSpreadsheet class="w-4 h-4 text-amber-400" />
-          <span>ดูตารางคะแนนมินิเกม (สำหรับคุณครู)</span>
-        </button>
-      </div>
-
-      <!-- Student Score Summary Banner -->
-      <div class="rounded-2xl border border-purple-100 bg-white p-5 shadow-sm">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-          <div>
-            <span class="text-xs font-bold text-purple-600 uppercase tracking-wider block">สรุปคะแนนของคุณประจำสัปดาห์ที่ 1</span>
-            <div class="text-lg font-black text-gray-800 mt-0.5 flex items-center gap-2">
-              <span>สถานะ:</span>
-              <span v-if="studentNorm.isAllCompleted" class="text-emerald-600 text-sm font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                ✓ ทำครบทุกกิจกรรมแล้ว (3/3)
-              </span>
-              <span v-else-if="studentNorm.completedCount > 0" class="text-amber-600 text-sm font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                ⏳ กำลังทำ ({{ studentNorm.completedCount }}/3 กิจกรรม)
-              </span>
-              <span v-else class="text-gray-500 text-sm font-medium bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
-                ยังไม่ได้เริ่มทำ
-              </span>
-            </div>
-          </div>
-
-          <!-- Total Normalized Score (Scaled to 10) -->
-          <div class="flex items-center gap-3 bg-gradient-to-r from-purple-50 to-indigo-50 px-4 py-2.5 rounded-xl border border-purple-100">
-            <Trophy class="w-7 h-7 text-amber-500 shrink-0" />
-            <div>
-              <span class="text-xs text-purple-900 font-semibold block">คะแนนรวมทั้งหมด (หารเฉลี่ยเต็ม 10)</span>
-              <div class="text-xl font-black text-purple-950 leading-tight">
-                <span>{{ studentNorm.normalized }}</span>
-                <span class="text-xs font-bold text-gray-400"> / 10.0 คะแนน</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3 Activity Status Badges -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-xs font-medium">
-          <!-- Game 1 -->
-          <div :class="[
-            'p-3 rounded-xl border flex items-center justify-between',
-            studentWeekScores['game-1'] ? 'bg-purple-50/70 border-purple-200 text-purple-900' : 'bg-gray-50 border-gray-200 text-gray-600'
-          ]">
-            <div>
-              <span class="font-bold block">1. จำแนก Input vs Output</span>
-              <span class="text-[11px] text-gray-500">เต็ม 6 คะแนน</span>
-            </div>
-            <span class="font-black text-sm">
-              {{ studentWeekScores['game-1'] ? `${studentWeekScores['game-1'].score} / 6` : 'ยังไม่ได้เล่น' }}
-            </span>
-          </div>
-
-          <!-- Game 2 -->
-          <div :class="[
-            'p-3 rounded-xl border flex items-center justify-between',
-            studentWeekScores['game-2'] ? 'bg-blue-50/70 border-blue-200 text-blue-900' : 'bg-gray-50 border-gray-200 text-gray-600'
-          ]">
-            <div>
-              <span class="font-bold block">2. ลำดับ 5 ขั้นตอน SDLC</span>
-              <span class="text-[11px] text-gray-500">เต็ม 5 คะแนน</span>
-            </div>
-            <span class="font-black text-sm">
-              {{ studentWeekScores['game-2'] ? `${studentWeekScores['game-2'].score} / 5` : 'ยังไม่ได้เล่น' }}
-            </span>
-          </div>
-
-          <!-- Post-test -->
-          <div :class="[
-            'p-3 rounded-xl border flex items-center justify-between',
-            studentWeekScores['quiz'] ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900' : 'bg-gray-50 border-gray-200 text-gray-600'
-          ]">
-            <div>
-              <span class="font-bold block">3. แบบทดสอบหลังเรียน 10 ข้อ</span>
-              <span class="text-[11px] text-gray-500">เต็ม 10 คะแนน</span>
-            </div>
-            <span class="font-black text-sm">
-              {{ studentWeekScores['quiz'] ? `${studentWeekScores['quiz'].score} / 10` : 'ยังไม่ได้ทำ' }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Game Mode Selector Buttons (มินิเกม -> มินิเกม -> สุดท้ายคือแบบทดสอบหลังเรียน) -->
-      <div class="flex flex-wrap gap-3">
-        <button @click="activeGame = 'sort'"
-          :class="['px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm cursor-pointer', activeGame === 'sort' ? 'bg-purple-700 text-white shadow-purple-200 scale-105' : 'bg-white text-gray-600 hover:bg-purple-50 border border-gray-200']">
-          <MousePointer2 class="w-4 h-4" />
-          <span>มินิเกมที่ 1: Input vs Output</span>
-          <span v-if="studentWeekScores['game-1']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
-        </button>
-
-        <button @click="activeGame = 'order'"
-          :class="['px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm cursor-pointer', activeGame === 'order' ? 'bg-blue-600 text-white shadow-blue-200 scale-105' : 'bg-white text-gray-600 hover:bg-blue-50 border border-gray-200']">
-          <Shuffle class="w-4 h-4" />
-          <span>มินิเกมที่ 2: วงจร SDLC</span>
-          <span v-if="studentWeekScores['game-2']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
-        </button>
-
-        <button @click="activeGame = 'quiz'"
-          :class="['px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm cursor-pointer', activeGame === 'quiz' ? 'bg-emerald-600 text-white shadow-emerald-200 scale-105' : 'bg-white text-gray-600 hover:bg-emerald-50 border border-gray-200']">
-          <FileQuestion class="w-4 h-4" />
-          <span>🎯 แบบทดสอบหลังเรียน (4 ชอยส์ 10 ข้อ)</span>
-          <span v-if="studentWeekScores['quiz']" class="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full">✓ บันทึกแล้ว</span>
-        </button>
-      </div>
-
-      <!-- Game 1: DragDrop -->
-      <DragDropGame v-if="activeGame === 'sort'" 
-        title="มินิเกมที่ 1: จำแนก Input vs Output ของระบบ"
-        subtitle="ลากรายการการทำงานไปใส่ในกล่องให้ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
-        gameId="game-1"
-        :courseId="currentCourseId"
-        :week="currentWeek"
-        :initialItems="dragItemsData" 
-        :zones="dragZonesData" 
-      />
-
-      <!-- Game 2: Matching -->
-      <MatchingGame v-if="activeGame === 'order'" 
-        title="มินิเกมที่ 2: ลำดับ 5 ขั้นตอนในวงจร SDLC"
-        subtitle="จับคู่ขั้นตอนหลักกับการกระทำที่ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)" 
-        gameId="game-2"
-        :courseId="currentCourseId"
-        :week="currentWeek"
-        :initialLeftTerms="matchLeftTerms"
-        :initialRightDefs="matchRightDefs" 
-      />
-
-      <!-- Game 3: Final Post-test -->
-      <PopQuiz v-if="activeGame === 'quiz'" 
-        title="แบบทดสอบหลังเรียน (Post-test): หลักการวิเคราะห์และออกแบบระบบเชิงวัตถุ"
-        subtitle="แบบทดสอบ 4 ตัวเลือก 10 ข้อ วัดผลความรู้หลังเรียน ตอบให้ครบแล้วกดส่งคำตอบ (ทำได้ครั้งเดียวเท่านั้น)"
-        gameId="quiz"
-        :courseId="currentCourseId"
-        :week="currentWeek"
-        :questions="quizQuestions"
-      />
-
-      <!-- Teacher Scoreboard Modal -->
-      <TeacherScoreboardModal
-        :show="showTeacherModal"
-        :courseId="currentCourseId"
-        courseName="หลักการวิเคราะห์และออกแบบระบบเชิงวัตถุ"
-        :week="currentWeek"
-        weekTitle="สัปดาห์ที่ 1: บทนำสู่การวิเคราะห์ระบบ"
-        :games="weekGames"
-        @close="showTeacherModal = false"
-      />
-    </section>
+    <GameCenterSection
+      :course-id="currentCourseId"
+      :week="currentWeek"
+      drag-title="มินิเกมที่ 1: จำแนก Input vs Output ของระบบ"
+      drag-subtitle="ลากรายการการทำงานไปใส่ในกล่องให้ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
+      drag-tab-label="มินิเกมที่ 1: Input vs Output"
+      :drag-items="dragItemsData"
+      :drag-zones="dragZonesData"
+      match-title="มินิเกมที่ 2: ลำดับ 5 ขั้นตอนในวงจร SDLC"
+      match-subtitle="จับคู่ขั้นตอนหลักกับการกระทำที่ถูกต้อง ไม่เฉลยระหว่างทำ แล้วกดบันทึกคำตอบทีเดียว (เล่นได้ครั้งเดียว)"
+      match-tab-label="มินิเกมที่ 2: วงจร SDLC"
+      :match-left-terms="matchLeftTerms"
+      :match-right-defs="matchRightDefs"
+      quiz-title="แบบทดสอบหลังเรียน (Post-test): หลักการวิเคราะห์และออกแบบระบบเชิงวัตถุ"
+      :quiz-questions="quizQuestions"
+    />
 
     <!-- Assignment Section (Matching Week 1 Style) -->
     <AssignmentSection

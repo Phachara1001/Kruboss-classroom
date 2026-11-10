@@ -10,13 +10,16 @@ import ClassmatesView from '../views/ClassmatesView.vue'
 import DatabaseWeek1 from '../views/database/Week1View.vue'
 import DatabaseWeek2 from '../views/database/Week2View.vue'
 import DatabaseWeek3 from '../views/database/Week3View.vue'
+import DatabaseWeek4 from '../views/database/Week4View.vue'
 import PlatformWeek1 from '../views/platform/Week1View.vue'
 import PlatformWeek2 from '../views/platform/Week2View.vue'
 import PlatformWeek3 from '../views/platform/Week3View.vue'
 import DataAnalysisWeek1 from '../views/analysis/Week1View.vue'
 import DataAnalysisWeek2 from '../views/analysis/Week2View.vue'
+import DataAnalysisWeek3 from '../views/analysis/Week3View.vue'
 import IoTWeek1 from '../views/iot/Week1View.vue'
 import IoTWeek2 from '../views/iot/Week2View.vue'
+import IoTWeek3 from '../views/iot/Week3View.vue'
 import ToolsView from '../views/ToolsView.vue'
 import TeacherView from '../views/TeacherView.vue'
 import ScheduleView from '../views/ScheduleView.vue'
@@ -69,6 +72,11 @@ const router = createRouter({
           component: DatabaseWeek3
         },
         {
+          path: 'course/31901-2007/week/4',
+          name: 'database-week4',
+          component: DatabaseWeek4
+        },
+        {
           path: 'course/21901-2012/week/1',
           name: 'platform-week1',
           component: PlatformWeek1
@@ -94,6 +102,11 @@ const router = createRouter({
           component: DataAnalysisWeek2
         },
         {
+          path: 'course/31901-2012/week/3',
+          name: 'data-analysis-week3',
+          component: DataAnalysisWeek3
+        },
+        {
           path: 'course/21901-2007/week/1',
           name: 'iot-week1',
           component: IoTWeek1
@@ -102,6 +115,11 @@ const router = createRouter({
           path: 'course/21901-2007/week/2',
           name: 'iot-week2',
           component: IoTWeek2
+        },
+        {
+          path: 'course/21901-2007/week/3',
+          name: 'iot-week3',
+          component: IoTWeek3
         },
         {
           path: 'course/:id/classmates',

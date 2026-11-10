@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import {
   Flame, Trophy, Star, Timer, Volume2, VolumeX,
   Lightbulb, CheckCircle2, XCircle, Sparkles, Target, BookOpen, Link2,
@@ -12,9 +12,9 @@ const props = defineProps({
   title: { type: String, default: 'โยงความสัมพันธ์' },
   subtitle: { type: String, default: 'เลือกคำศัพท์ทางซ้าย แล้วเลือกคำอธิบายที่ตรงกันทางขวา แล้วกดบันทึกคำตอบ' },
   // [{ id, text, match, hint?, explanation? }]
-  initialLeftTerms: { type: Array, required: true },
+  initialLeftTerms: { type: Array, default: () => [] },
   // [{ id, text }]
-  initialRightDefs: { type: Array, required: true },
+  initialRightDefs: { type: Array, default: () => [] },
   examMode: { type: Boolean, default: true },
   gameId: { type: String, default: 'game-2' },
   courseId: { type: String, default: '' },
@@ -38,6 +38,7 @@ const palette = [
 ]
 
 const shuffle = (arr) => {
+  if (!arr || !Array.isArray(arr)) return []
   const copy = [...arr]
   for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -47,8 +48,14 @@ const shuffle = (arr) => {
 }
 
 /* ---------- state ---------- */
-const leftTerms = computed(() => props.initialLeftTerms)
-const rightDefs = ref(shuffle([...props.initialRightDefs]))
+const leftTerms = computed(() => props.initialLeftTerms || [])
+const rightDefs = ref(shuffle(props.initialRightDefs || []))
+
+watch(() => props.initialRightDefs, (newVal) => {
+  if (Array.isArray(newVal) && newVal.length > 0 && rightDefs.value.length === 0 && !isFinished.value) {
+    rightDefs.value = shuffle(newVal)
+  }
+}, { deep: true })
 
 const pairs = ref({})              // leftId -> rightId (จับคู่ไว้)
 const activeLeft = ref(null)

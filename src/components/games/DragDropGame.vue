@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import {
   Flame, Trophy, Star, Timer, Volume2, VolumeX,
   Lightbulb, CheckCircle2, XCircle, GripVertical, Sparkles, Target, BookOpen, Inbox,
@@ -12,9 +12,9 @@ const props = defineProps({
   title: { type: String, default: 'ลากแล้ววาง' },
   subtitle: { type: String, default: 'ลากการ์ดไปใส่กลุ่มที่ถูกต้อง แล้วกดบันทึกคำตอบ' },
   // item: { id, text, type, hint?, explanation? }
-  initialItems: { type: Array, required: true },
+  initialItems: { type: Array, default: () => [] },
   // zone: { id, title, icon? (emoji), accent? (0-3), emptyText? }
-  zones: { type: Array, required: true },
+  zones: { type: Array, default: () => [] },
   examMode: { type: Boolean, default: true }, // โหมดสอบ: ไม่เฉลยระหว่างทำ บันทึกทีเดียว เล่นได้ครั้งเดียว
   gameId: { type: String, default: 'game-1' },
   courseId: { type: String, default: '' },
@@ -34,6 +34,7 @@ const accentOf = (zone, i) => accents[(zone.accent ?? i) % accents.length]
 
 /* ---------- state ---------- */
 const shuffle = (arr) => {
+  if (!arr || !Array.isArray(arr)) return []
   const copy = [...arr]
   for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -44,7 +45,23 @@ const shuffle = (arr) => {
 
 const pool = ref(shuffle(props.initialItems))
 const placed = ref({})
-props.zones.forEach(z => { placed.value[z.id] = [] })
+if (Array.isArray(props.zones)) {
+  (props.zones || []).forEach(z => { placed.value[z.id] = [] })
+}
+
+watch(() => props.initialItems, (newVal) => {
+  if (Array.isArray(newVal) && newVal.length > 0 && pool.value.length === 0 && totalPlaced.value === 0 && !isFinished.value) {
+    pool.value = shuffle(newVal)
+  }
+}, { deep: true })
+
+watch(() => props.zones, (newVal) => {
+  if (Array.isArray(newVal)) {
+    newVal.forEach(z => {
+      if (!placed.value[z.id]) placed.value[z.id] = []
+    })
+  }
+}, { deep: true })
 
 const dragged = ref(null)
 const selected = ref(null)          // แตะเลือก (มือถือหรือคลิก)
@@ -62,7 +79,7 @@ const submitError = ref('')
 // Score tracking
 const examScore = ref(0)
 
-const total = computed(() => props.initialItems.length)
+const total = computed(() => (props.initialItems || []).length)
 const totalPlaced = computed(() => {
   let count = 0
   Object.values(placed.value).forEach(list => { count += list.length })
@@ -145,7 +162,7 @@ const tryPlace = (item, zoneId) => {
   if (poolIdx !== -1) {
     pool.value.splice(poolIdx, 1)
   } else {
-    props.zones.forEach(z => {
+    (props.zones || []).forEach(z => {
       const zIdx = placed.value[z.id].findIndex(i => i.id === item.id)
       if (zIdx !== -1) placed.value[z.id].splice(zIdx, 1)
     })
@@ -184,7 +201,7 @@ const submitExam = async () => {
 
   // ตรวจคำตอบ
   let correct = 0
-  props.zones.forEach(z => {
+  (props.zones || []).forEach(z => {
     placed.value[z.id].forEach(item => {
       if (item.type === z.id) {
         correct++
