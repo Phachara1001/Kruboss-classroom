@@ -185,20 +185,19 @@ const saveAllScores = async () => {
       let shouldAwardCoins = false
       let coinsToAdd = 0
 
-      if (isFirstTime && val > 0) {
-        shouldAwardCoins = true
-        coinsToAdd = Math.round(val * 4)
-      } else if (oldScore !== null && val > oldScore) {
-        shouldAwardCoins = true
-        coinsToAdd = Math.round((val - oldScore) * 4)
-      } else if (val > 0 && getStudentCoins(sId) <= 100) {
-        shouldAwardCoins = true
-        coinsToAdd = Math.round(val * 4)
-      }
+      const isScoreChanged = oldScore !== val
 
-      if (oldScore !== val || shouldAwardCoins) {
+      if (isScoreChanged) {
+        if (isFirstTime && val > 0) {
+          shouldAwardCoins = true
+          coinsToAdd = Math.round(val * 4)
+        } else if (oldScore !== null && val > oldScore) {
+          shouldAwardCoins = true
+          coinsToAdd = Math.round((val - oldScore) * 4)
+        }
+
         updatedCount++
-        
+
         if (shouldAwardCoins && coinsToAdd > 0) {
           await addCoins(sId, coinsToAdd)
           totalCoinsGiven += coinsToAdd
