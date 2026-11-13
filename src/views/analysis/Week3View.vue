@@ -9,7 +9,8 @@ import {
   Code, Sparkles, BarChart3, RefreshCw, CheckCircle2, ChevronLeft, Eye, HelpCircle, Clock, Edit3,
   Trophy, FileSpreadsheet, AlertCircle, ClipboardList, CheckSquare,
   ShieldCheck, Filter, Globe, Download, Search, AlertTriangle, Table,
-  AlertOctagon, Link as LinkIcon, Wrench, Trash2, Wand2, ExternalLink, Copy, Check, Scissors, ShoppingBag
+  AlertOctagon, Link as LinkIcon, Wrench, Trash2, Wand2, ExternalLink, Copy, Check, Scissors, ShoppingBag,
+  Cpu, Coffee, Package, Car, Dumbbell, Tent, Swords, GraduationCap
 } from '@lucide/vue'
 
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
@@ -54,9 +55,10 @@ const downloadDemoExcel = () => {
 }
 
 // ============================================================================
-// INTERACTIVE DEMO: SHOPPING BASKET SPLIT & CLEAN (bread / cola / sprite)
+// SHARED GOOGLE SHEET (11 PROJECTS x 40 ROWS) - PREPARED BY THE TEACHER
 // ============================================================================
-const SHARED_SHEET_URL = 'https://docs.google.com/spreadsheets/d/12BPCmtqjRh0YQaLBA7opYq8kbNkVgnpjI2ESMBIvxV8/edit?usp=sharing'
+const SHARED_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1uEcppngjfwSzbclz3q1lfrOHlMrGhJidVYLEr9zq3g8/edit?usp=sharing'
+const ROWS_PER_PROJECT = 40
 const copiedSheetUrl = ref(false)
 const copiedRowText = ref(false)
 
@@ -66,13 +68,36 @@ const copySharedSheetUrl = () => {
   setTimeout(() => { copiedSheetUrl.value = false }, 2000)
 }
 
-const copyAssignedRowNote = () => {
-  const note = `รับผิดชอบคลีนข้อมูลบรรทัดที่ ${assignedRange.value.startRow} ถึง ${assignedRange.value.endRow} (จำนวน ${assignedRange.value.rowsPerStudent} แถว)`
+const projectTopics = [
+  { no: 1, icon: CheckSquare, name: 'ระบบเช็กชื่อเข้าเรียน' },
+  { no: 2, icon: Trophy, name: 'ประวัติการแข่งขัน E-Sport' },
+  { no: 3, icon: Cpu, name: 'สต็อกอุปกรณ์คอมพิวเตอร์ / IoT' },
+  { no: 4, icon: BookOpen, name: 'ระบบยืม-คืนหนังสือ' },
+  { no: 5, icon: Coffee, name: 'ออเดอร์ร้านคาเฟ่ / ชานม' },
+  { no: 6, icon: Package, name: 'ข้อมูลลูกค้าและจัดส่งพัสดุ' },
+  { no: 7, icon: Car, name: 'ข้อมูลการเข้าศูนย์บริการรถ' },
+  { no: 8, icon: Dumbbell, name: 'บันทึกการออกกำลังกาย' },
+  { no: 9, icon: Tent, name: 'ระบบสมัครเข้าค่าย / อีเวนต์' },
+  { no: 10, icon: Swords, name: 'สถิติการขายไอเทมเกม' },
+  { no: 11, icon: GraduationCap, name: 'คะแนนสอบและส่งงานรายวิชา' }
+]
+
+const selectedProjectNo = ref(1)
+const selectedProject = computed(
+  () => projectTopics.find(p => p.no === selectedProjectNo.value) || projectTopics[0]
+)
+
+const copyProjectNote = () => {
+  const p = selectedProject.value
+  const note = `รับผิดชอบโปรเจกต์ที่ ${p.no}: ${p.name} (ข้อมูล ${ROWS_PER_PROJECT} แถว)`
   navigator.clipboard.writeText(note)
   copiedRowText.value = true
   setTimeout(() => { copiedRowText.value = false }, 2000)
 }
 
+// ============================================================================
+// INTERACTIVE DEMO: SHOPPING BASKET SPLIT & CLEAN (bread / cola / sprite)
+// ============================================================================
 const basketInput = ref('bread / cola / sprite')
 const basketDelimiter = ref('/')
 const basketStage = ref(0) // 0: Raw, 1: Split only, 2: Split + Trim, 3: Split + Trim + Proper Case
@@ -157,27 +182,9 @@ const basketItemSummary = computed(() => {
 })
 
 // ============================================================================
-// INTERACTIVE SANDBOX 2: 500-ROW DIRTY DATASET GENERATOR & ROW ASSIGNER
+// PRACTICE DATASET: 500-ROW DIRTY DATA GENERATOR (OPTIONAL SELF-PRACTICE CSV)
 // ============================================================================
-const totalStudentsInClass = ref(25)
-const studentNumberInput = ref(1)
-
-const assignedRange = computed(() => {
-  const total = Math.max(1, Math.min(100, Number(totalStudentsInClass.value) || 25))
-  const num = Math.max(1, Math.min(total, Number(studentNumberInput.value) || 1))
-  const rowsPerStudent = Math.floor(500 / total)
-  const startRow = (num - 1) * rowsPerStudent + 1
-  const endRow = num === total ? 500 : num * rowsPerStudent
-  return {
-    rowsPerStudent: endRow - startRow + 1,
-    startRow,
-    endRow,
-    empStart: `REC-${String(startRow).padStart(3, '0')}`,
-    empEnd: `REC-${String(endRow).padStart(3, '0')}`
-  }
-})
-
-// Generate deterministic 500 rows with realistic Dirty Data problems for classroom workshop
+// Generate deterministic 500 rows with realistic Dirty Data problems for self-practice
 const generate500DirtyRows = () => {
   const cleanDepts = [
     'ฝ่ายไอที (IT)',
@@ -504,7 +511,7 @@ const quizQuestions = [
   },
   {
     id: 10,
-    question: "ในการทำเวิร์กช็อปทำความสะอาดชุดข้อมูล 500 แถวบน Google Sheets ขั้นตอนใดถือเป็นหลักปฏิบัติที่ปลอดภัยที่สุดก่อนเริ่มลบหรือแก้ไขข้อมูล?",
+    question: "ในการทำเวิร์กช็อปทำความสะอาดชุดข้อมูลบน Google Sheets ขั้นตอนใดถือเป็นหลักปฏิบัติที่ปลอดภัยที่สุดก่อนเริ่มลบหรือแก้ไขข้อมูล?",
     options: [
       { id: 'a', text: "สำรองข้อมูลดิบไว้ในแท็บ 'Raw_Data' เสมอ แล้วคัดลอกออกมาทำในแท็บ 'Cleaned_Data' เพื่อป้องกันข้อมูลต้นฉบับสูญหาย", isCorrect: true },
       { id: 'b', text: "ลบข้อมูลต้นฉบับทิ้งทันทีโดยไม่ต้องตรวจสอบ", isCorrect: false },
@@ -549,7 +556,8 @@ const quizQuestions = [
           เมื่อเปิดดูตารางผลลัพธ์จริง เราจะพบ <strong>"ข้อมูลขยะ (Dirty Data)"</strong> ปะปนอยู่มากมาย!
           สัปดาห์นี้เราจะเรียนรู้ทั้ง <strong>การตรวจวินิจฉัยสุขภาพข้อมูล 5 มิติ (Data Quality)</strong> ควบคู่กับ
           <strong>กระบวนการแปรสภาพและคลีนข้อมูล (Data Wrangling & Cleansing)</strong>
-          พร้อมภารกิจระดับห้องเรียน: <strong>ช่วยกันคลีนชุดข้อมูลสำรวจองค์กร 500 แถวให้สะอาดพร้อมใช้งานจริง!</strong>
+          พร้อมภารกิจประจำสัปดาห์: <strong>เลือก 1 โปรเจกต์จาก 11 หัวข้อ แล้วคลีนชุดข้อมูล 40
+            แถวให้ถูกต้องและเป็นมาตรฐาน!</strong>
         </p>
 
         <div class="pt-2 flex flex-wrap gap-2 text-xs font-bold">
@@ -571,7 +579,7 @@ const quizQuestions = [
           <span
             class="px-3 py-1.5 rounded-xl bg-white/15 text-white backdrop-blur-xs border border-white/20 flex items-center gap-1.5">
             <FileSpreadsheet class="w-4 h-4 text-purple-300" />
-            500-Row Classroom Cleaning Lab
+            11 Projects Cleaning Lab (40 Rows)
           </span>
         </div>
       </div>
@@ -598,7 +606,8 @@ const quizQuestions = [
           <span class="text-amber-300 font-bold font-mono">999 ชั่วโมง</span> ลงไป และอีกคนพิมพ์ติดลบ
           <span class="text-rose-300 font-bold font-mono">-15 ชั่วโมง</span> แถมบางคนพิมพ์ชื่อแผนกว่า
           <code>"IT"</code>, <code>"ไอที"</code>, <code>"  it support "</code> ปนกันไปหมด<br />
-          หากเรานำตารางนี้ไปใส่สูตร <code>=AVERAGE()</code> หรือทำกราฟทันที ค่าเฉลี่ยเวลารอซ่อมจะพุ่งกระฉูดและแยกแผนกผิดพลาดทั้งหมด!
+          หากเรานำตารางนี้ไปใส่สูตร <code>=AVERAGE()</code> หรือทำกราฟทันที
+          ค่าเฉลี่ยเวลารอซ่อมจะพุ่งกระฉูดและแยกแผนกผิดพลาดทั้งหมด!
           นี่คือเหตุผลที่นักวิเคราะห์ข้อมูลต้องทำ <strong>Data Quality Check & Data Wrangling</strong> ก่อนเสมอ
         </p>
       </div>
@@ -614,7 +623,8 @@ const quizQuestions = [
           <div>
             <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">เนื้อหาบทเรียนประจำสัปดาห์ที่ 3</h2>
             <p class="text-sm text-gray-500 mt-0.5">
-              จับคู่ "การตรวจวินิจฉัยคุณภาพข้อมูล (Data Quality)" และ "การแปรสภาพ/คลีนข้อมูล (Data Wrangling & Cleansing)"
+              จับคู่ "การตรวจวินิจฉัยคุณภาพข้อมูล (Data Quality)" และ "การแปรสภาพ/คลีนข้อมูล (Data Wrangling &
+              Cleansing)"
             </p>
           </div>
         </div>
@@ -651,9 +661,11 @@ const quizQuestions = [
         <div class="space-y-5 text-sm text-gray-700 leading-relaxed">
           <p>
             <strong>Data Wrangling</strong> (หรือที่ในวงการเรียกว่า <em>Data Munging</em> และมักเรียกควบคู่กับ
-            <em>Data Cleansing</em>) คือ <strong>กระบวนการแปรสภาพ จัดระเบียบโครงสร้าง และทำความสะอาดข้อมูลดิบ (Raw Data /
+            <em>Data Cleansing</em>) คือ <strong>กระบวนการแปรสภาพ จัดระเบียบโครงสร้าง และทำความสะอาดข้อมูลดิบ (Raw Data
+              /
               Dirty Data)</strong> ที่มาจากแหล่งต่างๆ เช่น Google Forms, CSV, Excel, ฐานข้อมูล หรือ API
-            ให้กลายเป็นชุดข้อมูลที่มีคุณภาพสูง (High Data Quality) และพร้อมนำไปวิเคราะห์ทางสถิติหรือสร้าง Dashboard ต่อได้ทันที
+            ให้กลายเป็นชุดข้อมูลที่มีคุณภาพสูง (High Data Quality) และพร้อมนำไปวิเคราะห์ทางสถิติหรือสร้าง Dashboard
+            ต่อได้ทันที
           </p>
 
           <!-- Doctor Analogy: Data Quality vs Data Cleansing -->
@@ -668,7 +680,8 @@ const quizQuestions = [
               </div>
               <p class="text-xs text-slate-600 leading-relaxed">
                 คือเกณฑ์มาตรฐานในการ <strong>"ส่องหาจุดเสีย"</strong> ว่าชุดข้อมูลดิบของเรามีความสมบูรณ์หรือไม่
-                พังที่คอลัมน์ไหน และพังในมิติใด (ความถูกต้อง, ความครบถ้วน, ความสอดคล้อง, ความเป็นปัจจุบัน, ความไม่ซ้ำซ้อน)
+                พังที่คอลัมน์ไหน และพังในมิติใด (ความถูกต้อง, ความครบถ้วน, ความสอดคล้อง, ความเป็นปัจจุบัน,
+                ความไม่ซ้ำซ้อน)
               </p>
             </div>
 
@@ -678,7 +691,8 @@ const quizQuestions = [
                   <Wrench class="w-5 h-5 text-emerald-600" />
                   2. Data Cleansing / Wrangling (เปรียบเหมือน "หมอผ่าตัดรักษา")
                 </span>
-                <span class="px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 text-[11px] font-bold">ขั้นลงมือซ่อม</span>
+                <span
+                  class="px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 text-[11px] font-bold">ขั้นลงมือซ่อม</span>
               </div>
               <p class="text-xs text-slate-600 leading-relaxed">
                 คือการนำเครื่องมือและฟังก์ชันใน <strong>Google Sheets / Excel / Python (Pandas) / SQL</strong>
@@ -699,7 +713,8 @@ const quizQuestions = [
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
               <div class="p-3.5 rounded-xl bg-slate-800/90 border border-slate-700 space-y-1.5">
-                <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono font-bold text-[10px]">Step 1</span>
+                <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono font-bold text-[10px]">Step
+                  1</span>
                 <div class="font-bold text-white text-sm">Discovery & Profiling</div>
                 <p class="text-slate-300 text-[11px] leading-relaxed">
                   สำรวจภาพรวมตาราง นับจำนวนแถว ดูชนิดข้อมูลในแต่ละคอลัมน์ และตรวจหาจุดผิดปกติเบื้องต้น
@@ -807,7 +822,8 @@ const quizQuestions = [
                   เวลาติดลบ <code>-12.5</code> ชม., หรือคะแนนสเกล 1-5 แต่กรอก <code>55</code>
                 </td>
                 <td class="p-3.5 text-xs font-mono">
-                  ใช้ <code>=MIN()</code>, <code>=MAX()</code>, เรียงลำดับ Sort น้อยไปมาก/มากไปน้อย หรือทำ Box Plot (IQR)
+                  ใช้ <code>=MIN()</code>, <code>=MAX()</code>, เรียงลำดับ Sort น้อยไปมาก/มากไปน้อย หรือทำ Box Plot
+                  (IQR)
                 </td>
                 <td class="p-3.5 text-xs">
                   • ตรวจสอบว่าเป็นพิมพ์เบิ้ลหรือไม่ (เช่น <code>55</code> แก้เป็น <code>5</code>)<br />
@@ -843,7 +859,8 @@ const quizQuestions = [
                   <span class="text-[11px] font-normal text-purple-700">(ความไม่ซ้ำซ้อน)</span>
                 </td>
                 <td class="p-3.5 text-xs">
-                  พนักงานคนเดิม (<code>Employee_ID</code> เดียวกัน) กดส่งแบบฟอร์มเบิ้ล 2–3 ครั้งติดกัน ทำให้จำนวนนับเบิ้ลเกินจริง
+                  พนักงานคนเดิม (<code>Employee_ID</code> เดียวกัน) กดส่งแบบฟอร์มเบิ้ล 2–3 ครั้งติดกัน
+                  ทำให้จำนวนนับเบิ้ลเกินจริง
                 </td>
                 <td class="p-3.5 text-xs font-mono">
                   ใช้ Conditional Formatting ไฮไลต์ค่าซ้ำ หรือเช็ค <code>=UNIQUE()</code>
@@ -930,8 +947,9 @@ const quizQuestions = [
               <div class="p-3.5 rounded-xl bg-white border border-amber-200 space-y-2 shadow-2xs">
                 <div class="font-bold text-emerald-950 text-sm flex items-center justify-between">
                   <span>วิธีที่ 2: การแทนที่ค่าที่หายไป (Imputation Strategy)</span>
-                  <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">แนะนำสำหรับใบงาน
-                    500 แถว</span>
+                  <span
+                    class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">แนะนำสำหรับใบงานโปรเจกต์
+                    40 แถว</span>
                 </div>
                 <p class="text-slate-600 leading-relaxed">
                   แทนที่จะลบแถวทิ้งจนเสียข้อมูลคอลัมน์อื่น เราสามารถเติมค่าตัวแทนทางสถิติลงไปแทนช่องว่างได้ดังนี้:
@@ -964,7 +982,8 @@ const quizQuestions = [
                   <AlertOctagon class="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 class="font-black text-rose-950 text-base">แนวทางตรวจจับและจัดการ Outliers (ค่าผิดปกติสุดโต่ง)</h4>
+                  <h4 class="font-black text-rose-950 text-base">แนวทางตรวจจับและจัดการ Outliers (ค่าผิดปกติสุดโต่ง)
+                  </h4>
                   <p class="text-xs text-rose-800">ค่าที่โดดสูงหรือต่ำกว่ากลุ่มข้อมูลส่วนใหญ่อย่างผิดสังเกต</p>
                 </div>
               </div>
@@ -984,7 +1003,8 @@ const quizQuestions = [
                   <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
                     <span class="font-bold text-slate-900 block">2. วิธี Z-Score & Domain Rule</span>
                     <p class="text-[11px] text-slate-600 leading-relaxed">
-                      วัดว่าข้อมูลห่างจากค่าเฉลี่ยเกิน <code>3 SD</code> หรือไม่ หรือเช็คตามกฎความจริง (เช่น เวลารอซ่อมห้าม
+                      วัดว่าข้อมูลห่างจากค่าเฉลี่ยเกิน <code>3 SD</code> หรือไม่ หรือเช็คตามกฎความจริง (เช่น
+                      เวลารอซ่อมห้าม
                       <code>&lt; 0</code> และห้ามเกิน <code>24 ชม.</code>)
                     </p>
                   </div>
@@ -1016,7 +1036,7 @@ const quizQuestions = [
           <div class="flex items-center justify-between flex-wrap gap-2 border-b border-white/15 pb-3">
             <h4 class="font-bold text-emerald-300 text-base flex items-center gap-2">
               <FileSpreadsheet class="w-5 h-5 text-emerald-400" />
-              คัมภีร์สูตรลัดและเครื่องมือ Google Sheets / Excel สำหรับคลีนข้อมูล 500 แถว
+              คัมภีร์สูตรลัดและเครื่องมือ Google Sheets / Excel สำหรับคลีนข้อมูล 40 แถว
             </h4>
             <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 text-xs font-mono">
               Sheets Cleansing Toolkit
@@ -1035,19 +1055,23 @@ const quizQuestions = [
             <div class="p-3.5 rounded-xl bg-black/35 border border-white/10 space-y-1">
               <code class="text-emerald-300 font-bold text-sm">Ctrl + H (Find & Replace)</code>
               <p class="text-slate-300 text-[11px]">ค้นหาคำที่สะกดต่างกัน เช่น <code>"ไอที"</code> แล้วแทนที่ด้วย
-                <code>"ฝ่ายไอที (IT)"</code> ทั้งคอลัมน์</p>
+                <code>"ฝ่ายไอที (IT)"</code> ทั้งคอลัมน์
+              </p>
             </div>
             <div class="p-3.5 rounded-xl bg-black/35 border border-white/10 space-y-1">
-              <code class="text-purple-300 font-bold text-sm">=MEDIAN(G2:G501)</code>
-              <p class="text-slate-300 text-[11px]">หาค่ามัธยฐานของคอลัมน์ตัวเลข เพื่อนำไปเติมในช่องว่าง (Missing Value)</p>
+              <code class="text-purple-300 font-bold text-sm">=MEDIAN(G2:G41)</code>
+              <p class="text-slate-300 text-[11px]">หาค่ามัธยฐานของคอลัมน์ตัวเลข เพื่อนำไปเติมในช่องว่าง (Missing Value)
+              </p>
             </div>
             <div class="p-3.5 rounded-xl bg-black/35 border border-white/10 space-y-1">
               <code class="text-rose-300 font-bold text-sm">=IF(OR(G2&lt;0, G2&gt;24), "Outlier", "OK")</code>
-              <p class="text-slate-300 text-[11px]">สร้างคอลัมน์ช่วยตรวจจับว่าแถวไหนมีเวลารอคอยติดลบหรือเกิน 24 ชั่วโมง</p>
+              <p class="text-slate-300 text-[11px]">สร้างคอลัมน์ช่วยตรวจจับว่าแถวไหนมีเวลารอคอยติดลบหรือเกิน 24 ชั่วโมง
+              </p>
             </div>
             <div class="p-3.5 rounded-xl bg-black/35 border border-white/10 space-y-1">
-              <code class="text-sky-300 font-bold text-sm">=COUNTBLANK(A2:J501)</code>
-              <p class="text-slate-300 text-[11px]">ตรวจสอบว่ายังมีช่องว่างหลงเหลืออยู่ในตารางอีกกี่ช่อง (คลีนเสร็จต้องได้ 0)</p>
+              <code class="text-sky-300 font-bold text-sm">=COUNTBLANK(A2:J41)</code>
+              <p class="text-slate-300 text-[11px]">ตรวจสอบว่ายังมีช่องว่างหลงเหลืออยู่ในตารางอีกกี่ช่อง
+                (คลีนเสร็จต้องได้ 0)</p>
             </div>
           </div>
         </div>
@@ -1076,7 +1100,8 @@ const quizQuestions = [
             </h3>
             <p class="text-slate-600 text-xs sm:text-sm">
               คู่มือพาทำทีละสเต็ปตั้งแต่ข้อมูลดิบที่กองรวมกันในเซลล์เดียว ไปจนถึงข้อมูลที่สะอาดพร้อมวิเคราะห์
-              พร้อมอธิบายครบว่าแต่ละขั้น <strong>ทำยังไง, ทำไมต้องทำ, ได้ประโยชน์อะไร และถ้าไม่ทำจะเกิดผลเสียอย่างไร</strong>
+              พร้อมอธิบายครบว่าแต่ละขั้น <strong>ทำยังไง, ทำไมต้องทำ, ได้ประโยชน์อะไร
+                และถ้าไม่ทำจะเกิดผลเสียอย่างไร</strong>
             </p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -1092,7 +1117,8 @@ const quizQuestions = [
         <div class="p-5 sm:p-6 rounded-2xl bg-slate-900 text-white border border-slate-800 space-y-4">
           <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
             <div class="flex items-center gap-2">
-              <span class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-400/30 font-mono font-bold text-xs">
+              <span
+                class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-400/30 font-mono font-bold text-xs">
                 จุดเริ่มต้น (Raw Data)
               </span>
               <h4 class="font-bold text-white text-sm sm:text-base">
@@ -1121,21 +1147,23 @@ const quizQuestions = [
                   <td class="p-3 font-sans">คุณสมชาย</td>
                   <td class="p-3 text-amber-300 font-bold">"bread / cola / sprite"</td>
                   <td class="p-3">85</td>
-                  <td class="p-3 font-sans text-rose-300">สินค้า 3 ชิ้นอัดรวมกันในช่องเดียว + มีเคาะวรรคหน้า-หลังเครื่องหมาย /</td>
+                  <td class="p-3 font-sans text-rose-300">สินค้า 3 ชิ้นอัดรวมกันในช่องเดียว +
+                    มีเคาะวรรคหน้า-หลังเครื่องหมาย /</td>
                 </tr>
                 <tr>
                   <td class="p-3 text-slate-400">3</td>
                   <td class="p-3 font-bold text-sky-400">ORD-102</td>
                   <td class="p-3 font-sans">คุณสายใจ</td>
-                  <td class="p-3 text-amber-300 font-bold">"  milk / BREAD / Cola  "</td>
+                  <td class="p-3 text-amber-300 font-bold">" milk / BREAD / Cola "</td>
                   <td class="p-3">95</td>
-                  <td class="p-3 font-sans text-rose-300">มีวรรคเกินหน้า-หลังสุด + ตัวพิมพ์ใหญ่ BREAD / Cola ไม่ตรงกับแถวอื่น</td>
+                  <td class="p-3 font-sans text-rose-300">มีวรรคเกินหน้า-หลังสุด + ตัวพิมพ์ใหญ่ BREAD / Cola
+                    ไม่ตรงกับแถวอื่น</td>
                 </tr>
                 <tr>
                   <td class="p-3 text-slate-400">4</td>
                   <td class="p-3 font-bold text-sky-400">ORD-102</td>
                   <td class="p-3 font-sans">คุณสายใจ</td>
-                  <td class="p-3 text-amber-300 font-bold">"  milk / BREAD / Cola  "</td>
+                  <td class="p-3 text-amber-300 font-bold">" milk / BREAD / Cola "</td>
                   <td class="p-3">95</td>
                   <td class="p-3 font-sans text-purple-300">ข้อมูลซ้ำซ้อน (Duplicate) กับแถวที่ 3 ทุกประการ</td>
                 </tr>
@@ -1143,9 +1171,10 @@ const quizQuestions = [
                   <td class="p-3 text-slate-400">5</td>
                   <td class="p-3 font-bold text-sky-400">ORD-103</td>
                   <td class="p-3 font-sans">คุณวิชัย</td>
-                  <td class="p-3 text-amber-300 font-bold">"sprite / chips /   bread "</td>
+                  <td class="p-3 text-amber-300 font-bold">"sprite / chips / bread "</td>
                   <td class="p-3 text-rose-400 font-bold">99999</td>
-                  <td class="p-3 font-sans text-rose-300">ยอดเงิน 99,999 บาท เป็นค่าผิดปกติสุดโต่ง (Outlier พิมพ์เลขเกิน)</td>
+                  <td class="p-3 font-sans text-rose-300">ยอดเงิน 99,999 บาท เป็นค่าผิดปกติสุดโต่ง (Outlier
+                    พิมพ์เลขเกิน)</td>
                 </tr>
                 <tr>
                   <td class="p-3 text-slate-400">6</td>
@@ -1169,7 +1198,8 @@ const quizQuestions = [
           <div class="rounded-2xl border-2 border-slate-200 bg-slate-50/60 overflow-hidden shadow-2xs">
             <div class="bg-slate-800 text-white px-5 py-3.5 flex items-center justify-between flex-wrap gap-2">
               <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-xl bg-sky-500 text-white font-black text-sm flex items-center justify-center shrink-0">
+                <span
+                  class="w-8 h-8 rounded-xl bg-sky-500 text-white font-black text-sm flex items-center justify-center shrink-0">
                   1
                 </span>
                 <div>
@@ -1179,7 +1209,8 @@ const quizQuestions = [
                   <p class="text-xs text-slate-300">กฎเหล็กข้อแรกสุดก่อนแตะต้องข้อมูลใดๆ ในตาราง</p>
                 </div>
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 text-xs font-mono font-bold">
+              <span
+                class="px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 text-xs font-mono font-bold">
                 Step 1: Backup Raw Data
               </span>
             </div>
@@ -1201,7 +1232,8 @@ const quizQuestions = [
                     <HelpCircle class="w-4 h-4 text-indigo-600" /> 2. ทำไมต้องทำ?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    เพราะการคลีนข้อมูลมีการลบแถว แยกคอลัมน์ และแทนที่ค่าเดิม หากทำทับไฟล์ต้นฉบับจะไม่มีข้อมูลดิบไว้ตรวจสอบย้อนกลับ
+                    เพราะการคลีนข้อมูลมีการลบแถว แยกคอลัมน์ และแทนที่ค่าเดิม
+                    หากทำทับไฟล์ต้นฉบับจะไม่มีข้อมูลดิบไว้ตรวจสอบย้อนกลับ
                   </p>
                 </div>
 
@@ -1210,7 +1242,8 @@ const quizQuestions = [
                     <CheckCircle2 class="w-4 h-4 text-emerald-600" /> 3. ได้ประโยชน์อะไร?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    มีหลักฐานต้นฉบับ (Audit Trail) เสมอ และสามารถเปรียบเทียบผลลัพธ์ <strong>Before vs After</strong> ได้ชัดเจน
+                    มีหลักฐานต้นฉบับ (Audit Trail) เสมอ และสามารถเปรียบเทียบผลลัพธ์ <strong>Before vs After</strong>
+                    ได้ชัดเจน
                   </p>
                 </div>
 
@@ -1232,7 +1265,8 @@ const quizQuestions = [
           <div class="rounded-2xl border-2 border-indigo-200 bg-indigo-50/30 overflow-hidden shadow-2xs">
             <div class="bg-indigo-900 text-white px-5 py-3.5 flex items-center justify-between flex-wrap gap-2">
               <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
+                <span
+                  class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
                   2
                 </span>
                 <div>
@@ -1240,11 +1274,13 @@ const quizQuestions = [
                     ขั้นตอนที่ 2: แยกข้อความตะกร้าสินค้าออกจากกัน (Split Text to Columns / <code>=SPLIT</code>)
                   </h4>
                   <p class="text-xs text-indigo-200">
-                    แปลงข้อมูลที่อัดรวมกัน <code>"bread / cola / sprite"</code> ให้แยกออกเป็นคอลัมน์ <code>Item_1</code>, <code>Item_2</code>, <code>Item_3</code>
+                    แปลงข้อมูลที่อัดรวมกัน <code>"bread / cola / sprite"</code> ให้แยกออกเป็นคอลัมน์
+                    <code>Item_1</code>, <code>Item_2</code>, <code>Item_3</code>
                   </p>
                 </div>
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/30 text-xs font-mono font-bold">
+              <span
+                class="px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/30 text-xs font-mono font-bold">
                 Step 2: Split Columns
               </span>
             </div>
@@ -1257,7 +1293,8 @@ const quizQuestions = [
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
                   <div class="lg:col-span-5 p-3 rounded-lg bg-rose-950/50 border border-rose-500/40 space-y-1">
-                    <span class="text-[10px] text-rose-300 font-sans uppercase font-bold block">ก่อนแยก (1 เซลล์รวมกัน):</span>
+                    <span class="text-[10px] text-rose-300 font-sans uppercase font-bold block">ก่อนแยก (1
+                      เซลล์รวมกัน):</span>
                     <div class="text-amber-300 font-bold text-sm">"bread / cola / sprite"</div>
                   </div>
                   <div class="lg:col-span-1 flex justify-center text-cyan-400 font-bold text-lg">
@@ -1287,7 +1324,9 @@ const quizQuestions = [
                     <Wrench class="w-4 h-4 text-sky-600" /> 1. ทำยังไง?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    • <strong>วิธีคลิกเมนู:</strong> คลุมคอลัมน์ตะกร้าสินค้า &rarr; เมนู <code>Data (ข้อมูล)</code> &rarr; <code>Split text to columns</code> &rarr; เลือกตัวคั่น <code>Custom</code> แล้วพิมพ์ <code>/</code><br />
+                    • <strong>วิธีคลิกเมนู:</strong> คลุมคอลัมน์ตะกร้าสินค้า &rarr; เมนู <code>Data (ข้อมูล)</code>
+                    &rarr; <code>Split text to columns</code> &rarr; เลือกตัวคั่น <code>Custom</code> แล้วพิมพ์
+                    <code>/</code><br />
                     • <strong>วิธีเขียนสูตร:</strong> พิมพ์ <code>=SPLIT(C2, "/")</code> ในช่องว่างด้านขวา
                   </p>
                 </div>
@@ -1297,7 +1336,8 @@ const quizQuestions = [
                     <HelpCircle class="w-4 h-4 text-indigo-600" /> 2. ทำไมต้องทำ?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    เพราะตามกฎโครงสร้างตารางที่ดี (Tidy Data / 1NF) <strong>1 เซลล์ต้องเก็บข้อมูลเพียง 1 ค่าเท่านั้น</strong> การเอาสินค้า 3 ชิ้นมายัดไว้ในช่องเดียวกันทำให้โปรแกรมวิเคราะห์แยกชิ้นไม่ได้
+                    เพราะตามกฎโครงสร้างตารางที่ดี (Tidy Data / 1NF) <strong>1 เซลล์ต้องเก็บข้อมูลเพียง 1
+                      ค่าเท่านั้น</strong> การเอาสินค้า 3 ชิ้นมายัดไว้ในช่องเดียวกันทำให้โปรแกรมวิเคราะห์แยกชิ้นไม่ได้
                   </p>
                 </div>
 
@@ -1306,7 +1346,8 @@ const quizQuestions = [
                     <CheckCircle2 class="w-4 h-4 text-emerald-600" /> 3. ได้ประโยชน์อะไร?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    สินค้าแต่ละชิ้นแยกออกมาอยู่คนละคอลัมน์อย่างชัดเจน ทำให้เราสามารถนับความถี่ได้ว่าสินค้าชิ้นที่ 1, 2, 3 คืออะไรบ้าง
+                    สินค้าแต่ละชิ้นแยกออกมาอยู่คนละคอลัมน์อย่างชัดเจน ทำให้เราสามารถนับความถี่ได้ว่าสินค้าชิ้นที่ 1, 2,
+                    3 คืออะไรบ้าง
                   </p>
                 </div>
 
@@ -1315,7 +1356,8 @@ const quizQuestions = [
                     <AlertTriangle class="w-4 h-4 text-rose-600" /> 4. ถ้าไม่ทำจะเป็นยังไง?
                   </div>
                   <p class="text-rose-900 leading-relaxed">
-                    Google Sheets และ Power BI จะมองว่า <code>"bread / cola / sprite"</code> คือชื่อของสินค้า 1 ชิ้น! เวลาค้นหาว่ามีคนซื้อ <code>cola</code> กี่คน จะได้คำตอบเป็น <code>0</code> ทันที
+                    Google Sheets และ Power BI จะมองว่า <code>"bread / cola / sprite"</code> คือชื่อของสินค้า 1 ชิ้น!
+                    เวลาค้นหาว่ามีคนซื้อ <code>cola</code> กี่คน จะได้คำตอบเป็น <code>0</code> ทันที
                   </p>
                 </div>
               </div>
@@ -1328,7 +1370,8 @@ const quizQuestions = [
           <div class="rounded-2xl border-2 border-sky-200 bg-sky-50/30 overflow-hidden shadow-2xs">
             <div class="bg-sky-900 text-white px-5 py-3.5 flex items-center justify-between flex-wrap gap-2">
               <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-xl bg-sky-400 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
+                <span
+                  class="w-8 h-8 rounded-xl bg-sky-400 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
                   3
                 </span>
                 <div>
@@ -1340,7 +1383,8 @@ const quizQuestions = [
                   </p>
                 </div>
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-sky-400/20 text-sky-200 border border-sky-300/30 text-xs font-mono font-bold">
+              <span
+                class="px-2.5 py-1 rounded-full bg-sky-400/20 text-sky-200 border border-sky-300/30 text-xs font-mono font-bold">
                 Step 3: Trim Spaces
               </span>
             </div>
@@ -1359,11 +1403,13 @@ const quizQuestions = [
                     </div>
                     <div class="p-2.5 rounded-lg bg-rose-950/50 border border-rose-500/40">
                       <span class="text-[10px] text-rose-300 font-sans block">ก่อน Trim (6 ตัว)</span>
-                      <span class="text-amber-300 font-bold">"<span class="bg-rose-500 text-white">_</span>cola<span class="bg-rose-500 text-white">_</span>"</span>
+                      <span class="text-amber-300 font-bold">"<span class="bg-rose-500 text-white">_</span>cola<span
+                          class="bg-rose-500 text-white">_</span>"</span>
                     </div>
                     <div class="p-2.5 rounded-lg bg-rose-950/50 border border-rose-500/40">
                       <span class="text-[10px] text-rose-300 font-sans block">ก่อน Trim (7 ตัว)</span>
-                      <span class="text-amber-300 font-bold">"<span class="bg-rose-500 text-white">_</span>sprite"</span>
+                      <span class="text-amber-300 font-bold">"<span
+                          class="bg-rose-500 text-white">_</span>sprite"</span>
                     </div>
                   </div>
                   <div class="lg:col-span-1 flex justify-center text-cyan-400 font-bold text-lg">
@@ -1393,8 +1439,11 @@ const quizQuestions = [
                     <Wrench class="w-4 h-4 text-sky-600" /> 1. ทำยังไง?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    • <strong>วิธีคลิกเมนู:</strong> คลุมคอลัมน์ที่แยกออกมาทั้งหมด &rarr; เมนู <code>Data (ข้อมูล)</code> &rarr; <code>Data cleanup (การล้างข้อมูล)</code> &rarr; <code>Trim whitespace (ตัดช่องว่าง)</code><br />
-                    • <strong>วิธีเขียนสูตร:</strong> ใช้ <code>=TRIM(D2)</code> หรือครอบสูตร <code>=ARRAYFORMULA(TRIM(SPLIT(C2, "/")))</code>
+                    • <strong>วิธีคลิกเมนู:</strong> คลุมคอลัมน์ที่แยกออกมาทั้งหมด &rarr; เมนู
+                    <code>Data (ข้อมูล)</code> &rarr; <code>Data cleanup (การล้างข้อมูล)</code> &rarr;
+                    <code>Trim whitespace (ตัดช่องว่าง)</code><br />
+                    • <strong>วิธีเขียนสูตร:</strong> ใช้ <code>=TRIM(D2)</code> หรือครอบสูตร
+                    <code>=ARRAYFORMULA(TRIM(SPLIT(C2, "/")))</code>
                   </p>
                 </div>
 
@@ -1403,7 +1452,8 @@ const quizQuestions = [
                     <HelpCircle class="w-4 h-4 text-indigo-600" /> 2. ทำไมต้องทำ?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    เพราะในข้อความ <code>"bread / cola / sprite"</code> มีการเคาะวรรคหน้าและหลังเครื่องหมาย <code>/</code> พอแยกคำด้วย <code>/</code> เสร็จ ช่องว่างเหล่านั้นจึงยังติดค้างอยู่ที่หัวและท้ายคำ!
+                    เพราะในข้อความ <code>"bread / cola / sprite"</code> มีการเคาะวรรคหน้าและหลังเครื่องหมาย
+                    <code>/</code> พอแยกคำด้วย <code>/</code> เสร็จ ช่องว่างเหล่านั้นจึงยังติดค้างอยู่ที่หัวและท้ายคำ!
                   </p>
                 </div>
 
@@ -1412,7 +1462,8 @@ const quizQuestions = [
                     <CheckCircle2 class="w-4 h-4 text-emerald-600" /> 3. ได้ประโยชน์อะไร?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    ข้อความทุกเซลล์จะเหลือเฉพาะตัวอักษรล้วนๆ ไม่มีช่องว่างขยะซ่อนอยู่ ทำให้การค้นหา จับคู่ (<code>VLOOKUP</code>) และนับจำนวนแม่นยำ 100%
+                    ข้อความทุกเซลล์จะเหลือเฉพาะตัวอักษรล้วนๆ ไม่มีช่องว่างขยะซ่อนอยู่ ทำให้การค้นหา จับคู่
+                    (<code>VLOOKUP</code>) และนับจำนวนแม่นยำ 100%
                   </p>
                 </div>
 
@@ -1421,7 +1472,9 @@ const quizQuestions = [
                     <AlertTriangle class="w-4 h-4 text-rose-600" /> 4. ถ้าไม่ทำจะเป็นยังไง?
                   </div>
                   <p class="text-rose-900 leading-relaxed">
-                    ตาคนเรามองว่า <code>"cola"</code> กับ <code>" cola "</code> เหมือนกัน แต่คอมพิวเตอร์มองว่าเป็น <strong>คนละคำกัน!</strong> เวลาสรุปยอดขายจะได้ <code>cola</code> แยกออกเป็น 2–3 บรรทัดโดยไม่รู้สาเหตุ
+                    ตาคนเรามองว่า <code>"cola"</code> กับ <code>" cola "</code> เหมือนกัน แต่คอมพิวเตอร์มองว่าเป็น
+                    <strong>คนละคำกัน!</strong> เวลาสรุปยอดขายจะได้ <code>cola</code> แยกออกเป็น 2–3
+                    บรรทัดโดยไม่รู้สาเหตุ
                   </p>
                 </div>
               </div>
@@ -1434,7 +1487,8 @@ const quizQuestions = [
           <div class="rounded-2xl border-2 border-emerald-200 bg-emerald-50/30 overflow-hidden shadow-2xs">
             <div class="bg-emerald-900 text-white px-5 py-3.5 flex items-center justify-between flex-wrap gap-2">
               <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-xl bg-emerald-400 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
+                <span
+                  class="w-8 h-8 rounded-xl bg-emerald-400 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
                   4
                 </span>
                 <div>
@@ -1442,11 +1496,13 @@ const quizQuestions = [
                     ขั้นตอนที่ 4: ปรับตัวพิมพ์เล็ก-ใหญ่และคำสะกดให้เป็นมาตรฐานเดียวกัน (Standardize Format)
                   </h4>
                   <p class="text-xs text-emerald-200">
-                    รวมคำความหมายเดียวกัน เช่น <code>"BREAD"</code>, <code>"Bread"</code>, <code>"bread"</code> ให้เป็นรูปแบบเดียวกันทั้งตาราง
+                    รวมคำความหมายเดียวกัน เช่น <code>"BREAD"</code>, <code>"Bread"</code>, <code>"bread"</code>
+                    ให้เป็นรูปแบบเดียวกันทั้งตาราง
                   </p>
                 </div>
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-300/30 text-xs font-mono font-bold">
+              <span
+                class="px-2.5 py-1 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-300/30 text-xs font-mono font-bold">
                 Step 4: Consistency
               </span>
             </div>
@@ -1460,11 +1516,14 @@ const quizQuestions = [
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div class="p-3 rounded-lg bg-rose-950/40 border border-rose-500/30">
                     <span class="text-[10px] text-rose-300 font-sans block mb-1">ก่อนปรับมาตรฐาน (ตัวพิมพ์ปนกัน):</span>
-                    <span class="text-amber-300">"BREAD"</span>, <span class="text-amber-300">"bread"</span>, <span class="text-amber-300">"Cola"</span>, <span class="text-amber-300">"COLA"</span>
+                    <span class="text-amber-300">"BREAD"</span>, <span class="text-amber-300">"bread"</span>, <span
+                      class="text-amber-300">"Cola"</span>, <span class="text-amber-300">"COLA"</span>
                   </div>
                   <div class="p-3 rounded-lg bg-emerald-950/40 border border-emerald-500/30">
-                    <span class="text-[10px] text-emerald-300 font-sans block mb-1">หลังใช้ =LOWER() หรือ =PROPER():</span>
-                    <span class="text-emerald-300 font-bold">"bread"</span> (รวมเป็นคำเดียว), <span class="text-emerald-300 font-bold">"cola"</span> (รวมเป็นคำเดียว)
+                    <span class="text-[10px] text-emerald-300 font-sans block mb-1">หลังใช้ =LOWER() หรือ
+                      =PROPER():</span>
+                    <span class="text-emerald-300 font-bold">"bread"</span> (รวมเป็นคำเดียว), <span
+                      class="text-emerald-300 font-bold">"cola"</span> (รวมเป็นคำเดียว)
                   </div>
                 </div>
               </div>
@@ -1476,8 +1535,10 @@ const quizQuestions = [
                     <Wrench class="w-4 h-4 text-sky-600" /> 1. ทำยังไง?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    • ใช้สูตร <code>=LOWER(D2)</code> เพื่อแปลงเป็นตัวพิมพ์เล็กทั้งหมด (เช่น <code>bread</code>) หรือ <code>=PROPER(D2)</code> (เช่น <code>Bread</code>)<br />
-                    • หากสะกดคนละคำ (เช่น <code>"โค้ก"</code> กับ <code>"cola"</code>) ให้กด <code>Ctrl + H</code> (Find & Replace) เพื่อแทนที่คำให้ตรงกัน
+                    • ใช้สูตร <code>=LOWER(D2)</code> เพื่อแปลงเป็นตัวพิมพ์เล็กทั้งหมด (เช่น <code>bread</code>) หรือ
+                    <code>=PROPER(D2)</code> (เช่น <code>Bread</code>)<br />
+                    • หากสะกดคนละคำ (เช่น <code>"โค้ก"</code> กับ <code>"cola"</code>) ให้กด <code>Ctrl + H</code> (Find
+                    & Replace) เพื่อแทนที่คำให้ตรงกัน
                   </p>
                 </div>
 
@@ -1486,7 +1547,8 @@ const quizQuestions = [
                     <HelpCircle class="w-4 h-4 text-indigo-600" /> 2. ทำไมต้องทำ?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    เพื่อแก้ปัญหาเรื่อง <strong>Consistency (ความสอดคล้องของรูปแบบ)</strong> เพราะมนุษย์แต่ละคนพิมพ์ตัวเล็ก-ตัวใหญ่หรือใช้คำย่อไม่เหมือนกัน
+                    เพื่อแก้ปัญหาเรื่อง <strong>Consistency (ความสอดคล้องของรูปแบบ)</strong>
+                    เพราะมนุษย์แต่ละคนพิมพ์ตัวเล็ก-ตัวใหญ่หรือใช้คำย่อไม่เหมือนกัน
                   </p>
                 </div>
 
@@ -1495,7 +1557,8 @@ const quizQuestions = [
                     <CheckCircle2 class="w-4 h-4 text-emerald-600" /> 3. ได้ประโยชน์อะไร?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    จัดกลุ่มหมวดหมู่ (Grouping / Pivot Table) ได้อย่างสมบูรณ์แบบ ไม่มีชื่อหมวดหมู่หน้าตาแปลกๆ แตกแขนงออกมา
+                    จัดกลุ่มหมวดหมู่ (Grouping / Pivot Table) ได้อย่างสมบูรณ์แบบ ไม่มีชื่อหมวดหมู่หน้าตาแปลกๆ
+                    แตกแขนงออกมา
                   </p>
                 </div>
 
@@ -1504,7 +1567,8 @@ const quizQuestions = [
                     <AlertTriangle class="w-4 h-4 text-rose-600" /> 4. ถ้าไม่ทำจะเป็นยังไง?
                   </div>
                   <p class="text-rose-900 leading-relaxed">
-                    กราฟนำเสนอจะแยกแท่งของ <code>BREAD</code>, <code>Bread</code> และ <code>bread</code> ออกจากกัน ทำให้ดูไม่เป็นมืออาชีพและจัดอันดับสินค้าขายดีผิด!
+                    กราฟนำเสนอจะแยกแท่งของ <code>BREAD</code>, <code>Bread</code> และ <code>bread</code> ออกจากกัน
+                    ทำให้ดูไม่เป็นมืออาชีพและจัดอันดับสินค้าขายดีผิด!
                   </p>
                 </div>
               </div>
@@ -1517,7 +1581,8 @@ const quizQuestions = [
           <div class="rounded-2xl border-2 border-purple-200 bg-purple-50/30 overflow-hidden shadow-2xs">
             <div class="bg-purple-900 text-white px-5 py-3.5 flex items-center justify-between flex-wrap gap-2">
               <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-xl bg-purple-400 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
+                <span
+                  class="w-8 h-8 rounded-xl bg-purple-400 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
                   5
                 </span>
                 <div>
@@ -1525,11 +1590,12 @@ const quizQuestions = [
                     ขั้นตอนที่ 5: ตรวจสอบและลบแถวข้อมูลที่ซ้ำซ้อน (Remove Duplicates)
                   </h4>
                   <p class="text-xs text-purple-200">
-                    คัดกรองแถวที่เกิดจากการกดส่งฟอร์มเบิ้ลหรือระบบบันทึกซ้ำออกไปให้เหลือเพียงรายการจริง
+                    คัดกรองแถวที่เกิดจากการกดส่งฟอร์มเบิ้lหรือระบบบันทึกซ้ำออกไปให้เหลือเพียงรายการจริง
                   </p>
                 </div>
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-purple-400/20 text-purple-200 border border-purple-300/30 text-xs font-mono font-bold">
+              <span
+                class="px-2.5 py-1 rounded-full bg-purple-400/20 text-purple-200 border border-purple-300/30 text-xs font-mono font-bold">
                 Step 5: Uniqueness
               </span>
             </div>
@@ -1541,7 +1607,9 @@ const quizQuestions = [
                     <Wrench class="w-4 h-4 text-sky-600" /> 1. ทำยังไง?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    คลุมตารางข้อมูล &rarr; ไปที่เมนู <code>Data (ข้อมูล)</code> &rarr; <code>Data cleanup (การล้างข้อมูล)</code> &rarr; <code>Remove duplicates (ลบข้อมูลที่ซ้ำกัน)</code> &rarr; ติ๊กถูก <em>Data has header row</em> แล้วกดลบ
+                    คลุมตารางข้อมูล &rarr; ไปที่เมนู <code>Data (ข้อมูล)</code> &rarr;
+                    <code>Data cleanup (การล้างข้อมูล)</code> &rarr; <code>Remove duplicates (ลบข้อมูลที่ซ้ำกัน)</code>
+                    &rarr; ติ๊กถูก <em>Data has header row</em> แล้วกดลบ
                   </p>
                 </div>
 
@@ -1550,7 +1618,8 @@ const quizQuestions = [
                     <HelpCircle class="w-4 h-4 text-indigo-600" /> 2. ทำไมต้องทำ?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    เพราะในการเก็บข้อมูลจริง ผู้ตอบมักกดปุ่ม Submit ซ้ำตอนเน็ตช้า หรือเกิดการรวมไฟล์ซ้ำกัน ทำให้มีแถวเดิมปรากฏ 2–3 บรรทัด
+                    เพราะในการเก็บข้อมูลจริง ผู้ตอบมักกดปุ่ม Submit ซ้ำตอนเน็ตช้า หรือเกิดการรวมไฟล์ซ้ำกัน
+                    ทำให้มีแถวเดิมปรากฏ 2–3 บรรทัด
                   </p>
                 </div>
 
@@ -1559,7 +1628,8 @@ const quizQuestions = [
                     <CheckCircle2 class="w-4 h-4 text-emerald-600" /> 3. ได้ประโยชน์อะไร?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    รับประกันมิติ <strong>Uniqueness (ความเป็นเอกลักษณ์)</strong> คือ 1 แถวแทน 1 เหตุการณ์จริง ไม่มีการนับซ้ำ
+                    รับประกันมิติ <strong>Uniqueness (ความเป็นเอกลักษณ์)</strong> คือ 1 แถวแทน 1 เหตุการณ์จริง
+                    ไม่มีการนับซ้ำ
                   </p>
                 </div>
 
@@ -1568,7 +1638,8 @@ const quizQuestions = [
                     <AlertTriangle class="w-4 h-4 text-rose-600" /> 4. ถ้าไม่ทำจะเป็นยังไง?
                   </div>
                   <p class="text-rose-900 leading-relaxed">
-                    ยอดขายรวม (<code>SUM</code>) และจำนวนออเดอร์ (<code>COUNT</code>) จะเฟ้อเกินจริง และทำให้สัดส่วนของคนที่กดส่งซ้ำมีน้ำหนักมากเกินไป!
+                    ยอดขายรวม (<code>SUM</code>) และจำนวนออเดอร์ (<code>COUNT</code>) จะเฟ้อเกินจริง
+                    และทำให้สัดส่วนของคนที่กดส่งซ้ำมีน้ำหนักมากเกินไป!
                   </p>
                 </div>
               </div>
@@ -1581,7 +1652,8 @@ const quizQuestions = [
           <div class="rounded-2xl border-2 border-amber-200 bg-amber-50/30 overflow-hidden shadow-2xs">
             <div class="bg-amber-900 text-white px-5 py-3.5 flex items-center justify-between flex-wrap gap-2">
               <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
+                <span
+                  class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 font-black text-sm flex items-center justify-center shrink-0">
                   6
                 </span>
                 <div>
@@ -1593,7 +1665,8 @@ const quizQuestions = [
                   </p>
                 </div>
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/30 text-xs font-mono font-bold">
+              <span
+                class="px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/30 text-xs font-mono font-bold">
                 Step 6: Accuracy & Completeness
               </span>
             </div>
@@ -1606,7 +1679,8 @@ const quizQuestions = [
                   </div>
                   <p class="text-slate-600 leading-relaxed">
                     • เปิด <code>Filter</code> ดูค่าต่ำสุด-สูงสุดในคอลัมน์ตัวเลข<br />
-                    • หากเจอค่าสุดโต่งที่เป็นไปไม่ได้ (เช่น <code>99999</code> หรือติดลบ) และช่องว่าง (<code>Blank</code>) ให้แทนที่ด้วยค่ามัธยฐาน <code>=MEDIAN()</code> หรือฐานนิยม <code>=MODE()</code>
+                    • หากเจอค่าสุดโต่งที่เป็นไปไม่ได้ (เช่น <code>99999</code> หรือติดลบ) และช่องว่าง
+                    (<code>Blank</code>) ให้แทนที่ด้วยค่ามัธยฐาน <code>=MEDIAN()</code> หรือฐานนิยม <code>=MODE()</code>
                   </p>
                 </div>
 
@@ -1615,7 +1689,8 @@ const quizQuestions = [
                     <HelpCircle class="w-4 h-4 text-indigo-600" /> 2. ทำไมต้องทำ?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    เพราะค่า <code>Outlier</code> เพียงช่องเดียวจะดึงค่าเฉลี่ย (<code>Mean</code>) ของทั้งตารางให้กระโดดผิดความจริง และช่องว่างทำให้จำนวนข้อมูลไม่ครบถ้วน
+                    เพราะค่า <code>Outlier</code> เพียงช่องเดียวจะดึงค่าเฉลี่ย (<code>Mean</code>)
+                    ของทั้งตารางให้กระโดดผิดความจริง และช่องว่างทำให้จำนวนข้อมูลไม่ครบถ้วน
                   </p>
                 </div>
 
@@ -1624,7 +1699,8 @@ const quizQuestions = [
                     <CheckCircle2 class="w-4 h-4 text-emerald-600" /> 3. ได้ประโยชน์อะไร?
                   </div>
                   <p class="text-slate-600 leading-relaxed">
-                    ค่าสถิติทั้งหมด (<code>AVERAGE</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code>) สะท้อนความจริงของธุรกิจ และตารางไม่มีช่องโหว่ (<code>COUNTBLANK = 0</code>)
+                    ค่าสถิติทั้งหมด (<code>AVERAGE</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code>)
+                    สะท้อนความจริงของธุรกิจ และตารางไม่มีช่องโหว่ (<code>COUNTBLANK = 0</code>)
                   </p>
                 </div>
 
@@ -1633,7 +1709,8 @@ const quizQuestions = [
                     <AlertTriangle class="w-4 h-4 text-rose-600" /> 4. ถ้าไม่ทำจะเป็นยังไง?
                   </div>
                   <p class="text-rose-900 leading-relaxed">
-                    เช่น ลูกค้า 4 คนซื้อของคนละ ~85 บาท แต่มี 1 แถวพิมพ์ผิดเป็น <code>99,999</code> บาท ค่าเฉลี่ยจะเพี้ยนเป็น <strong>20,068 บาทต่อคน</strong> ทันที!
+                    เช่น ลูกค้า 4 คนซื้อของคนละ ~85 บาท แต่มี 1 แถวพิมพ์ผิดเป็น <code>99,999</code> บาท
+                    ค่าเฉลี่ยจะเพี้ยนเป็น <strong>20,068 บาทต่อคน</strong> ทันที!
                   </p>
                 </div>
               </div>
@@ -1646,7 +1723,8 @@ const quizQuestions = [
         <div class="p-5 sm:p-6 rounded-2xl bg-emerald-950 text-white border-2 border-emerald-500/60 space-y-4">
           <div class="flex items-center justify-between flex-wrap gap-2 border-b border-emerald-800 pb-3">
             <div class="flex items-center gap-2">
-              <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono font-bold text-xs">
+              <span
+                class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono font-bold text-xs">
                 ผลลัพธ์สุดท้าย (Cleaned Data)
               </span>
               <h4 class="font-bold text-white text-sm sm:text-base">
@@ -1711,161 +1789,32 @@ const quizQuestions = [
           </div>
         </div>
       </div>
-
-      <!-- ================================================================= -->
-      <!-- MODULE 6: SHARED GOOGLE SHEET FOR COLLABORATIVE CLASSROOM WORK    -->
-      <!-- ================================================================= -->
-      <div class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-emerald-300 shadow-sm space-y-6">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-emerald-100 pb-5">
-          <div class="space-y-1.5">
-            <div class="flex items-center gap-2">
-              <span
-                class="px-3 py-1 bg-emerald-100 text-emerald-800 font-black text-xs rounded-full uppercase tracking-wider">
-                หน่วยการเรียนรู้ที่ 5 • Shared Classroom Google Sheet
-              </span>
-              <span class="px-2.5 py-0.5 bg-sky-100 text-sky-800 font-bold text-xs rounded-full">
-                Collaborative Workspace
-              </span>
-            </div>
-            <h3 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2 pt-1">
-              <FileSpreadsheet class="w-6 h-6 text-emerald-600" />
-              กระดานงาน Google Sheets กลางของห้องเรียน (ทุกคนรุมช่วยกัน Clean ในชีตนี้!)
-            </h3>
-            <p class="text-slate-600 text-xs sm:text-sm">
-              ให้นักศึกษาทุกคนเปิดลิงก์ Google Sheets ด้านล่างเพื่อเข้าไปช่วยกันทำความสะอาดข้อมูลในชีตเดียวกัน
-              โดยแบ่งช่วงบรรทัดรับผิดชอบของตนเอง และระบุช่วงบรรทัดที่ทำเมื่อส่งงานในระบบ
-            </p>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-            <a :href="SHARED_SHEET_URL" target="_blank" rel="noopener noreferrer"
-              class="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer">
-              <ExternalLink class="w-5 h-5" />
-              <span>เปิด Google Sheets กลางของห้องเรียน</span>
-            </a>
-            <button @click="copySharedSheetUrl" type="button"
-              class="px-4 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer">
-              <Check v-if="copiedSheetUrl" class="w-4 h-4 text-emerald-600" />
-              <Copy v-else class="w-4 h-4 text-slate-600" />
-              <span>{{ copiedSheetUrl ? 'คัดลอกลิงก์แล้ว' : 'คัดลอกลิงก์ชีต' }}</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Student Row Division Calculator (แบ่งงานกันคลีนในชีตกลาง) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-          <div
-            class="lg:col-span-5 p-5 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50/60 to-sky-50 border border-emerald-200 space-y-4 flex flex-col justify-between">
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="font-black text-emerald-950 text-sm flex items-center gap-1.5">
-                  <Users class="w-4 h-4 text-emerald-600" />
-                  ตัวช่วยคำนวณช่วงบรรทัดรับผิดชอบของคุณ
-                </span>
-                <span class="px-2 py-0.5 rounded bg-emerald-200/80 text-emerald-900 text-[10px] font-bold">แบ่งบรรทัดกันทำ</span>
-              </div>
-              <p class="text-xs text-slate-600 leading-relaxed">
-                กรอกจำนวนคนในห้องและลำดับเลขที่ของคุณเพื่อดูช่วงบรรทัดที่ต้องรับผิดชอบ (หรือใช้ช่วงบรรทัดตามที่ตกลงกันในห้องเรียน)
-                แล้วกดคัดลอกข้อความไปวางตอนส่งงานได้เลย!
-              </p>
-
-              <div class="grid grid-cols-2 gap-3 pt-1">
-                <div>
-                  <label class="text-[11px] font-bold text-slate-700 block mb-1">จำนวนนักเรียนในห้อง (คน)</label>
-                  <input type="number" min="1" max="100" v-model.number="totalStudentsInClass"
-                    class="w-full p-2.5 rounded-xl bg-white border border-emerald-300 font-mono font-bold text-sm text-slate-900 outline-none focus:ring-2 focus:ring-emerald-200" />
-                </div>
-                <div>
-                  <label class="text-[11px] font-bold text-slate-700 block mb-1">ลำดับ/เลขที่ของคุณ</label>
-                  <input type="number" min="1" :max="totalStudentsInClass" v-model.number="studentNumberInput"
-                    class="w-full p-2.5 rounded-xl bg-white border border-emerald-300 font-mono font-bold text-sm text-emerald-700 outline-none focus:ring-2 focus:ring-emerald-200" />
-                </div>
-              </div>
-            </div>
-
-            <div class="p-4 rounded-xl bg-white border border-emerald-200 shadow-2xs space-y-2">
-              <div class="text-xs text-slate-500 font-semibold">ช่วงบรรทัดของ เลขที่ {{ studentNumberInput }}:</div>
-              <div class="text-lg font-black text-emerald-700 font-mono">
-                บรรทัดที่ {{ assignedRange.startRow }} ถึง {{ assignedRange.endRow }} ({{ assignedRange.rowsPerStudent }}
-                แถว)
-              </div>
-              <button @click="copyAssignedRowNote" type="button"
-                class="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                <Check v-if="copiedRowText" class="w-3.5 h-3.5" />
-                <Copy v-else class="w-3.5 h-3.5" />
-                <span>{{ copiedRowText ? 'คัดลอกข้อความระบุบรรทัดแล้ว!' : 'คัดลอกข้อความระบุบรรทัดไปวางตอนส่งงาน' }}</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Shared Sheet Box & Backup CSV Option -->
-          <div class="lg:col-span-7 p-5 rounded-2xl bg-slate-900 text-white border border-slate-800 flex flex-col justify-between space-y-4">
-            <div class="space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <LinkIcon class="w-4 h-4" /> ลิงก์ Google Sheets สำหรับรุมคลีนข้อมูลร่วมกันทั้งห้อง
-                </span>
-                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">Live Sheet</span>
-              </div>
-              <div class="p-3 rounded-xl bg-black/60 border border-slate-800 font-mono text-xs text-cyan-300 break-all select-all">
-                {{ SHARED_SHEET_URL }}
-              </div>
-              <p class="text-xs text-slate-300 leading-relaxed pt-1">
-                เมื่อเข้าไปในชีตแล้ว ให้ตรวจสอบและทำความสะอาดข้อมูลในช่วงบรรทัดของตนเอง เช่น:
-              </p>
-              <ul class="list-disc pl-5 text-xs text-slate-300 space-y-1">
-                <li>หากเจอคอลัมน์ที่มีรายการสินค้าหลายชิ้นรวมกัน (เช่น <code>bread / cola / sprite</code>) ให้แยกออกเป็นคอลัมน์ย่อยด้วย <code>SPLIT</code> หรือเมนู <code>Split text to columns</code></li>
-                <li>ตัดช่องว่างส่วนเกินหน้า-หลังคำด้วย <code>Trim whitespace</code> หรือ <code>=TRIM()</code></li>
-                <li>ปรับรูปแบบคำสะกด, วันที่, ตัวเลขผิดปกติ (Outliers) และจัดการช่องว่าง (Missing Values) ให้เรียบร้อย</li>
-              </ul>
-            </div>
-
-            <div class="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
-              <span class="text-slate-400">ต้องการไฟล์ CSV สำรองไปลองซ้อมมือส่วนตัวก่อนไหม?</span>
-              <button @click="download500RowsCsv" type="button"
-                class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs flex items-center gap-1.5 cursor-pointer">
-                <Download class="w-3.5 h-3.5 text-emerald-400" /> ดาวน์โหลดไฟล์ซ้อมมือ (.CSV)
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </section>
 
     <!-- Game Center Section -->
-    <GameCenterSection
-      :course-id="currentCourseId"
-      :week="currentWeek"
+    <GameCenterSection :course-id="currentCourseId" :week="currentWeek"
       drag-title="มินิเกม 1: นักสืบคัดแยกปัญหาคุณภาพข้อมูล (Dirty Data Classification)"
       drag-subtitle="ลากสถานการณ์ข้อมูลที่มีปัญหาด้านล่าง ไปวางลงในกลุ่มปัญหา Data Wrangling ที่ถูกต้อง"
-      drag-tab-label="มินิเกมที่ 1: จำแนกข้อมูลขยะ"
-      :drag-items="dragItemsData"
-      :drag-zones="dragZonesData"
+      drag-tab-label="มินิเกมที่ 1: จำแนกข้อมูลขยะ" :drag-items="dragItemsData" :drag-zones="dragZonesData"
       match-title="มินิเกม 2: จับคู่เครื่องมือ Data Cleansing กับหน้าที่การใช้งาน"
       match-subtitle="จับคู่สูตรหรือวิธีการทางฝั่งซ้าย กับผลลัพธ์การทำความสะอาดข้อมูลทางฝั่งขวา"
-      match-tab-label="มินิเกมที่ 2: จับคู่สูตรคลีนข้อมูล"
-      :match-left-terms="matchLeftTerms"
-      :match-right-defs="matchRightDefs"
-      quiz-title="แบบทดสอบหลังเรียน (Post-test): สัปดาห์ที่ 3"
-      :quiz-questions="quizQuestions"
-    />
+      match-tab-label="มินิเกมที่ 2: จับคู่สูตรคลีนข้อมูล" :match-left-terms="matchLeftTerms"
+      :match-right-defs="matchRightDefs" quiz-title="แบบทดสอบหลังเรียน (Post-test): สัปดาห์ที่ 3"
+      :quiz-questions="quizQuestions" />
 
-    <!-- Lab Assignment Section (Collaborative Shared Google Sheet Cleaning Workshop) -->
-    <AssignmentSection
-      :courseId="currentCourseId"
-      assignmentId="asm-3"
-      assignmentTitle="ใบงานที่ 3: ปฏิบัติการช่วยกัน Clean ข้อมูลใน Google Sheets กลางของห้องเรียน (พร้อมระบุบรรทัดที่ทำ)"
-      :maxScore="10"
-      workType="individual">
+    <!-- Lab Assignment Section (Clean 1 of 11 project datasets, 40 rows, in the teacher's Google Sheet) -->
+    <AssignmentSection :courseId="currentCourseId" assignmentId="asm-3"
+      assignmentTitle="ใบงานที่ 3: ตรวจสอบและทำความสะอาดข้อมูล (Data Cleaning) ชุดข้อมูลโปรเจกต์ 1 หัวข้อ จาก 11 หัวข้อ"
+      :maxScore="10" workType="individual">
       <template #number>3</template>
       <template #description>
         <p class="text-gray-600 text-sm leading-relaxed mb-4">
-          ให้นักศึกษาทุกคนในห้องเข้าไปรุมช่วยกันตรวจสอบและทำความสะอาดข้อมูล (Data Cleansing & Data Wrangling)
-          ใน <strong>ไฟล์ Google Sheets กลางของห้องเรียน</strong> ตามลิงก์ด้านล่าง โดยแบ่งรับผิดชอบคนละช่วงบรรทัด
-          และเมื่อกดส่งงานในระบบ <strong>ต้องระบุให้ชัดเจนว่าตนเองทำบรรทัดที่เท่าไหร่ถึงบรรทัดที่เท่าไหร่</strong>
+          ให้นักเรียนแต่ละคนรับผิดชอบ <strong>ชุดข้อมูล 1 โปรเจกต์ จากทั้งหมด 11 หัวข้อ</strong>
+          โดยใช้ข้อมูลจำนวน <strong>{{ ROWS_PER_PROJECT }} แถว</strong> ใน Google Sheets ที่ครูจัดเตรียมไว้
+          แล้วดำเนินการตรวจสอบและทำความสะอาดข้อมูล (Data Cleaning) ให้ <strong>ถูกต้องและเป็นมาตรฐาน</strong>
         </p>
 
-        <!-- Prominent Shared Sheet Banner inside Assignment -->
+        <!-- Prominent Sheet Banner inside Assignment -->
         <div
           class="mb-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-2 border-emerald-300 shadow-2xs space-y-3">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1873,7 +1822,7 @@ const quizQuestions = [
               <div class="flex items-center gap-2">
                 <FileSpreadsheet class="w-5 h-5 text-emerald-600" />
                 <h4 class="font-black text-emerald-950 text-sm sm:text-base">
-                  ไฟล์งาน Google Sheets กลางของห้องเรียน (คลิกเพื่อเข้าทำใบงานร่วมกัน)
+                  ไฟล์งาน Google Sheets ที่ครูจัดเตรียมไว้ (คลิกเพื่อเข้าทำใบงาน)
                 </h4>
               </div>
               <p class="text-xs text-slate-600 font-mono break-all">
@@ -1883,7 +1832,7 @@ const quizQuestions = [
             <div class="flex items-center gap-2 shrink-0">
               <a :href="SHARED_SHEET_URL" target="_blank" rel="noopener noreferrer"
                 class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1.5 shadow-sm cursor-pointer">
-                <ExternalLink class="w-4 h-4" /> เปิด Google Sheets กลาง
+                <ExternalLink class="w-4 h-4" /> เปิด Google Sheets
               </a>
               <button @click="copySharedSheetUrl" type="button"
                 class="px-3 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-emerald-300 font-bold text-xs flex items-center gap-1 cursor-pointer">
@@ -1894,29 +1843,114 @@ const quizQuestions = [
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs pt-1">
-            <div class="p-3 rounded-xl bg-white border border-emerald-200 space-y-1">
-              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">กติกาที่ 1</span>
-              <div class="font-bold text-slate-800">แบ่งช่วงบรรทัดไม่ให้ทับกัน</div>
-              <p class="text-slate-500 text-[11px]">
-                ทำเฉพาะช่วงบรรทัด (Rows) ที่ตนเองได้รับมอบหมายในชีตกลาง เพื่อไม่ให้แก้ข้อมูลทับของเพื่อน
-              </p>
+          <div class="p-4 sm:p-5 rounded-2xl bg-white/95 border border-emerald-200/90 shadow-xs space-y-3.5 backdrop-blur-xs">
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Sparkles class="w-4 h-4" />
+                </div>
+                <div>
+                  <div class="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-2">
+                    <span>11 หัวข้อโปรเจกต์ชุดข้อมูล (Dataset Projects)</span>
+                  </div>
+                  <p class="text-[11px] text-slate-500">คลิกเลือกหัวข้อที่ตนเองรับผิดชอบ เพื่อดูรายละเอียดและคัดลอกชื่อไปใช้ส่งงาน</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  คนละ 1 หัวข้อ ({{ ROWS_PER_PROJECT }} แถว)
+                </span>
+              </div>
             </div>
 
-            <div class="p-3 rounded-xl bg-white border border-sky-200 space-y-1">
-              <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-bold text-[10px]">กติกาที่ 2</span>
-              <div class="font-bold text-slate-800">คลีนข้อมูล & แยกคอลัมน์ให้สะอาด</div>
-              <p class="text-slate-500 text-[11px]">
-                แยกข้อมูลตะกร้าสินค้า (<code>SPLIT</code>), ตัดช่องว่าง (<code>TRIM</code>), แก้คำผิด/รูปแบบวันที่ และจัดการค่าว่าง/ค่าผิดปกติ
-              </p>
+            <!-- 11 Topic Grid Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2">
+              <button
+                v-for="p in projectTopics"
+                :key="p.no"
+                type="button"
+                @click="selectedProjectNo = p.no"
+                :class="[
+                  'group text-left p-2.5 rounded-xl border transition-all duration-200 flex items-center gap-2.5 cursor-pointer relative',
+                  selectedProjectNo === p.no
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-600 shadow-md ring-2 ring-emerald-400/50 scale-[1.01]'
+                    : 'bg-white hover:bg-emerald-50/60 text-slate-700 hover:text-emerald-950 border-slate-200/90 hover:border-emerald-300 shadow-2xs'
+                ]"
+              >
+                <!-- Number Badge -->
+                <span
+                  :class="[
+                    'w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0 transition-colors',
+                    selectedProjectNo === p.no
+                      ? 'bg-white/20 text-white'
+                      : 'bg-slate-100 text-slate-500 group-hover:bg-emerald-100 group-hover:text-emerald-700'
+                  ]"
+                >
+                  {{ p.no }}
+                </span>
+
+                <!-- Icon Box -->
+                <div
+                  :class="[
+                    'w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                    selectedProjectNo === p.no
+                      ? 'bg-white/20 text-white'
+                      : 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100'
+                  ]"
+                >
+                  <component :is="p.icon" class="w-4 h-4" />
+                </div>
+
+                <!-- Name -->
+                <span
+                  :class="[
+                    'text-xs font-bold truncate flex-1',
+                    selectedProjectNo === p.no ? 'text-white' : 'text-slate-800 group-hover:text-emerald-900'
+                  ]"
+                >
+                  {{ p.name }}
+                </span>
+
+                <!-- Indicator -->
+                <CheckCircle2
+                  v-if="selectedProjectNo === p.no"
+                  class="w-4 h-4 text-emerald-200 shrink-0"
+                />
+                <span
+                  v-else
+                  class="w-1.5 h-1.5 rounded-full bg-slate-200 group-hover:bg-emerald-400 shrink-0 transition-colors"
+                ></span>
+              </button>
             </div>
 
-            <div class="p-3 rounded-xl bg-white border border-rose-200 space-y-1">
-              <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold text-[10px]">กติกาที่ 3 (สำคัญมาก)</span>
-              <div class="font-bold text-rose-900">ระบุเลขบรรทัดตอนกดส่งงาน!</div>
-              <p class="text-slate-600 text-[11px]">
-                ตอนกดส่งงานในเว็บ ต้องพิมพ์ระบุด้วยว่า <strong>"ทำบรรทัดที่ ... ถึง ..."</strong> เพื่อให้อาจารย์ตรวจถูกจุด
-              </p>
+            <!-- Active Selected Project Highlight & Copy Button -->
+            <div class="mt-3 p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50/60 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <component :is="selectedProject.icon" class="w-4 h-4" />
+                </div>
+                <div>
+                  <div class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
+                    โปรเจกต์ที่คุณกำลังเลือก (Active Selection)
+                  </div>
+                  <div class="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-1.5">
+                    <span>โปรเจกต์ที่ {{ selectedProject.no }}: {{ selectedProject.name }}</span>
+                    <span class="text-[11px] font-normal text-slate-500">({{ ROWS_PER_PROJECT }} แถว)</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                @click="copyProjectNote"
+                type="button"
+                class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer shrink-0"
+              >
+                <Check v-if="copiedRowText" class="w-3.5 h-3.5" />
+                <Copy v-else class="w-3.5 h-3.5" />
+                <span>{{ copiedRowText ? 'คัดลอกแล้ว!' : 'คัดลอกชื่อโปรเจกต์ไปใส่ช่องส่งงาน' }}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -1931,11 +1965,13 @@ const quizQuestions = [
               1
             </div>
             <div class="space-y-1.5 flex-1">
-              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 1: เปิด Google Sheets กลาง และเช็คช่วงบรรทัดของตนเอง</strong>
+              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 1: เลือกโปรเจกต์ และเตรียมไฟล์ทำงาน</strong>
               <p class="text-xs text-gray-600 leading-relaxed">
-                คลิกเปิดลิงก์ <a :href="SHARED_SHEET_URL" target="_blank" rel="noopener noreferrer"
-                  class="text-sky-600 font-bold underline">Google Sheets กลางของห้องเรียน</a>
-                แล้วดูว่าตนเองได้รับมอบหมายให้รับผิดชอบข้อมูลตั้งแต่บรรทัดที่เท่าไหร่ถึงบรรทัดที่เท่าไหร่ (สามารถใส่ชื่อหรือรหัสนักศึกษากำกับในคอลัมน์ผู้รับผิดชอบถ้ามีในชีต)
+                เลือกชุดข้อมูล 1 โปรเจกต์จาก 11 หัวข้อ เปิด
+                <a :href="SHARED_SHEET_URL" target="_blank" rel="noopener noreferrer"
+                  class="text-sky-600 font-bold underline">Google Sheets ของครู</a>
+                แล้วทำสำเนาข้อมูล {{ ROWS_PER_PROJECT }} แถวของโปรเจกต์นั้นเก็บไว้เป็น <code>Raw_Data</code>
+                และทำงานจริงในแท็บ <code>Cleaned_Data</code>
               </p>
             </div>
           </li>
@@ -1947,22 +1983,28 @@ const quizQuestions = [
               2
             </div>
             <div class="space-y-1.5 flex-1">
-              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 2: วิเคราะห์และทำความสะอาดข้อมูล (Data Cleansing & Splitting) ในช่วงบรรทัดของตนเอง</strong>
+              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 2: ตรวจสอบและทำความสะอาดข้อมูล (Data Cleaning) {{
+                ROWS_PER_PROJECT }} แถว</strong>
               <p class="text-xs text-gray-600 leading-relaxed">
-                ตรวจสอบข้อมูลทุกคอลัมน์ในช่วงบรรทัดที่ตนเองรับผิดชอบ และลงมือคลีนตามหลักการที่เรียน:
+                ตรวจสอบข้อมูลทุกคอลัมน์ของโปรเจกต์ที่เลือก และลงมือคลีนตามหลักการที่เรียน:
               </p>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
                 <div class="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200">
-                  <strong>1. การแยกข้อมูล (Splitting):</strong> หากคอลัมน์รายการสินค้ามีหลายชิ้นรวมกัน (เช่น <code>bread / cola / sprite</code>) ให้ใช้ <code>=SPLIT()</code> หรือ <code>Split text to columns</code> แยกออกเป็นคอลัมน์ย่อย
+                  <strong>1. การแยกข้อมูล (Splitting):</strong> หากมีหลายค่าอัดอยู่ในเซลล์เดียว ให้ใช้
+                  <code>=SPLIT()</code> หรือ <code>Split text to columns</code> แยกออกเป็นคอลัมน์ย่อย
                 </div>
                 <div class="p-2.5 rounded-xl bg-sky-50 border border-sky-200">
-                  <strong>2. ความสอดคล้อง (Consistency):</strong> ใช้ <code>=TRIM()</code> หรือ <code>Trim whitespace</code> ลบช่องว่างเกิน และปรับตัวพิมพ์/ชื่อหมวดหมู่/รูปแบบวันที่ให้ตรงตามมาตรฐานเดียวกัน
+                  <strong>2. ความสอดคล้อง (Consistency):</strong> ใช้ <code>=TRIM()</code> หรือ
+                  <code>Trim whitespace</code> ลบช่องว่างเกิน
+                  และปรับตัวพิมพ์/ชื่อหมวดหมู่/รูปแบบวันที่ให้ตรงตามมาตรฐานเดียวกัน
                 </div>
                 <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200">
-                  <strong>3. ความถูกต้อง & ค่าสุดโต่ง (Accuracy & Outliers):</strong> ตรวจสอบตัวเลขที่ผิดปกติ (เช่น ติดลบ หรือสูงเกินจริง) แล้วแก้ไขหรือแทนที่ด้วยค่ากลางที่เหมาะสม
+                  <strong>3. ความถูกต้อง & ค่าสุดโต่ง (Accuracy & Outliers):</strong> ตรวจสอบตัวเลขที่ผิดปกติ (เช่น
+                  ติดลบ หรือสูงเกินจริง) แล้วแก้ไขหรือแทนที่ด้วยค่ากลางที่เหมาะสม
                 </div>
                 <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
-                  <strong>4. ความครบถ้วน & ข้อมูลซ้ำ (Completeness & Duplicates):</strong> จัดการช่องว่าง (Missing Values) และตรวจสอบว่ามีรายการเบิ้ลซ้ำซ้อนหรือไม่
+                  <strong>4. ความครบถ้วน & ข้อมูลซ้ำ (Completeness & Duplicates):</strong> จัดการช่องว่าง (Missing
+                  Values) และตรวจสอบว่ามีรายการเบิ้ลซ้ำซ้อนหรือไม่
                 </div>
               </div>
             </div>
@@ -1975,22 +2017,25 @@ const quizQuestions = [
               3
             </div>
             <div class="space-y-2 flex-1">
-              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 3: กดส่งงานในระบบ พร้อมระบุว่าทำบรรทัดไหนถึงบรรทัดไหน</strong>
+              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 3: ส่งงานในระบบ พร้อมระบุโปรเจกต์ที่รับผิดชอบ</strong>
               <p class="text-xs text-gray-600 leading-relaxed">
-                เมื่อคลีนข้อมูลในช่วงบรรทัดของตนเองใน Google Sheets เสร็จเรียบร้อยแล้ว ให้กดปุ่ม <strong>"ส่งงาน / แนบลิงก์"</strong> ด้านล่าง โดยกรอกข้อมูลดังนี้:
+                เมื่อคลีนข้อมูลเสร็จเรียบร้อยแล้ว ให้กดปุ่ม <strong>"ส่งงาน / แนบลิงก์"</strong> ด้านล่าง
+                โดยกรอกข้อมูลดังนี้:
               </p>
               <div class="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs space-y-1.5 max-w-2xl">
                 <div>
                   <strong class="text-emerald-950">1. ช่องชื่อลิงก์ (หัวข้อ):</strong>
-                  <span class="text-slate-700"> พิมพ์ระบุช่วงบรรทัด เช่น <code>คลีนบรรทัดที่ {{ assignedRange.startRow }} - {{ assignedRange.endRow }}</code></span>
+                  <span class="text-slate-700"> ระบุโปรเจกต์ เช่น
+                    <code>โปรเจกต์ที่ {{ selectedProject.no }}: {{ selectedProject.name }}</code></span>
                 </div>
                 <div>
                   <strong class="text-emerald-950">2. ช่อง URL ลิงก์งาน:</strong>
-                  <span class="text-slate-700"> วางลิงก์ Google Sheets กลางของห้องเรียน (<code>{{ SHARED_SHEET_URL }}</code>)</span>
+                  <span class="text-slate-700"> วางลิงก์ Google Sheets ที่มีแท็บ <code>Cleaned_Data</code> ของคุณ</span>
                 </div>
                 <div>
                   <strong class="text-emerald-950">3. ช่องรายละเอียดเพิ่มเติม / หมายเหตุถึงอาจารย์:</strong>
-                  <span class="text-slate-700"> ระบุว่า <strong>"ทำบรรทัดที่ {{ assignedRange.startRow }} ถึง {{ assignedRange.endRow }}"</strong> พร้อมสรุปสั้นๆ ว่าในบรรทัดของตนเองเจอปัญหาอะไรและคลีนอะไรไปบ้าง</span>
+                  <span class="text-slate-700"> สรุปสั้นๆ ว่าในข้อมูล {{ ROWS_PER_PROJECT }}
+                    แถวเจอปัญหาอะไรและคลีนอะไรไปบ้าง</span>
                 </div>
               </div>
             </div>
@@ -2000,8 +2045,7 @@ const quizQuestions = [
     </AssignmentSection>
 
     <!-- PDF Summary Modal -->
-    <AssignmentPdfModal v-model="showPdfModal"
-      title="สรุปเนื้อหาสัปดาห์ที่ 3: Data Quality, Data Wrangling & Cleansing"
+    <AssignmentPdfModal v-model="showPdfModal" title="สรุปเนื้อหาสัปดาห์ที่ 3: Data Quality, Data Wrangling & Cleansing"
       subtitle="วิชาการวิเคราะห์และนำเสนอข้อมูล (31901-2012)">
       <template #pdf-content>
         <div class="space-y-5 text-sm text-gray-800 leading-relaxed">
@@ -2009,7 +2053,8 @@ const quizQuestions = [
             <h3 class="text-lg font-bold text-sky-900">
               ใบสรุปความรู้: การตรวจสอบคุณภาพข้อมูลและการทำความสะอาดข้อมูล (Data Wrangling)
             </h3>
-            <p class="text-xs text-gray-500">อ้างอิงหลักการ Data Wrangling จาก DataTH และมาตรฐานวิชาชีพนักวิเคราะห์ข้อมูล</p>
+            <p class="text-xs text-gray-500">อ้างอิงหลักการ Data Wrangling จาก DataTH
+              และมาตรฐานวิชาชีพนักวิเคราะห์ข้อมูล</p>
           </div>
 
           <div class="space-y-1.5">
@@ -2025,7 +2070,8 @@ const quizQuestions = [
           <div class="space-y-1.5">
             <h4 class="font-bold text-gray-900">2. การจัดการ Missing Values (ข้อมูลที่หายไป)</h4>
             <ul class="list-disc pl-5 text-xs text-gray-600 space-y-1">
-              <li><strong>การลบทิ้ง (Deletion):</strong> ลบแถวที่มีข้อมูลแหว่งเกือบหมด หรือลบคอลัมน์ที่ข้อมูลหายเกิน 60–80%</li>
+              <li><strong>การลบทิ้ง (Deletion):</strong> ลบแถวที่มีข้อมูลแหว่งเกือบหมด หรือลบคอลัมน์ที่ข้อมูลหายเกิน
+                60–80%</li>
               <li><strong>การเติมค่า (Imputation):</strong> ข้อมูลตัวเลขใช้ <code>Mean</code> หรือ <code>Median</code>
                 (กรณีมี Outliers), ข้อมูลหมวดหมู่ใช้ <code>Mode</code> หรือ <code>"ไม่ระบุ"</code></li>
             </ul>
@@ -2034,7 +2080,9 @@ const quizQuestions = [
           <div class="space-y-1.5">
             <h4 class="font-bold text-gray-900">3. การตรวจจับและจัดการ Outliers (ค่าผิดปกติสุดโต่ง)</h4>
             <ul class="list-disc pl-5 text-xs text-gray-600 space-y-1">
-              <li>ตรวจจับด้วยค่า <code>MIN / MAX</code>, เกณฑ์ <code>1.5 * IQR (Box Plot)</code> หรือ <code>Z-Score</code></li>
+              <li>ตรวจจับด้วยค่า <code>MIN / MAX</code>, เกณฑ์ <code>1.5 * IQR (Box Plot)</code> หรือ
+                <code>Z-Score</code>
+              </li>
               <li>จัดการโดยแก้ไขคำผิด (Typo), แปลงเป็นค่ามัธยฐาน (Median), หรือตัดแถวที่เป็น Noise ออก</li>
             </ul>
           </div>
@@ -2043,4 +2091,3 @@ const quizQuestions = [
     </AssignmentPdfModal>
   </div>
 </template>
-
