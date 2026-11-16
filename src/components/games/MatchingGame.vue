@@ -286,8 +286,6 @@ const submitExam = async () => {
 <template>
   <section
     class="quiz relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 p-5 text-white shadow-2xl md:p-10">
-    <div class="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-sky-500/20 blur-3xl"></div>
-    <div class="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-fuchsia-600/20 blur-3xl"></div>
 
     <!-- Confetti -->
     <div v-if="isFinished && confetti.length" class="pointer-events-none absolute inset-0 z-30 overflow-hidden">
@@ -324,7 +322,7 @@ const submitExam = async () => {
       </header>
 
       <!-- Alert if already played previously -->
-      <div v-if="isAlreadyPlayed" class="mb-6 rounded-2xl border border-amber-400/40 bg-amber-500/10 p-5 backdrop-blur">
+      <div v-if="isAlreadyPlayed" class="mb-6 rounded-2xl border border-amber-400/40 bg-amber-500/15 p-5">
         <div class="flex items-center gap-3">
           <Lock class="w-6 h-6 text-amber-300 shrink-0" />
           <div>
@@ -337,7 +335,7 @@ const submitExam = async () => {
       </div>
 
       <!-- Result Screen (After Submit) -->
-      <div v-if="isFinished" class="result mb-8 rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur md:p-8">
+      <div v-if="isFinished" class="result mb-8 rounded-2xl border border-white/15 bg-white/5 p-6 md:p-8">
         <div class="mb-6 text-center">
           <div class="mb-3 flex justify-center gap-2">
             <Star v-for="n in 3" :key="n"
@@ -498,7 +496,7 @@ const submitExam = async () => {
         </div>
 
         <!-- Submit Action Bar -->
-        <div class="rounded-2xl border border-sky-500/30 bg-sky-950/40 p-5 backdrop-blur flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="rounded-2xl border border-sky-500/30 bg-sky-950/50 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div class="text-sm text-slate-300 text-center sm:text-left">
             <p class="font-bold text-white flex items-center gap-2 justify-center sm:justify-start">
               <Lock class="w-4 h-4 text-amber-300" /> ส่งได้ครั้งเดียวเท่านั้น ระบบจะให้คะแนนทันที

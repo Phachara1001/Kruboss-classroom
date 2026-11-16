@@ -2,31 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { isLoggedIn, authUser } from '../data/authStore'
 import { isTeacherUser } from '../data/studentsStore'
 import DefaultLayout from '../layouts/DefaultLayout.vue'
-import LoginView from '../views/LoginView.vue'
-import HomeView from '../views/HomeView.vue'
-import MyCoursesView from '../views/MyCoursesView.vue'
-import SubjectsView from '../views/SubjectsView.vue'
-import ClassmatesView from '../views/ClassmatesView.vue'
-import DatabaseWeek1 from '../views/database/Week1View.vue'
-import DatabaseWeek2 from '../views/database/Week2View.vue'
-import DatabaseWeek3 from '../views/database/Week3View.vue'
-import DatabaseWeek4 from '../views/database/Week4View.vue'
-import PlatformWeek1 from '../views/platform/Week1View.vue'
-import PlatformWeek2 from '../views/platform/Week2View.vue'
-import PlatformWeek3 from '../views/platform/Week3View.vue'
-import DataAnalysisWeek1 from '../views/analysis/Week1View.vue'
-import DataAnalysisWeek2 from '../views/analysis/Week2View.vue'
-import DataAnalysisWeek3 from '../views/analysis/Week3View.vue'
-import IoTWeek1 from '../views/iot/Week1View.vue'
-import IoTWeek2 from '../views/iot/Week2View.vue'
-import IoTWeek3 from '../views/iot/Week3View.vue'
-import ToolsView from '../views/ToolsView.vue'
-import TeacherView from '../views/TeacherView.vue'
-import ScheduleView from '../views/ScheduleView.vue'
-import StudentsManagementView from '../views/StudentsManagementView.vue'
-import GradebookView from '../views/GradebookView.vue'
-import QuestsView from '../views/QuestsView.vue'
-import CoinsManagementView from '../views/CoinsManagementView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,7 +9,7 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: LoginView
+      component: () => import('../views/LoginView.vue')
     },
     {
       path: '/',
@@ -44,87 +19,87 @@ const router = createRouter({
         {
           path: '',
           name: 'home',
-          component: HomeView
+          component: () => import('../views/HomeView.vue')
         },
         {
           path: 'courses',
           name: 'courses',
-          component: SubjectsView
+          component: () => import('../views/SubjectsView.vue')
         },
         {
           path: 'course/:id',
           name: 'course',
-          component: MyCoursesView
+          component: () => import('../views/MyCoursesView.vue')
         },
         {
           path: 'course/31901-2007/week/1',
           name: 'database-week1',
-          component: DatabaseWeek1
+          component: () => import('../views/database/Week1View.vue')
         },
         {
           path: 'course/31901-2007/week/2',
           name: 'database-week2',
-          component: DatabaseWeek2
+          component: () => import('../views/database/Week2View.vue')
         },
         {
           path: 'course/31901-2007/week/3',
           name: 'database-week3',
-          component: DatabaseWeek3
+          component: () => import('../views/database/Week3View.vue')
         },
         {
           path: 'course/31901-2007/week/4',
           name: 'database-week4',
-          component: DatabaseWeek4
+          component: () => import('../views/database/Week4View.vue')
         },
         {
           path: 'course/21901-2012/week/1',
           name: 'platform-week1',
-          component: PlatformWeek1
+          component: () => import('../views/platform/Week1View.vue')
         },
         {
           path: 'course/21901-2012/week/2',
           name: 'platform-week2',
-          component: PlatformWeek2
+          component: () => import('../views/platform/Week2View.vue')
         },
         {
           path: 'course/21901-2012/week/3',
           name: 'platform-week3',
-          component: PlatformWeek3
+          component: () => import('../views/platform/Week3View.vue')
         },
         {
           path: 'course/31901-2012/week/1',
           name: 'data-analysis-week1',
-          component: DataAnalysisWeek1
+          component: () => import('../views/analysis/Week1View.vue')
         },
         {
           path: 'course/31901-2012/week/2',
           name: 'data-analysis-week2',
-          component: DataAnalysisWeek2
+          component: () => import('../views/analysis/Week2View.vue')
         },
         {
           path: 'course/31901-2012/week/3',
           name: 'data-analysis-week3',
-          component: DataAnalysisWeek3
+          component: () => import('../views/analysis/Week3View.vue')
         },
         {
           path: 'course/21901-2007/week/1',
           name: 'iot-week1',
-          component: IoTWeek1
+          component: () => import('../views/iot/Week1View.vue')
         },
         {
           path: 'course/21901-2007/week/2',
           name: 'iot-week2',
-          component: IoTWeek2
+          component: () => import('../views/iot/Week2View.vue')
         },
         {
           path: 'course/21901-2007/week/3',
           name: 'iot-week3',
-          component: IoTWeek3
+          component: () => import('../views/iot/Week3View.vue')
         },
         {
           path: 'course/:id/classmates',
           name: 'classmates',
-          component: ClassmatesView
+          component: () => import('../views/ClassmatesView.vue')
         },
         {
           path: 'settings',
@@ -133,38 +108,38 @@ const router = createRouter({
         {
           path: 'course/:id/tools',
           name: 'tools',
-          component: ToolsView
+          component: () => import('../views/ToolsView.vue')
         },
         {
           path: 'teacher',
           name: 'teacher',
-          component: TeacherView
+          component: () => import('../views/TeacherView.vue')
         },
         {
           path: 'schedule',
           name: 'schedule',
-          component: ScheduleView
+          component: () => import('../views/ScheduleView.vue')
         },
         {
           path: 'students',
           name: 'students',
-          component: StudentsManagementView,
+          component: () => import('../views/StudentsManagementView.vue'),
           meta: { requiresTeacher: true }
         },
         {
           path: 'gradebook',
           name: 'gradebook',
-          component: GradebookView
+          component: () => import('../views/GradebookView.vue')
         },
         {
           path: 'quests',
           name: 'quests',
-          component: QuestsView
+          component: () => import('../views/QuestsView.vue')
         },
         {
           path: 'coins',
           name: 'coins',
-          component: CoinsManagementView,
+          component: () => import('../views/CoinsManagementView.vue'),
           meta: { requiresTeacher: true }
         },
         {
@@ -187,6 +162,11 @@ const router = createRouter({
           name: 'announcements',
           component: () => import('../views/AnnouncementManagementView.vue'),
           meta: { requiresTeacher: true }
+        },
+        {
+          path: 'arcade',
+          name: 'arcade',
+          component: () => import('../views/ArcadeView.vue')
         }
       ]
     }

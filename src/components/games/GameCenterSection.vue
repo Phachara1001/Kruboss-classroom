@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, defineAsyncComponent } from 'vue'
 import {
   Gamepad2,
   FileSpreadsheet,
@@ -13,9 +13,10 @@ import {
 } from '@lucide/vue'
 
 import DragDropGame from '@/components/games/DragDropGame.vue'
-import MatchingGame from '@/components/games/MatchingGame.vue'
-import PopQuiz from '@/components/games/PopQuiz.vue'
-import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
+
+const MatchingGame = defineAsyncComponent(() => import('@/components/games/MatchingGame.vue'))
+const PopQuiz = defineAsyncComponent(() => import('@/components/games/PopQuiz.vue'))
+const TeacherScoreboardModal = defineAsyncComponent(() => import('@/components/games/TeacherScoreboardModal.vue'))
 
 import { courses } from '@/data/courses'
 import { authUser } from '@/data/authStore'
@@ -430,6 +431,7 @@ watch(
 
     <!-- Teacher Scoreboard Modal -->
     <TeacherScoreboardModal
+      v-if="showTeacherModal"
       :show="showTeacherModal"
       :courseId="courseId"
       :courseName="resolvedCourseName"

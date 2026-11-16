@@ -197,8 +197,6 @@ const onKey = (e) => {
 <template>
   <section tabindex="0" @keydown="onKey"
     class="quiz relative flex min-h-[540px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-teal-950 via-emerald-950 to-slate-950 p-5 text-white shadow-2xl outline-none md:p-10">
-    <div class="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-emerald-400/20 blur-3xl"></div>
-    <div class="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-teal-400/20 blur-3xl"></div>
 
     <!-- Confetti -->
     <div v-if="isFinished && confetti.length" class="pointer-events-none absolute inset-0 z-30 overflow-hidden">
@@ -234,7 +232,7 @@ const onKey = (e) => {
       </header>
 
       <!-- Alert if already played previously -->
-      <div v-if="isAlreadyPlayed" class="mb-6 rounded-2xl border border-amber-400/40 bg-amber-500/10 p-5 backdrop-blur">
+      <div v-if="isAlreadyPlayed" class="mb-6 rounded-2xl border border-amber-400/40 bg-amber-500/15 p-5">
         <div class="flex items-center gap-3">
           <Lock class="w-6 h-6 text-amber-300 shrink-0" />
           <div>
@@ -248,7 +246,7 @@ const onKey = (e) => {
 
       <!-- ================= หน้าผลคะแนนและเฉลยละเอียด ================= -->
       <div v-if="isFinished" class="space-y-6">
-        <div class="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur md:p-8 text-center">
+        <div class="rounded-2xl border border-white/15 bg-white/5 p-6 md:p-8 text-center">
           <div class="mb-3 flex justify-center gap-2">
             <Star v-for="n in 3" :key="n"
               :class="['h-12 w-12 md:h-14 md:w-14', n <= stars ? 'fill-amber-300 text-amber-300 drop-shadow-[0_0_12px_rgba(252,211,77,0.7)]' : 'text-white/20']" />
@@ -342,7 +340,7 @@ const onKey = (e) => {
       <!-- ================= กำลังทำแบบทดสอบ ================= -->
       <div v-if="!isFinished" class="space-y-6">
         <!-- แถบเลือกข้อแบบปุ่มตัวเลข (Question Palette) -->
-        <div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
           <div class="flex items-center justify-between mb-3">
             <span class="text-xs font-bold uppercase tracking-wider text-slate-400">
               ข้อสอบทั้งหมด ({{ total }} ข้อ 4 ตัวเลือก)
@@ -356,7 +354,7 @@ const onKey = (e) => {
             <button v-for="(question, qIdx) in questions" :key="qIdx"
               @click="goToQuestion(qIdx)"
               :class="[
-                'w-9 h-9 rounded-xl font-bold text-sm transition-all flex items-center justify-center',
+                'w-9 h-9 rounded-xl font-bold text-sm transition-colors flex items-center justify-center',
                 qIdx === current
                   ? 'ring-2 ring-emerald-300 bg-emerald-500 text-slate-950 scale-105 shadow-md'
                   : selectedAnswers[qIdx]
@@ -369,7 +367,7 @@ const onKey = (e) => {
         </div>
 
         <!-- กล่องคำถาม -->
-        <div class="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur md:p-8">
+        <div class="rounded-2xl border border-white/15 bg-white/5 p-6 md:p-8">
           <div class="flex items-center justify-between mb-4">
             <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30">
               ข้อที่ {{ current + 1 }} จาก {{ total }}

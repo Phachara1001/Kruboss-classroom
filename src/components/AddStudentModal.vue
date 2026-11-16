@@ -3,7 +3,6 @@ import { ref, watch, computed } from 'vue'
 import { X, UserPlus, ShieldCheck, Shield, User, Users, GraduationCap, School, AlertCircle, Info, Check } from '@lucide/vue'
 import { courses } from '../data/courses'
 import { addStudent, courseClassrooms } from '../data/studentsStore'
-import * as xlsx from 'xlsx'
 
 const props = defineProps({
   modelValue: {
@@ -49,6 +48,7 @@ const handleExcelImport = async (e) => {
   importedStudentsPreview.value = []
   
   try {
+    const xlsx = await import('xlsx')
     const data = await file.arrayBuffer()
     const workbook = xlsx.read(data)
     const sheetName = workbook.SheetNames[0]

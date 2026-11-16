@@ -74,7 +74,7 @@ export const aetheriaBoxPreset = {
   id: 'box-aetheria-companions',
   name: 'AETHERIA Companions (Default Preset)',
   price: 150,
-  image: '/img/Gacha/AETHERIA/Box.png',
+  image: '/img/frame/Teacher.png',
   description: 'กล่องสุ่มสหายภูติผู้พิทักษ์แห่งอาเธอร์เรีย',
   theme: 'AETHERIA',
   items: []

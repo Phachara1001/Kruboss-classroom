@@ -182,6 +182,7 @@ const frameEffectClass = computed(() => {
         :alt="name || 'Avatar'"
         class="w-full h-full object-cover object-top"
         loading="lazy"
+        decoding="async"
         @error="handleImageError"
       />
 
@@ -191,6 +192,8 @@ const frameEffectClass = computed(() => {
         :src="fallbackSrc" 
         :alt="name || 'Avatar'"
         class="w-full h-full object-cover object-top"
+        loading="lazy"
+        decoding="async"
       />
 
       <!-- Text / Initial Fallback if avatar is text or short string -->
@@ -204,6 +207,8 @@ const frameEffectClass = computed(() => {
         :src="fallbackSrc" 
         :alt="name || 'Avatar'"
         class="w-full h-full object-cover object-top"
+        loading="lazy"
+        decoding="async"
       />
 
       <!-- Slot: Inner Overlay (e.g., hover upload overlay) -->
@@ -273,8 +278,10 @@ const frameEffectClass = computed(() => {
       v-if="isImageFrame" 
       :src="frame" 
       alt="Frame"
+      loading="lazy"
+      decoding="async"
       :class="[
-        'absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none drop-shadow-md z-30 object-contain',
+        'absolute inset-[-15%] w-[130%] h-[130%] max-w-none pointer-events-none z-30 object-contain',
         frameEffectClass
       ]"
     />

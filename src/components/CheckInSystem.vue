@@ -15,7 +15,6 @@ import {
 } from '@lucide/vue'
 import { addCoins } from '@/data/shopStore'
 import { studentsList, isTeacherUser } from '@/data/studentsStore'
-import { exportAttendanceToExcel } from '@/utils/exportAttendanceExcel'
 
 const props = defineProps({
   courseId: {
@@ -135,6 +134,7 @@ const handleExportExcel = async () => {
   if (!isTeacher.value) return
   isExporting.value = true
   try {
+    const { exportAttendanceToExcel } = await import('@/utils/exportAttendanceExcel')
     const fileName = await exportAttendanceToExcel({
       courseId: props.courseId,
       classroom: 'all',
@@ -182,27 +182,44 @@ const getDuration = (startIso) => {
   return `${m} นาที ${s} วินาที`
 }
 
+const syncTimer = () => {
+  if (isTeacher.value && isSessionOpen.value) {
+    if (!timerInterval) {
+      currentTime.value = new Date()
+      timerInterval = setInterval(() => {
+        currentTime.value = new Date()
+      }, 1000)
+    }
+  } else if (timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+}
+
+watch([isTeacher, isSessionOpen], syncTimer)
+
 onMounted(() => {
   fetchCheckInSessions(props.courseId)
   fetchAttendance(props.courseId)
-  timerInterval = setInterval(() => {
-    currentTime.value = new Date()
-  }, 1000)
+  syncTimer()
 })
 
 onUnmounted(() => {
-  if (timerInterval) clearInterval(timerInterval)
+  if (timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
 })
 </script>
 
 <template>
-  <div class="animate-[fadeIn_0.4s_ease-out]">
+  <div>
     <!-- ================= TEACHER VIEW ================= -->
     <div v-if="isTeacher" class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 md:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
       
       <!-- Background Graphic -->
       <div class="absolute -right-10 -top-10 opacity-10 pointer-events-none">
-        <Settings class="w-48 h-48 animate-spin-slow" />
+        <Settings class="w-48 h-48" />
       </div>
       
       <div class="relative z-10 space-y-3 text-center md:text-left flex-1">

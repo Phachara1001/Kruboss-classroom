@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, defineAsyncComponent } from 'vue'
 import { 
   Upload, XCircle, CheckCircle, CheckCircle2, FileText, FileSignature,
   Pencil, Link as LinkIcon, ExternalLink, Award, Clock,
@@ -17,8 +17,9 @@ import {
   assignmentSettingsStore,
   setAssignmentSetting
 } from '@/data/gradesStore'
-import SubmitAssignmentModal from '@/components/SubmitAssignmentModal.vue'
-import GradeAssignmentModal from '@/components/GradeAssignmentModal.vue'
+
+const SubmitAssignmentModal = defineAsyncComponent(() => import('@/components/SubmitAssignmentModal.vue'))
+const GradeAssignmentModal = defineAsyncComponent(() => import('@/components/GradeAssignmentModal.vue'))
 
 const props = defineProps({
   courseId: { type: String, required: true },
@@ -624,6 +625,7 @@ onMounted(() => {
 
     <!-- Modals -->
     <SubmitAssignmentModal 
+      v-if="showSubmitModal"
       :is-open="showSubmitModal"
       @close="showSubmitModal = false"
       :course-id="courseId"
@@ -634,6 +636,7 @@ onMounted(() => {
     />
 
     <GradeAssignmentModal
+      v-if="showGradeModal"
       :is-open="showGradeModal"
       @close="showGradeModal = false"
       :course-id="courseId"

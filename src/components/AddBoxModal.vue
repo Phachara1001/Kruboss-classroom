@@ -363,7 +363,7 @@ const handleSubmit = async () => {
                     <img 
                       :src="formData.image" 
                       class="w-full h-full object-contain" 
-                      onerror="this.src='/img/Gacha/AETHERIA/Box.png'" 
+                      onerror="this.src='/img/frame/Teacher.png'" 
                     />
                   </div>
                   <input type="file" ref="fileInputBox" class="hidden" accept="image/*" @change="e => handleFileUpload(e, 'box')" />
@@ -544,7 +544,7 @@ const handleSubmit = async () => {
                         <img 
                           :src="item.image" 
                           class="w-full h-full object-contain" 
-                          onerror="this.src='/img/Gacha/AETHERIA/Aetherwyrm - secret.png'" 
+                          onerror="this.src='/img/frame/Teacher.png'" 
                         />
                       </div>
                       <input 

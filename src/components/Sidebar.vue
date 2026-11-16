@@ -1,12 +1,13 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { BookOpen, Home, Settings, Users, ChevronLeft, ChevronRight, GraduationCap, Wrench, Contact, CalendarDays, Award, ShoppingBag, Package, LogOut, User, BarChart2, MoreVertical, ShieldAlert, Target, Coins, FileText } from '@lucide/vue'
+import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
+import { BookOpen, Home, Settings, Users, ChevronLeft, ChevronRight, GraduationCap, Wrench, Contact, CalendarDays, Award, ShoppingBag, Package, LogOut, User, BarChart2, MoreVertical, ShieldAlert, Target, Coins, FileText, Gamepad2 } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
 import { studentsList, isTeacherUser } from '../data/studentsStore'
-import MyProfileModal from './MyProfileModal.vue'
-import ResetPasswordRequestsModal from './ResetPasswordRequestsModal.vue'
 import StudentAvatar from './StudentAvatar.vue'
 import { passwordResetRequests, fetchPasswordResetRequests } from '../data/authStore'
+
+const MyProfileModal = defineAsyncComponent(() => import('./MyProfileModal.vue'))
+const ResetPasswordRequestsModal = defineAsyncComponent(() => import('./ResetPasswordRequestsModal.vue'))
 
 const props = defineProps({
   isCollapsed: {
@@ -47,6 +48,7 @@ const navGroups = [
   {
     name: 'กาชาและของรางวัล',
     items: [
+      { name: 'มินิเกมคลายเครียด', path: '/arcade', icon: Gamepad2, roles: ['teacher', 'student'] },
       { name: 'ร้านค้าและกล่องสุ่ม', path: '/shop', icon: ShoppingBag, roles: ['teacher', 'student'] },
       { name: 'กระเป๋าไอเทม', path: '/inventory', icon: Package, roles: ['teacher', 'student'] },
       { name: 'ประวัติการใช้เหรียญ', path: '/wallet', icon: FileText, roles: ['teacher', 'student'] }
@@ -141,15 +143,15 @@ const openProfileEdit = () => {
 </script>
 
 <template>
-  <aside class="bg-gradient-to-b from-[#064e3b] via-[#065f46] to-[#022c22] text-white transition-all duration-300 ease-in-out flex flex-col relative border-r border-emerald-800/40 shadow-2xl h-full"
+  <aside class="bg-gradient-to-b from-[#064e3b] via-[#065f46] to-[#022c22] text-white transition-[width] duration-200 ease-out flex flex-col relative border-r border-emerald-800/40 shadow-2xl h-full"
     :class="isCollapsed ? 'w-20' : 'w-full md:w-64'">
     <!-- Logo area -->
     <div class="flex items-center justify-center border-b border-emerald-800/60 overflow-hidden bg-emerald-950/40"
       :class="isCollapsed ? 'h-20 px-4' : 'p-3.5 relative'">
       <img v-show="!isCollapsed" src="/kruboss_logo.png" alt="KruBoss Classroom"
-        class="w-full max-h-16 object-contain transition-all duration-300 drop-shadow-xs" />
+        class="w-full max-h-16 object-contain drop-shadow-xs" />
       <img v-show="isCollapsed" src="/kruboss_logo.ico" alt="Logo"
-        class="w-10 h-10 object-contain transition-all duration-300 drop-shadow-xs" />
+        class="w-10 h-10 object-contain drop-shadow-xs" />
     </div>
 
     <!-- Toggle button (Desktop only) -->
@@ -227,7 +229,7 @@ const openProfileEdit = () => {
         </div>
       </div>
 
-      <div @click="toggleProfileMenu" class="p-3.5 border-t border-emerald-800/70 bg-emerald-950/60 backdrop-blur-xs flex items-center cursor-pointer hover:bg-emerald-900/80 transition-all select-none"
+      <div @click="toggleProfileMenu" class="p-3.5 border-t border-emerald-800/70 bg-emerald-950/85 flex items-center cursor-pointer hover:bg-emerald-900/80 transition-colors select-none"
         :class="{ 'justify-center': isCollapsed }">
         <StudentAvatar
           :avatar="currentUser?.avatar"
@@ -256,7 +258,7 @@ const openProfileEdit = () => {
     
     <!-- Profile Edit Modal -->
     <MyProfileModal 
-      v-if="currentUser" 
+      v-if="currentUser && showProfileModal" 
       v-model="showProfileModal" 
       :student="currentUser"
       @updated="() => {}" 
@@ -264,7 +266,7 @@ const openProfileEdit = () => {
     
     <!-- Teacher Requests Modal -->
     <ResetPasswordRequestsModal 
-      v-if="isTeacher"
+      v-if="isTeacher && showRequestsModal"
       v-model="showRequestsModal"
     />
     

@@ -1,5 +1,5 @@
 <script setup>
-import { Bell, Search, Menu, ShoppingBag, Package, FileText, Coins } from '@lucide/vue'
+import { Bell, Search, Menu, ShoppingBag, Package, FileText, Coins, Gamepad2 } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { activeStudentIdForShop, getStudentCoins } from '../data/shopStore'
 import { computed } from 'vue'
@@ -12,12 +12,12 @@ const currentCoins = computed(() => getStudentCoins(activeStudentIdForShop.value
 
 <template>
   <header
-    class="h-16 bg-white/95 backdrop-blur-md border-b border-emerald-100/80 shadow-[0_2px_10px_rgba(5,150,105,0.05)] flex items-center justify-between px-3.5 sm:px-6 z-10 shrink-0 sticky top-0 transition-all">
+    class="h-16 bg-white border-b border-emerald-100/80 shadow-[0_2px_10px_rgba(5,150,105,0.05)] flex items-center justify-between px-3.5 sm:px-6 z-10 shrink-0">
     <!-- Left: Hamburger & Brand Info -->
     <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
       <button 
         @click="$emit('toggle-sidebar')"
-        class="md:hidden p-2 sm:p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 text-emerald-800 border border-emerald-200/70 shadow-2xs active:scale-90 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+        class="md:hidden p-2 sm:p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 text-emerald-800 border border-emerald-200/70 shadow-2xs active:scale-90 transition-transform flex items-center justify-center shrink-0 cursor-pointer"
         aria-label="เปิดเมนู"
       >
         <Menu class="w-5 h-5" />
@@ -34,7 +34,7 @@ const currentCoins = computed(() => getStudentCoins(activeStudentIdForShop.value
             ห้องเรียนของครูบอส
           </h1>
           <div class="flex items-center gap-1.5 text-[10px] sm:text-xs text-emerald-600 font-semibold leading-none mt-0.5 whitespace-nowrap">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
             <span>ภาคเรียนที่ 2/2569</span>
           </div>
         </div>
@@ -43,6 +43,15 @@ const currentCoins = computed(() => getStudentCoins(activeStudentIdForShop.value
 
     <!-- Right: Quick Actions -->
     <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+      <!-- Arcade Quick Link -->
+      <button 
+        @click="router.push('/arcade')"
+        class="p-2 sm:p-2.5 rounded-xl bg-purple-50/80 hover:bg-purple-100 text-purple-700 border border-purple-200/70 transition-all active:scale-95 shadow-2xs cursor-pointer flex items-center justify-center group"
+        title="มินิเกมคลายเครียด (Arcade)"
+      >
+        <Gamepad2 class="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+      </button>
+
       <!-- Shop Quick Link -->
       <button 
         @click="router.push('/shop')"

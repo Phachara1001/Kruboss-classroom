@@ -1,5 +1,3 @@
-import * as xlsx from "xlsx";
-import ExcelJS from "exceljs";
 import { courses } from "@/data/courses";
 import { isStudent, isStudentInCourse } from "@/data/studentsStore";
 import { attendanceStore, checkInSessionsStore, isWeekHoliday } from "@/data/gradesStore";
@@ -114,6 +112,7 @@ const exportWithSheetJS = async ({
   if (firstId.length > 3) codePrefix = firstId.slice(0, -3);
 
   // 2. โหลด Template
+  const xlsx = await import("xlsx");
   const res = await fetch(TEMPLATE_URL);
   if (!res.ok) {
     throw new Error(`โหลดไฟล์ template ไม่สำเร็จ (${TEMPLATE_URL}) : HTTP ${res.status}`);
@@ -433,6 +432,8 @@ const exportWithExcelJS = async (buffer, { courseId, classroom, allStudents }) =
   const firstId = String(targetStudents[0]?.studentId || targetStudents[0]?.id || "").trim();
   if (firstId.length > 3) codePrefix = firstId.slice(0, -3);
 
+  const ExcelJSModule = await import("exceljs");
+  const ExcelJS = ExcelJSModule.default || ExcelJSModule;
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
   const ws = workbook.worksheets[0];

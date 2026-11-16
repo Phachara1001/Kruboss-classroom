@@ -159,7 +159,7 @@ const getQuestProgress = (quest) => {
 
 const getRewardFrameImage = (itemId) => {
   const item = (directShopItems.value || []).find(i => i.id === itemId)
-  return item?.image || '/img/frame/Cyber.png'
+  return item?.image || '/img/frame/Teacher.png'
 }
 
 onMounted(() => {

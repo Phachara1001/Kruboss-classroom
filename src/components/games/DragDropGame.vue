@@ -46,7 +46,7 @@ const shuffle = (arr) => {
 const pool = ref(shuffle(props.initialItems))
 const placed = ref({})
 if (Array.isArray(props.zones)) {
-  (props.zones || []).forEach(z => { placed.value[z.id] = [] })
+  props.zones.forEach(z => { placed.value[z.id] = [] })
 }
 
 watch(() => props.initialItems, (newVal) => {
@@ -162,13 +162,16 @@ const tryPlace = (item, zoneId) => {
   if (poolIdx !== -1) {
     pool.value.splice(poolIdx, 1)
   } else {
-    (props.zones || []).forEach(z => {
-      const zIdx = placed.value[z.id].findIndex(i => i.id === item.id)
-      if (zIdx !== -1) placed.value[z.id].splice(zIdx, 1)
+    const zoneList = props.zones || []
+    zoneList.forEach(z => {
+      const list = placed.value[z.id] || []
+      const zIdx = list.findIndex(i => i.id === item.id)
+      if (zIdx !== -1) list.splice(zIdx, 1)
     })
   }
 
   // เพิ่มไปยัง zone ปลายทาง
+  if (!placed.value[zoneId]) placed.value[zoneId] = []
   placed.value[zoneId].push(item)
   flash.value = { zone: zoneId, type: 'neutral', key: flash.value.key + 1 }
   tone([520], 0.08)
@@ -178,9 +181,10 @@ const tryPlace = (item, zoneId) => {
 // เอาการ์ดกลับไปที่ pool
 const returnToPool = (item, zoneId) => {
   if (isFinished.value) return
-  const idx = placed.value[zoneId].findIndex(i => i.id === item.id)
+  const list = placed.value[zoneId] || []
+  const idx = list.findIndex(i => i.id === item.id)
   if (idx !== -1) {
-    placed.value[zoneId].splice(idx, 1)
+    list.splice(idx, 1)
     pool.value.push(item)
     tone([420], 0.06)
   }
@@ -199,54 +203,59 @@ const submitExam = async () => {
   isSubmitting.value = true
   stopTimer()
 
-  // ตรวจคำตอบ
-  let correct = 0
-  (props.zones || []).forEach(z => {
-    placed.value[z.id].forEach(item => {
-      if (item.type === z.id) {
-        correct++
-      }
+  try {
+    // ตรวจคำตอบ
+    let correct = 0
+    const zoneList = props.zones || []
+    zoneList.forEach(z => {
+      const itemsInZone = placed.value[z.id] || []
+      itemsInZone.forEach(item => {
+        if (item.type === z.id) {
+          correct++
+        }
+      })
     })
-  })
 
-  examScore.value = correct
-  xp.value = correct * 100
+    examScore.value = correct
+    xp.value = correct * 100
 
-  // บันทึกคะแนนเข้าระบบ (ครั้งเดียวเท่านั้น)
-  if (currentStudentId.value && props.courseId && props.week) {
-    const res = await saveGameScore(
-      props.courseId,
-      props.week,
-      currentStudentId.value,
-      props.gameId,
-      correct,
-      total.value
-    )
-    if (!res.success && res.message) {
-      submitError.value = res.message
+    // บันทึกคะแนนเข้าระบบ (ครั้งเดียวเท่านั้น)
+    if (currentStudentId.value && props.courseId && props.week) {
+      const res = await saveGameScore(
+        props.courseId,
+        props.week,
+        currentStudentId.value,
+        props.gameId,
+        correct,
+        total.value
+      )
+      if (!res?.success && res?.message) {
+        submitError.value = res.message
+      }
     }
+
+    isFinished.value = true
+
+    // แสดง confetti และเสียง
+    confetti.value = Array.from({ length: 40 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 0.8,
+      dur: 2.4 + Math.random() * 1.8,
+      color: ['#a78bfa', '#34d399', '#fbbf24', '#38bdf8', '#f472b6'][i % 5],
+      size: 6 + Math.random() * 6
+    }))
+    setTimeout(() => tone([523, 659, 784, 1046], 0.14), 200)
+
+    emit('complete', {
+      score: correct,
+      maxScore: total.value,
+      xp: xp.value,
+      time: seconds.value
+    })
+  } finally {
+    isSubmitting.value = false
   }
-
-  isFinished.value = true
-  isSubmitting.value = false
-
-  // แสดง confetti และเสียง
-  confetti.value = Array.from({ length: 40 }, (_, i) => ({
-    id: i,
-    left: Math.random() * 100,
-    delay: Math.random() * 0.8,
-    dur: 2.4 + Math.random() * 1.8,
-    color: ['#a78bfa', '#34d399', '#fbbf24', '#38bdf8', '#f472b6'][i % 5],
-    size: 6 + Math.random() * 6
-  }))
-  setTimeout(() => tone([523, 659, 784, 1046], 0.14), 200)
-
-  emit('complete', {
-    score: correct,
-    maxScore: total.value,
-    xp: xp.value,
-    time: seconds.value
-  })
 }
 
 /* ---------- drag & tap ---------- */
@@ -267,9 +276,6 @@ const onZoneClick = (zoneId) => { if (selected.value) tryPlace(selected.value, z
 <template>
   <section
     class="quiz relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-5 text-white shadow-2xl md:p-10">
-    <!-- แสงพื้นหลัง -->
-    <div class="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-fuchsia-600/20 blur-3xl"></div>
-    <div class="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl"></div>
 
     <!-- Confetti -->
     <div v-if="isFinished && confetti.length" class="pointer-events-none absolute inset-0 z-30 overflow-hidden">
@@ -307,7 +313,7 @@ const onZoneClick = (zoneId) => { if (selected.value) tryPlace(selected.value, z
       </header>
 
       <!-- Alert if already played previously -->
-      <div v-if="isAlreadyPlayed" class="mb-6 rounded-2xl border border-amber-400/40 bg-amber-500/10 p-5 backdrop-blur">
+      <div v-if="isAlreadyPlayed" class="mb-6 rounded-2xl border border-amber-400/40 bg-amber-500/15 p-5">
         <div class="flex items-center gap-3">
           <Lock class="w-6 h-6 text-amber-300 shrink-0" />
           <div>
@@ -320,7 +326,7 @@ const onZoneClick = (zoneId) => { if (selected.value) tryPlace(selected.value, z
       </div>
 
       <!-- Result Screen (After Submit) -->
-      <div v-if="isFinished" class="result mb-8 rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur md:p-8">
+      <div v-if="isFinished" class="result mb-8 rounded-2xl border border-white/15 bg-white/5 p-6 md:p-8">
         <div class="mb-6 text-center">
           <div class="mb-3 flex justify-center gap-2">
             <Star v-for="n in 3" :key="n"
@@ -405,7 +411,7 @@ const onZoneClick = (zoneId) => { if (selected.value) tryPlace(selected.value, z
         </div>
 
         <!-- Card pool -->
-        <div class="mb-8 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+        <div class="mb-8 rounded-2xl border border-white/10 bg-white/5 p-5">
           <div class="flex items-center justify-between mb-3">
             <p class="text-xs font-bold uppercase tracking-widest text-slate-400">
               กองการ์ดคำตอบ — ลากไปวาง หรือแตะเลือกการ์ดแล้วแตะกล่องด้านล่าง
@@ -417,8 +423,8 @@ const onZoneClick = (zoneId) => { if (selected.value) tryPlace(selected.value, z
             <TransitionGroup name="chip">
               <div v-for="item in pool" :key="item.id" draggable="true" @dragstart="onDragStart(item)"
                 @dragend="onDragEnd" @click="onSelect(item)" :class="[
-                  'chip flex cursor-grab select-none items-center gap-2 rounded-xl px-5 py-3 font-bold text-slate-800 shadow-lg transition active:cursor-grabbing',
-                  selected?.id === item.id ? 'chip-selected bg-amber-200 ring-2 ring-amber-400' : 'bg-white hover:-translate-y-1 hover:shadow-xl',
+                  'chip flex cursor-grab select-none items-center gap-2 rounded-xl px-5 py-3 font-bold text-slate-800 shadow-lg transition-transform active:cursor-grabbing',
+                  selected?.id === item.id ? 'chip-selected bg-amber-200 ring-2 ring-amber-400' : 'bg-white hover:-translate-y-1',
                   dragged?.id === item.id ? 'opacity-40' : ''
                 ]">
                 <GripVertical class="h-4 w-4 text-slate-400" />
@@ -434,14 +440,14 @@ const onZoneClick = (zoneId) => { if (selected.value) tryPlace(selected.value, z
         <!-- Zones -->
         <div class="grid gap-5 md:grid-cols-2 mb-8">
           <div v-for="(zone, zi) in zones" :key="zone.id" :class="[
-            'relative flex min-h-[250px] flex-col rounded-2xl border-2 p-5 backdrop-blur transition-all duration-300',
+            'relative flex min-h-[250px] flex-col rounded-2xl border-2 p-5 transition-colors duration-200',
             accentOf(zone, zi).soft,
             hoverZone === zone.id && dragged
-              ? ['border-solid scale-[1.02] shadow-2xl ring-2', accentOf(zone, zi).border]
+              ? ['border-solid scale-[1.01] shadow-xl ring-2', accentOf(zone, zi).border]
               : ['border-dashed', accentOf(zone, zi).border],
             selected ? 'cursor-pointer hover:bg-white/10' : '',
             zone.wrapperClass
-          ]" @dragover.prevent="hoverZone = zone.id" @dragleave="hoverZone = null" @drop.prevent="onDrop(zone.id)"
+          ]" @dragover.prevent="hoverZone !== zone.id && (hoverZone = zone.id)" @dragleave="hoverZone = null" @drop.prevent="onDrop(zone.id)"
             @click="onZoneClick(zone.id)">
 
             <div class="mb-4 flex items-center gap-3">
@@ -477,7 +483,7 @@ const onZoneClick = (zoneId) => { if (selected.value) tryPlace(selected.value, z
         </div>
 
         <!-- Submit Action Bar -->
-        <div class="rounded-2xl border border-indigo-500/30 bg-indigo-950/40 p-5 backdrop-blur flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="rounded-2xl border border-indigo-500/30 bg-indigo-950/50 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div class="text-sm text-slate-300 text-center sm:text-left">
             <p class="font-bold text-white flex items-center gap-2 justify-center sm:justify-start">
               <Lock class="w-4 h-4 text-amber-300" /> ส่งได้ครั้งเดียวเท่านั้น ระบบจะให้คะแนนทันที

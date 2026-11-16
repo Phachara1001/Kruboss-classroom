@@ -308,7 +308,7 @@ const handleBuyDirect = (item) => {
 
 const testBuySuccess = (rarity) => {
   // Use a generic placeholder image for testing
-  const dummyImage = '/img/frame/Valorant.png'
+  const dummyImage = '/img/frame/Teacher.png'
   celebrate(rarity, `ไอเทมทดสอบ (${rarity})`, dummyImage)
 }
 

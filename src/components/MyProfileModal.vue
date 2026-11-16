@@ -1,13 +1,14 @@
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, defineAsyncComponent } from 'vue'
 import { X, Check, User, Phone, Sparkles, Image as ImageIcon, Smile, ChevronRight } from '@lucide/vue'
 import { updateStudent } from '../data/studentsStore'
 import { getStudentItems, directShopItems, fetchStudentInventory } from '../data/shopStore'
 import { authUser, updateAuthUser } from '../data/authStore'
 import { useRouter } from 'vue-router'
-import ImageCropperModal from './ImageCropperModal.vue'
 import StudentAvatar from './StudentAvatar.vue'
 import { API_UPLOAD_URL } from '@/config/api'
+
+const ImageCropperModal = defineAsyncComponent(() => import('./ImageCropperModal.vue'))
 
 const props = defineProps({
   modelValue: {

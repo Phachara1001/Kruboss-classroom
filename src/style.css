@@ -23,3 +23,23 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* ==========================================================================
+   Performance Optimizations for Low-End / Older Classroom Computers
+   ========================================================================== */
+.main-scroll-area {
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
+}
+
+/* Prevent expensive real-time Gaussian backdrop-blur recalculations while scrolling */
+.main-scroll-area [class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Cap massive 64px/40px blur filters on decorative background blobs inside scroll containers */
+.main-scroll-area .blur-3xl,
+.main-scroll-area .blur-2xl {
+  filter: blur(20px) !important;
+}

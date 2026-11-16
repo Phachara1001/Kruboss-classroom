@@ -16,8 +16,8 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'drawAgain'])
 
-const BOX_IMG = '/img/Gacha/AETHERIA/Box.png'
-const FALLBACK_IMG = '/img/Gacha/AETHERIA/Aetherwyrm - secret.png'
+const BOX_IMG = '/img/frame/Teacher.png'
+const FALLBACK_IMG = '/img/frame/Teacher.png'
 const TAU = Math.PI * 2
 const R = (a, b) => a + Math.random() * (b - a)
 const pick = (a) => a[(Math.random() * a.length) | 0]

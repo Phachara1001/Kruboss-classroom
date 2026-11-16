@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import * as xlsx from 'xlsx'
 import {
   BookOpen, PieChart, Info, CheckCircle, XCircle, FileText,
   Database, Layers, Shield, Users, ArrowRight, Target,
@@ -47,7 +46,8 @@ const demoRawData = [
   { Order_ID: 'ORD-107', Customer: 'คุณจินดา', Basket_Items: '  snack / tea / COLA ', Total_Price: 60 }
 ]
 
-const downloadDemoExcel = () => {
+const downloadDemoExcel = async () => {
+  const xlsx = await import('xlsx')
   const ws = xlsx.utils.json_to_sheet(demoRawData)
   const wb = xlsx.utils.book_new()
   xlsx.utils.book_append_sheet(wb, ws, 'Raw_Data')
@@ -185,7 +185,7 @@ const basketItemSummary = computed(() => {
 // PRACTICE DATASET: 500-ROW DIRTY DATA GENERATOR (OPTIONAL SELF-PRACTICE CSV)
 // ============================================================================
 // Generate deterministic 500 rows with realistic Dirty Data problems for self-practice
-const generate500DirtyRows = () => {
+const generate500DirtyRows = (limit = 500) => {
   const cleanDepts = [
     'ฝ่ายไอที (IT)',
     'ฝ่ายบัญชี (Accounting)',
@@ -209,7 +209,7 @@ const generate500DirtyRows = () => {
   const dirtyChannels = ['  line กลุ่มแผนก ', 'โทรภายใน', 'แจ้งผ่าน LINE', 'Walk-in']
 
   const rows = []
-  for (let i = 1; i <= 500; i++) {
+  for (let i = 1; i <= limit; i++) {
     const recId = `REC-${String(i).padStart(3, '0')}`
     let empId = `EMP-${String(1000 + i)}`
     let dept = cleanDepts[i % cleanDepts.length]
@@ -284,7 +284,7 @@ const generate500DirtyRows = () => {
   return rows
 }
 
-const previewDirtyRows = computed(() => generate500DirtyRows().slice(0, 15))
+const previewDirtyRows = generate500DirtyRows(15)
 
 const download500RowsCsv = () => {
   const rows = generate500DirtyRows()
@@ -524,12 +524,11 @@ const quizQuestions = [
 </script>
 
 <template>
-  <div class="space-y-8 animate-[fadeIn_0.5s_ease-out]">
+  <div class="space-y-8">
 
     <!-- Hero Banner -->
     <div
       class="bg-gradient-to-br from-sky-700 via-cyan-700 to-indigo-900 rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
-      <div class="absolute -right-12 -bottom-12 w-80 h-80 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
       <div class="absolute right-10 top-8 opacity-15 pointer-events-none hidden lg:block">
         <Wand2 class="w-48 h-48 text-white" />
       </div>
@@ -537,7 +536,7 @@ const quizQuestions = [
       <div class="relative z-10 max-w-4xl space-y-4">
         <div class="flex flex-wrap items-center gap-2">
           <span
-            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-cyan-200 text-xs font-black backdrop-blur-xs border border-white/20">
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-cyan-200 text-xs font-black border border-white/20">
             <Sparkles class="w-3.5 h-3.5" />
             <span>สัปดาห์ที่ 3 • Phase 1: Data Analysis & Preparation</span>
           </span>
@@ -1843,7 +1842,7 @@ const quizQuestions = [
             </div>
           </div>
 
-          <div class="p-4 sm:p-5 rounded-2xl bg-white/95 border border-emerald-200/90 shadow-xs space-y-3.5 backdrop-blur-xs">
+          <div class="p-4 sm:p-5 rounded-2xl bg-white border border-emerald-200/90 shadow-xs space-y-3.5">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
               <div class="flex items-center gap-2">

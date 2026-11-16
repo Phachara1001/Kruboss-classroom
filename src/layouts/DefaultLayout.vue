@@ -1,13 +1,14 @@
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { X } from '@lucide/vue'
 import Sidebar from '../components/Sidebar.vue'
 import Topbar from '../components/Topbar.vue'
 import Footer from '../components/Footer.vue'
-import AssignmentRewardModal from '../components/AssignmentRewardModal.vue'
 import { checkAndQueueStudentRewards } from '../data/rewardNotificationStore'
 import { authUser } from '../data/authStore'
+
+const AssignmentRewardModal = defineAsyncComponent(() => import('../components/AssignmentRewardModal.vue'))
 
 const route = useRoute()
 const isSidebarCollapsed = ref(false)
@@ -117,7 +118,7 @@ onMounted(() => {
       <Topbar @toggle-sidebar="toggleMobileSidebar" />
 
       <!-- Main Content Area -->
-      <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-green-50/30">
+      <main class="flex-1 overflow-y-auto overscroll-contain p-4 md:p-6 lg:p-8 bg-green-50/30 main-scroll-area">
         <div class="w-full h-full">
           <RouterView v-slot="{ Component }">
             <transition name="fade" mode="out-in">
@@ -136,7 +137,7 @@ onMounted(() => {
 <style>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.12s ease;
 }
 
 .fade-enter-from,

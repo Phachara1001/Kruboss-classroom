@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -1497,6 +1499,125 @@ app.post('/api/game-scores', async (req, res) => {
         res.json({ success: true, record });
     } catch (err) {
         console.error('Error saving game score to DB:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ==========================================
+// 11. ARCADE SCORES & LEADERBOARD (บันทึกคะแนนรวมทั้งระบบ และกระดาน 10 อันดับ)
+// ==========================================
+const ARCADE_DATA_FILE = path.join(__dirname, '..', 'data', 'arcade_db.json');
+
+function ensureArcadeDataDir() {
+    const dir = path.dirname(ARCADE_DATA_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
+function readArcadeData() {
+    try {
+        ensureArcadeDataDir();
+        if (!fs.existsSync(ARCADE_DATA_FILE)) {
+            const initial = { scores: [], resetHistory: [] };
+            fs.writeFileSync(ARCADE_DATA_FILE, JSON.stringify(initial, null, 2), 'utf8');
+            return initial;
+        }
+        const raw = fs.readFileSync(ARCADE_DATA_FILE, 'utf8');
+        return JSON.parse(raw);
+    } catch (e) {
+        console.error('Error reading arcade data file:', e);
+        return { scores: [], resetHistory: [] };
+    }
+}
+
+function writeArcadeData(data) {
+    try {
+        ensureArcadeDataDir();
+        fs.writeFileSync(ARCADE_DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+    } catch (e) {
+        console.error('Error writing arcade data file:', e);
+    }
+}
+
+// GET /api/arcade/all - ดึงคะแนนและประวัติรีเซ็ตทั้งหมด
+app.get('/api/arcade/all', async (req, res) => {
+    try {
+        const data = readArcadeData();
+        res.json({ success: true, scores: data.scores || [], resetHistory: data.resetHistory || [] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// POST /api/arcade/score - บันทึกคะแนนใหม่ (อัปเดตสถิติสูงสุดสัปดาห์/ตลอดกาลอัตโนมัติ)
+app.post('/api/arcade/score', async (req, res) => {
+    try {
+        const { gameId, studentId, studentName, classroom, avatar, score, weekKey } = req.body;
+        if (!gameId || !studentId || score === undefined || !weekKey) {
+            return res.status(400).json({ success: false, message: 'ข้อมูลไม่ครบถ้วน' });
+        }
+
+        const numScore = Math.max(0, parseInt(score, 10) || 0);
+        const data = readArcadeData();
+        if (!data.scores) data.scores = [];
+
+        // ค้นหาเรคคอร์ดเดิมของนักเรียนคนนี้ในเกมนี้และสัปดาห์นี้
+        const existingIdx = data.scores.findIndex(s => s.gameId === gameId && s.studentId === studentId && s.weekKey === weekKey);
+        let isNewWeeklyBest = false;
+
+        if (existingIdx !== -1) {
+            const prev = data.scores[existingIdx];
+            if (numScore > prev.score) {
+                prev.score = numScore;
+                prev.submittedAt = new Date().toISOString();
+                isNewWeeklyBest = true;
+            }
+            // อัปเดตข้อมูลนักเรียนให้ทันสมัย
+            if (studentName) prev.studentName = studentName;
+            if (classroom) prev.classroom = classroom;
+            if (avatar) prev.avatar = avatar;
+        } else {
+            isNewWeeklyBest = numScore > 0;
+            data.scores.push({
+                gameId,
+                studentId,
+                studentName: studentName || 'นักศึกษา',
+                classroom: classroom || '',
+                avatar: avatar || null,
+                score: numScore,
+                weekKey,
+                submittedAt: new Date().toISOString()
+            });
+        }
+
+        writeArcadeData(data);
+        res.json({ success: true, isNewWeeklyBest, score: numScore });
+    } catch (err) {
+        console.error('Error recording arcade score:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// POST /api/arcade/reset-week - รีเซ็ตสัปดาห์และแจกเหรียญ (เฉพาะครู)
+app.post('/api/arcade/reset-week', async (req, res) => {
+    try {
+        const { teacherName, weekKey, winners, totalCoinsAwarded } = req.body;
+        const data = readArcadeData();
+        if (!data.resetHistory) data.resetHistory = [];
+
+        const logEntry = {
+            id: 'reset-' + Date.now(),
+            weekKey,
+            distributedBy: teacherName || 'คุณครู',
+            totalCoinsAwarded: totalCoinsAwarded || 0,
+            winners: winners || [],
+            resetAt: new Date().toISOString()
+        };
+
+        data.resetHistory.unshift(logEntry);
+        writeArcadeData(data);
+        res.json({ success: true, log: logEntry });
+    } catch (err) {
+        console.error('Error resetting arcade week:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
