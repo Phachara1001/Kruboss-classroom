@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import {
   X, Trophy, Users, Search, CheckCircle2, Clock,
   AlertCircle, Award, FileSpreadsheet, Lock
@@ -9,8 +9,8 @@ import { authUser } from '@/data/authStore'
 import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
 
 const props = defineProps({
-  show: { type: Boolean, default: false },
-  isOpen: { type: Boolean, default: false },
+  show: { type: Boolean, default: true },
+  isOpen: { type: Boolean, default: true },
   courseId: { type: String, required: true },
   courseName: { type: String, default: '' },
   week: { type: Number, required: true },
@@ -39,11 +39,47 @@ const refreshData = () => {
 }
 
 watch(() => isVisible.value, (newVal) => {
-  if (newVal) refreshData()
-})
+  if (newVal) {
+    refreshData()
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = 'hidden'
+      const mainEl = document.querySelector('.main-scroll-area')
+      if (mainEl) mainEl.style.overflow = 'hidden'
+    }
+  } else {
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = ''
+      const mainEl = document.querySelector('.main-scroll-area')
+      if (mainEl) mainEl.style.overflow = ''
+    }
+  }
+}, { immediate: true })
+
+const handleKeyDown = (e) => {
+  if (e.key === 'Escape' && isVisible.value) {
+    emit('close')
+  }
+}
 
 onMounted(() => {
-  if (isVisible.value) refreshData()
+  window.addEventListener('keydown', handleKeyDown)
+  if (isVisible.value) {
+    refreshData()
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = 'hidden'
+      const mainEl = document.querySelector('.main-scroll-area')
+      if (mainEl) mainEl.style.overflow = 'hidden'
+    }
+  }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = ''
+    const mainEl = document.querySelector('.main-scroll-area')
+    if (mainEl) mainEl.style.overflow = ''
+  }
 })
 
 // Enrolled students in this course
@@ -136,9 +172,10 @@ const getScoreColorClass = (normalized) => {
 </script>
 
 <template>
-  <Transition name="fade">
-    <div v-if="isVisible" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-sm">
-      <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden border border-stone-200">
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="isVisible" class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-black/70 backdrop-blur-sm" @click.self="emit('close')">
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden border border-stone-200">
         
         <!-- Header -->
         <div class="p-6 bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-950 text-white flex items-start justify-between gap-4">
@@ -344,6 +381,7 @@ const getScoreColorClass = (normalized) => {
       </div>
     </div>
   </Transition>
+  </Teleport>
 </template>
 
 <style scoped>

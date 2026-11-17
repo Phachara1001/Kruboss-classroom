@@ -65,10 +65,10 @@ export const courses = [
       {
         id: "สัปดาห์ที่ 5",
         weekNumber: 5,
-        name: "การสร้างและการใช้งาน View (Views & Materialized Views)",
-        isOpen: false,
+        name: "ปฏิบัติการสร้างฐานข้อมูลเชิงสัมพันธ์ใน Supabase (Foreign Keys, Junction Tables & SQL JOIN)",
+        isOpen: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "เปิดให้เรียน",
         image: "bg-green-700",
       },
       {
@@ -404,7 +404,8 @@ export const courses = [
         name: "การสอบถามและการเก็บรวบรวมข้อมูล (Data Inquiry & Data Collection)",
         phase: "Phase 1: Data Analysis (สัปดาห์ที่ 1–6)",
         desc: "การสอบถามข้อมูลเพื่อระบุความต้องการ, รูปแบบและเครื่องมือการเก็บรวบรวมข้อมูล, การออกแบบแบบสอบถาม และการจัดทำข้อกำหนดชุดข้อมูล",
-        activity: "การวิเคราะห์และวางแผนเก็บรวบรวมข้อมูลเพื่อพัฒนาองค์กร (นำเสนอสไลด์หน้าห้อง)",
+        activity:
+          "การวิเคราะห์และวางแผนเก็บรวบรวมข้อมูลเพื่อพัฒนาองค์กร (นำเสนอสไลด์หน้าห้อง)",
         isOpen: true,
         progress: 0,
         status: "เปิดให้เรียน",
@@ -429,7 +430,8 @@ export const courses = [
         name: "การจัดเตรียมและแปลงรูปแบบข้อมูลขั้นสูง (Data Preparation & Transformation)",
         phase: "Phase 1: Data Analysis (สัปดาห์ที่ 1–6)",
         desc: "การจัดโครงสร้างตาราง Tidy Data, การแยกและรวมคอลัมน์ (SPLIT/CONCAT), การจัดกลุ่มช่วงข้อมูลด้วยสูตร IF/IFS และการเชื่อมโยงตารางด้วย VLOOKUP/XLOOKUP",
-        activity: "แปลงรูปแบบและจัดเตรียมตารางข้อมูลด้วยสูตร Google Sheets / Excel",
+        activity:
+          "แปลงรูปแบบและจัดเตรียมตารางข้อมูลด้วยสูตร Google Sheets / Excel",
         isOpen: false,
         progress: 0,
         status: "ยังไม่เริ่ม",
@@ -630,10 +632,10 @@ export const courses = [
       {
         id: "สัปดาห์ที่ 4",
         weekNumber: 4,
-        name: "การควบคุมอินพุต/เอาต์พุตดิจิทัล (Digital I/O & General Purpose Pins)",
-        isOpen: false,
+        name: "การควบคุมแบบวนซ้ำ (For Loop) ร่วมกับ State Machine ควบคุมไฟวิ่ง LED 6 ดวง ด้วยปุ่มกด 2 ปุ่ม",
+        isOpen: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "เปิดให้เรียน",
         image: "bg-amber-700",
       },
       {

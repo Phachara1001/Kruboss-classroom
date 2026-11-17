@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { BookOpen, Star, Clock, ChevronRight, Lock, X, ChevronLeft, Users, Wrench, Award, CheckCircle2, AlertCircle, FileText, Eye } from '@lucide/vue'
 import { useRouter, useRoute } from 'vue-router'
 import { courses } from '../data/courses'
@@ -120,6 +120,18 @@ watch(() => route.params.id, (newId) => {
 
 const showModal = ref(false)
 const selectedTopic = ref(null)
+
+watch(showModal, (isOpen) => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+  }
+})
+
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = ''
+  }
+})
 
 const handleTopicClick = (topic) => {
   if (topic.isOpen) {
@@ -368,59 +380,61 @@ const closeModal = () => {
       </div>
     </div>
 
-    <!-- Modal for Locked Topics -->
-    <Transition name="modal">
-      <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="closeModal"></div>
+    <!-- Modal for Locked Topics (Teleported to body for global viewport centering) -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="closeModal"></div>
 
-        <div class="modal-content relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-          <div class="h-2 bg-red-500 w-full"></div>
-          <button @click="closeModal"
-            class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors bg-gray-100 p-2 rounded-full hover:bg-gray-200">
-            <X class="w-5 h-5" />
-          </button>
-
-          <div class="p-8 text-center flex flex-col items-center">
-            <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4 animate-pulse-glow">
-              <Lock class="w-8 h-8 text-red-500 animate-wiggle" />
-            </div>
-            
-            <template v-if="!effectiveIsTeacher">
-              <h3 class="text-xl font-black text-gray-900 mb-1">เนื้อหายังไม่เปิดให้เข้าเรียน</h3>
-              <p class="text-purple-900 font-bold text-base mb-3 leading-snug">
-                {{ selectedTopic?.id }}: เนื้อหาถัดไป
-              </p>
-              <div class="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 mb-4 text-center">
-                <p class="text-xs text-gray-600 leading-relaxed">
-                  เนื้อหาการเรียนรู้ในหัวข้อนี้จะเปิดให้เข้าเรียนตามกำหนดการสอนในคาบเรียน รอติดตามเร็วๆ นี้
-                </p>
-              </div>
-            </template>
-            <template v-else>
-              <span v-if="selectedTopic?.phase" class="px-3 py-1 bg-purple-50 text-purple-700 font-bold rounded-full text-xs mb-3 border border-purple-100">
-                {{ selectedTopic.phase }}
-              </span>
-              <h3 class="text-xl font-black text-gray-900 mb-1">เนื้อหายังไม่เปิดให้เข้าเรียน</h3>
-              <p class="text-purple-900 font-bold text-base mb-3 leading-snug">
-                {{ selectedTopic?.id }}: {{ selectedTopic?.name }}
-              </p>
-              <div v-if="selectedTopic?.desc" class="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 mb-4 text-left">
-                <span class="text-[11px] font-bold text-gray-400 block mb-1 uppercase tracking-wider">เนื้อหาที่จะได้เรียนรู้</span>
-                <p class="text-xs text-gray-600 leading-relaxed">{{ selectedTopic.desc }}</p>
-              </div>
-            </template>
-
-            <p class="text-xs text-gray-400 mb-6">
-              ระบบจะเปิดให้เข้าเรียนตามกำหนดการสอนของรายวิชา
-            </p>
+          <div class="modal-content relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden z-10 my-auto">
+            <div class="h-2 bg-red-500 w-full"></div>
             <button @click="closeModal"
-              class="w-full py-3.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors shadow-lg shadow-gray-900/20 text-sm">
-              รับทราบ กลับสู่หน้ารายวิชา
+              class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors bg-gray-100 p-2 rounded-full hover:bg-gray-200">
+              <X class="w-5 h-5" />
             </button>
+
+            <div class="p-8 text-center flex flex-col items-center">
+              <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4 animate-pulse-glow">
+                <Lock class="w-8 h-8 text-red-500 animate-wiggle" />
+              </div>
+              
+              <template v-if="!effectiveIsTeacher">
+                <h3 class="text-xl font-black text-gray-900 mb-1">เนื้อหายังไม่เปิดให้เข้าเรียน</h3>
+                <p class="text-purple-900 font-bold text-base mb-3 leading-snug">
+                  {{ selectedTopic?.id }}: เนื้อหาถัดไป
+                </p>
+                <div class="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 mb-4 text-center">
+                  <p class="text-xs text-gray-600 leading-relaxed">
+                    เนื้อหาการเรียนรู้ในหัวข้อนี้จะเปิดให้เข้าเรียนตามกำหนดการสอนในคาบเรียน รอติดตามเร็วๆ นี้
+                  </p>
+                </div>
+              </template>
+              <template v-else>
+                <span v-if="selectedTopic?.phase" class="px-3 py-1 bg-purple-50 text-purple-700 font-bold rounded-full text-xs mb-3 border border-purple-100">
+                  {{ selectedTopic.phase }}
+                </span>
+                <h3 class="text-xl font-black text-gray-900 mb-1">เนื้อหายังไม่เปิดให้เข้าเรียน</h3>
+                <p class="text-purple-900 font-bold text-base mb-3 leading-snug">
+                  {{ selectedTopic?.id }}: {{ selectedTopic?.name }}
+                </p>
+                <div v-if="selectedTopic?.desc" class="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 mb-4 text-left">
+                  <span class="text-[11px] font-bold text-gray-400 block mb-1 uppercase tracking-wider">เนื้อหาที่จะได้เรียนรู้</span>
+                  <p class="text-xs text-gray-600 leading-relaxed">{{ selectedTopic.desc }}</p>
+                </div>
+              </template>
+
+              <p class="text-xs text-gray-400 mb-6">
+                ระบบจะเปิดให้เข้าเรียนตามกำหนดการสอนของรายวิชา
+              </p>
+              <button @click="closeModal"
+                class="w-full py-3.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors shadow-lg shadow-gray-900/20 text-sm cursor-pointer active:scale-95 transition-all">
+                รับทราบ กลับสู่หน้ารายวิชา
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 

@@ -1522,7 +1522,7 @@ INSERT INTO enrollments (student_id, course_id, semester, grade) VALUES
     <!-- HANDS-ON WORKSHOP & ASSIGNMENT SECTION                         -->
     <!-- ============================================================== -->
     <AssignmentSection
-      assignment-id="assign-db-week4"
+      assignment-id="asm-4"
       :course-id="currentCourseId"
       :week-number="currentWeek"
       assignment-title="ใบงานที่ 4: การสร้างความสัมพันธ์ระหว่างตารางระบบมหาวิทยาลัย (Mini University Schema บน Supabase)"
@@ -1530,6 +1530,7 @@ INSERT INTO enrollments (student_id, course_id, semester, grade) VALUES
       due-date-text="กำหนดส่ง: ท้ายคาบเรียนสัปดาห์ที่ 4"
       submit-btn-text="ส่งงานใบงานที่ 4"
     >
+      <template #number>4</template>
       <template #description>
         <p class="leading-relaxed">
           ในใบงานนี้นักศึกษาจะได้รับมอบหมายให้ออกแบบและสร้างฐานข้อมูลจำลองระบบมหาวิทยาลัย <strong>Mini University Schema</strong> 

@@ -73,8 +73,14 @@ export const courseAssignments = {
     },
     {
       id: "asm-4",
+      week: 4,
+      title: "ใบงานที่ 4: การออกแบบความสัมพันธ์ของข้อมูลและ Cardinality (1:1, 1:N, N:M บน Supabase)",
+      maxScore: 10,
+    },
+    {
+      id: "asm-5",
       week: 5,
-      title: "ใบงานที่ 4: การสร้างและการสืบค้นข้อมูลผ่าน View และ Row Level Security (RLS)",
+      title: "ใบงานที่ 5: ปฏิบัติการสร้างฐานข้อมูลเชิงสัมพันธ์ (Relational Database) และสืบค้นข้ามตารางใน Supabase",
       maxScore: 10,
     },
   ],
@@ -163,8 +169,8 @@ export const courseAssignments = {
     },
     {
       id: "asm-4",
-      week: 11,
-      title: "ใบงานที่ 4: การเชื่อมต่อ Wi-Fi และส่งข้อมูลผ่าน MQTT ไปยัง IoT Dashboard",
+      week: 4,
+      title: "ใบงานที่ 4: การนำ State มารวมกับ For Loop ควบคุมไฟวิ่ง LED 6 ดวง ด้วยปุ่มกด 2 ปุ่ม บน Tinkercad",
       maxScore: 10,
     },
   ],

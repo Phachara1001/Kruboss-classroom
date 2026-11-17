@@ -52,6 +52,11 @@ const router = createRouter({
           component: () => import('../views/database/Week4View.vue')
         },
         {
+          path: 'course/31901-2007/week/5',
+          name: 'database-week5',
+          component: () => import('../views/database/Week5View.vue')
+        },
+        {
           path: 'course/21901-2012/week/1',
           name: 'platform-week1',
           component: () => import('../views/platform/Week1View.vue')
@@ -95,6 +100,11 @@ const router = createRouter({
           path: 'course/21901-2007/week/3',
           name: 'iot-week3',
           component: () => import('../views/iot/Week3View.vue')
+        },
+        {
+          path: 'course/21901-2007/week/4',
+          name: 'iot-week4',
+          component: () => import('../views/iot/Week4View.vue')
         },
         {
           path: 'course/:id/classmates',
