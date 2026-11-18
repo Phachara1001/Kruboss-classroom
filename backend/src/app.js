@@ -1504,6 +1504,218 @@ app.post('/api/game-scores', async (req, res) => {
 });
 
 // ==========================================
+// 10.1 TEST ATTEMPTS API (Pre-test & Post-test ตรวจสอบและบันทึกลงฐานข้อมูล)
+// ==========================================
+const TEST_ATTEMPTS_FILE = path.join(__dirname, '..', 'data', 'test_attempts_db.json');
+
+function ensureTestAttemptsDir() {
+    const dir = path.dirname(TEST_ATTEMPTS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
+function readTestAttemptsData() {
+    try {
+        ensureTestAttemptsDir();
+        if (!fs.existsSync(TEST_ATTEMPTS_FILE)) {
+            fs.writeFileSync(TEST_ATTEMPTS_FILE, JSON.stringify({}, null, 2), 'utf8');
+            return {};
+        }
+        return JSON.parse(fs.readFileSync(TEST_ATTEMPTS_FILE, 'utf8'));
+    } catch (e) {
+        return {};
+    }
+}
+
+function writeTestAttemptsData(data) {
+    try {
+        ensureTestAttemptsDir();
+        fs.writeFileSync(TEST_ATTEMPTS_FILE, JSON.stringify(data, null, 2), 'utf8');
+    } catch (e) {
+        console.error('Error writing test attempts data:', e);
+    }
+}
+
+// GET /api/test-attempts/:courseId/:week - ดึงผลการสอบ Pre-test และ Post-test ทั้งสัปดาห์จากฐานข้อมูล
+app.get('/api/test-attempts/:courseId/:week', async (req, res) => {
+    try {
+        const { courseId, week } = req.params;
+        const weekNum = Number(week);
+        const fileData = readTestAttemptsData();
+
+        let dbRecords = [];
+        try {
+            dbRecords = await prisma.gameScore.findMany({
+                where: {
+                    courseId,
+                    week: weekNum,
+                    gameId: { in: ['pre-test', 'quiz'] }
+                }
+            });
+        } catch (dbErr) {
+            console.warn('Prisma query test attempts warning:', dbErr.message);
+        }
+
+        const result = {};
+
+        // 1. Populate from Prisma GameScore DB
+        for (const r of dbRecords) {
+            const type = r.gameId === 'pre-test' ? 'pre' : 'post';
+            const key = `${courseId}_${weekNum}_${r.studentId}_${type}`;
+            result[key] = {
+                courseId: r.courseId,
+                week: r.week,
+                studentId: r.studentId,
+                type,
+                score: r.score,
+                maxScore: r.maxScore,
+                percentage: r.maxScore > 0 ? Math.round((r.score / r.maxScore) * 100) : 0,
+                completedAt: r.submittedAt,
+                timeSpentSeconds: 0,
+                source: 'database'
+            };
+        }
+
+        // 2. Merge with detailed test_attempts_db.json
+        for (const [k, v] of Object.entries(fileData)) {
+            if (v && v.courseId === courseId && Number(v.week) === weekNum) {
+                result[k] = { ...result[k], ...v };
+            }
+        }
+
+        res.json({ success: true, data: result });
+    } catch (err) {
+        console.error('Error fetching test attempts from DB:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// GET /api/test-attempts/:courseId/:week/:studentId - ตรวจสอบจากฐานข้อมูลว่านักเรียนคนนี้เคยสอบแล้วหรือไม่
+app.get('/api/test-attempts/:courseId/:week/:studentId', async (req, res) => {
+    try {
+        const { courseId, week, studentId } = req.params;
+        const weekNum = Number(week);
+        const fileData = readTestAttemptsData();
+
+        let dbRecords = [];
+        try {
+            dbRecords = await prisma.gameScore.findMany({
+                where: {
+                    courseId,
+                    week: weekNum,
+                    studentId,
+                    gameId: { in: ['pre-test', 'quiz'] }
+                }
+            });
+        } catch (dbErr) {
+            console.warn('Prisma query student test attempt warning:', dbErr.message);
+        }
+
+        let preRec = null;
+        let postRec = null;
+
+        for (const r of dbRecords) {
+            const item = {
+                courseId: r.courseId,
+                week: r.week,
+                studentId: r.studentId,
+                type: r.gameId === 'pre-test' ? 'pre' : 'post',
+                score: r.score,
+                maxScore: r.maxScore,
+                percentage: r.maxScore > 0 ? Math.round((r.score / r.maxScore) * 100) : 0,
+                completedAt: r.submittedAt,
+                source: 'database'
+            };
+            if (r.gameId === 'pre-test') preRec = item;
+            if (r.gameId === 'quiz') postRec = item;
+        }
+
+        const preKey = `${courseId}_${weekNum}_${studentId}_pre`;
+        const postKey = `${courseId}_${weekNum}_${studentId}_post`;
+        if (fileData[preKey]) preRec = { ...preRec, ...fileData[preKey] };
+        if (fileData[postKey]) postRec = { ...postRec, ...fileData[postKey] };
+
+        res.json({
+            success: true,
+            hasPreTest: !!preRec,
+            hasPostTest: !!postRec,
+            pre: preRec,
+            post: postRec
+        });
+    } catch (err) {
+        console.error('Error checking student test record in DB:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// POST /api/test-attempts - บันทึกผลการสอบ (Pre-test หรือ Post-test) ลง Database
+app.post('/api/test-attempts', async (req, res) => {
+    try {
+        const { courseId, week, studentId, type, score, maxScore, timeSpentSeconds, answers } = req.body;
+        if (!courseId || !week || !studentId || !type || score === undefined) {
+            return res.status(400).json({ success: false, message: 'ข้อมูลไม่ครบถ้วน' });
+        }
+
+        const weekNum = Number(week);
+        const gameId = type === 'pre' ? 'pre-test' : 'quiz';
+        const validScore = Math.min(Number(score), Number(maxScore || 10));
+        const now = new Date().toISOString();
+
+        // 1. Save or update to Prisma GameScore Database
+        let dbRecord = null;
+        try {
+            dbRecord = await prisma.gameScore.upsert({
+                where: {
+                    courseId_week_studentId_gameId: {
+                        courseId,
+                        week: weekNum,
+                        studentId,
+                        gameId
+                    }
+                },
+                update: {
+                    score: validScore,
+                    maxScore: Number(maxScore || 10)
+                },
+                create: {
+                    courseId,
+                    week: weekNum,
+                    studentId,
+                    gameId,
+                    score: validScore,
+                    maxScore: Number(maxScore || 10)
+                }
+            });
+        } catch (dbErr) {
+            console.warn('Prisma upsert gameScore warning:', dbErr.message);
+        }
+
+        // 2. Save full detail into test_attempts_db.json
+        const fileData = readTestAttemptsData();
+        const key = `${courseId}_${weekNum}_${studentId}_${type}`;
+        const record = {
+            courseId,
+            week: weekNum,
+            studentId,
+            type,
+            score: validScore,
+            maxScore: Number(maxScore || 10),
+            percentage: Math.round((validScore / Number(maxScore || 10)) * 100),
+            timeSpentSeconds: Number(timeSpentSeconds) || 0,
+            answers: answers || {},
+            completedAt: dbRecord?.submittedAt || now,
+            source: 'database'
+        };
+        fileData[key] = record;
+        writeTestAttemptsData(fileData);
+
+        res.json({ success: true, record });
+    } catch (err) {
+        console.error('Error saving test attempt to DB:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ==========================================
 // 11. ARCADE SCORES & LEADERBOARD (บันทึกคะแนนรวมทั้งระบบ และกระดาน 10 อันดับ)
 // ==========================================
 const ARCADE_DATA_FILE = path.join(__dirname, '..', 'data', 'arcade_db.json');
@@ -1618,6 +1830,284 @@ app.post('/api/arcade/reset-week', async (req, res) => {
         res.json({ success: true, log: logEntry });
     } catch (err) {
         console.error('Error resetting arcade week:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ==========================================
+// 12. QUESTION BANK API (คลังข้อสอบกลาง Pre-test / Post-test / Quiz)
+// ==========================================
+const QUESTIONS_DATA_FILE = path.join(__dirname, '..', 'data', 'questions_db.json');
+
+function ensureQuestionsDataDir() {
+    const dir = path.dirname(QUESTIONS_DATA_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
+function readQuestionsData() {
+    try {
+        ensureQuestionsDataDir();
+        if (!fs.existsSync(QUESTIONS_DATA_FILE)) {
+            const initial = [];
+            fs.writeFileSync(QUESTIONS_DATA_FILE, JSON.stringify(initial, null, 2), 'utf8');
+            return initial;
+        }
+        const raw = fs.readFileSync(QUESTIONS_DATA_FILE, 'utf8');
+        return JSON.parse(raw);
+    } catch (e) {
+        console.error('Error reading questions data file:', e);
+        return [];
+    }
+}
+
+function writeQuestionsData(questions) {
+    try {
+        ensureQuestionsDataDir();
+        fs.writeFileSync(QUESTIONS_DATA_FILE, JSON.stringify(questions, null, 2), 'utf8');
+    } catch (e) {
+        console.error('Error writing questions data file:', e);
+    }
+}
+
+// GET /api/questions - ดึงข้อสอบตามวิชา และ/หรือ สัปดาห์
+app.get('/api/questions', async (req, res) => {
+    try {
+        const { courseId, week } = req.query;
+        let questions = [];
+
+        // 1. ลองดึงจาก Prisma Database ก่อน
+        if (prisma.question) {
+            try {
+                const whereClause = {};
+                if (courseId) whereClause.courseId = courseId;
+                if (week) whereClause.week = Number(week);
+
+                questions = await prisma.question.findMany({
+                    where: whereClause,
+                    include: { options: true },
+                    orderBy: { createdAt: 'asc' }
+                });
+            } catch (pErr) {
+                questions = [];
+            }
+        }
+
+        // 2. ถ้าใน DB ยังไม่มีหรือออฟไลน์ ให้ใช้ฐานข้อมูลไฟล์ JSON กลาง (Fallback)
+        if (!questions || questions.length === 0) {
+            questions = readQuestionsData();
+            if (courseId) {
+                questions = questions.filter(q => String(q.courseId) === String(courseId));
+            }
+            if (week) {
+                questions = questions.filter(q => Number(q.week) === Number(week));
+            }
+        }
+
+        res.json({ success: true, questions });
+    } catch (err) {
+        console.error('Error fetching questions:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// POST /api/questions - เพิ่มข้อสอบใหม่ 1 ข้อ
+app.post('/api/questions', async (req, res) => {
+    try {
+        const { courseId, week, type, question, options, score, explanation } = req.body;
+        if (!question || !courseId || !week) {
+            return res.status(400).json({ success: false, message: 'ข้อมูลข้อสอบไม่ครบถ้วน' });
+        }
+
+        const newId = `qb-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        const formattedOptions = (Array.isArray(options) ? options : []).map((opt, idx) => ({
+            id: opt.id || String.fromCharCode(97 + idx),
+            text: opt.text || '',
+            isCorrect: !!opt.isCorrect
+        }));
+
+        const newQuestionObj = {
+            id: newId,
+            courseId,
+            week: Number(week),
+            type: type || 'choice',
+            question: question.trim(),
+            options: formattedOptions,
+            score: Number(score) || 1,
+            explanation: explanation || '',
+            createdAt: new Date().toISOString()
+        };
+
+        // บันทึกลง Prisma Database
+        if (prisma.question) {
+            try {
+                await prisma.question.create({
+                    data: {
+                        id: newId,
+                        courseId,
+                        week: Number(week),
+                        type: type || 'choice',
+                        question: question.trim(),
+                        score: Number(score) || 1,
+                        explanation: explanation || '',
+                        options: {
+                            create: formattedOptions.map(opt => ({
+                                text: opt.text,
+                                isCorrect: opt.isCorrect
+                            }))
+                        }
+                    }
+                });
+            } catch (pErr) {}
+        }
+
+        // บันทึกลงฐานข้อมูลไฟล์ JSON กลางเสมอ
+        const allQuestions = readQuestionsData();
+        allQuestions.push(newQuestionObj);
+        writeQuestionsData(allQuestions);
+
+        res.json({ success: true, question: newQuestionObj });
+    } catch (err) {
+        console.error('Error creating question:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// POST /api/questions/bulk - นำเข้าข้อสอบเป็นชุด (Bulk Import)
+app.post('/api/questions/bulk', async (req, res) => {
+    try {
+        const { questions } = req.body;
+        if (!Array.isArray(questions) || questions.length === 0) {
+            return res.status(400).json({ success: false, message: 'ไม่มีข้อมูลข้อสอบสำหรับนำเข้า' });
+        }
+
+        const fileQuestions = readQuestionsData();
+        const imported = [];
+
+        for (const q of questions) {
+            const qId = q.id || `qb-${Date.now()}-${imported.length}-${Math.random().toString(36).substring(2, 6)}`;
+            const formattedOptions = (Array.isArray(q.options) ? q.options : []).map((opt, idx) => ({
+                id: opt.id || String.fromCharCode(97 + idx),
+                text: opt.text || '',
+                isCorrect: !!opt.isCorrect
+            }));
+
+            const qObj = {
+                id: qId,
+                courseId: q.courseId,
+                week: Number(q.week) || 1,
+                type: q.type || 'choice',
+                question: String(q.question || '').trim(),
+                options: formattedOptions,
+                score: Number(q.score) || 1,
+                explanation: q.explanation || '',
+                createdAt: q.createdAt || new Date().toISOString()
+            };
+
+            // บันทึก/อัปเดตลง Prisma Database
+            if (prisma.question) {
+                try {
+                    await prisma.question.upsert({
+                        where: { id: qId },
+                        update: {
+                            courseId: qObj.courseId,
+                            week: qObj.week,
+                            question: qObj.question,
+                            score: qObj.score,
+                            explanation: qObj.explanation
+                        },
+                        create: {
+                            id: qId,
+                            courseId: qObj.courseId,
+                            week: qObj.week,
+                            type: qObj.type,
+                            question: qObj.question,
+                            score: qObj.score,
+                            explanation: qObj.explanation,
+                            options: {
+                                create: formattedOptions.map(opt => ({
+                                    text: opt.text,
+                                    isCorrect: opt.isCorrect
+                                }))
+                            }
+                        }
+                    });
+                } catch (pErr) {}
+            }
+
+            // ซิงค์ลงฐานข้อมูลไฟล์ JSON กลาง
+            const existingIdx = fileQuestions.findIndex(item => item.id === qId);
+            if (existingIdx !== -1) {
+                fileQuestions[existingIdx] = qObj;
+            } else {
+                fileQuestions.push(qObj);
+            }
+            imported.push(qObj);
+        }
+
+        writeQuestionsData(fileQuestions);
+        res.json({ success: true, count: imported.length, questions: imported });
+    } catch (err) {
+        console.error('Error bulk importing questions:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// PUT /api/questions/:id - แก้ไขข้อสอบ
+app.put('/api/questions/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updated = req.body;
+        const allQuestions = readQuestionsData();
+        const idx = allQuestions.findIndex(q => q.id === id);
+
+        if (idx !== -1) {
+            allQuestions[idx] = {
+                ...allQuestions[idx],
+                ...updated,
+                updatedAt: new Date().toISOString()
+            };
+            writeQuestionsData(allQuestions);
+        }
+
+        if (prisma.question) {
+            try {
+                await prisma.question.update({
+                    where: { id },
+                    data: {
+                        courseId: updated.courseId,
+                        week: updated.week ? Number(updated.week) : undefined,
+                        question: updated.question,
+                        score: updated.score ? Number(updated.score) : undefined,
+                        explanation: updated.explanation
+                    }
+                });
+            } catch (pErr) {}
+        }
+
+        res.json({ success: true, message: 'แก้ไขข้อสอบเรียบร้อย' });
+    } catch (err) {
+        console.error('Error updating question:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// DELETE /api/questions/:id - ลบข้อสอบ
+app.delete('/api/questions/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const allQuestions = readQuestionsData();
+        const filtered = allQuestions.filter(q => q.id !== id);
+        writeQuestionsData(filtered);
+
+        if (prisma.question) {
+            try {
+                await prisma.question.delete({ where: { id } });
+            } catch (pErr) {}
+        }
+
+        res.json({ success: true, message: 'ลบข้อสอบเรียบร้อย' });
+    } catch (err) {
+        console.error('Error deleting question:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });

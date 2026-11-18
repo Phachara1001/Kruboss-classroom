@@ -407,7 +407,7 @@ const handleTestRewardModal = () => {
                 </td>
                 
                 <td class="py-3 px-4 text-center">
-                  <span class="px-2 py-0.5 rounded bg-stone-100 font-bold text-[11px]">{{ student.classroom }}</span>
+                  <span class="px-2 py-0.5 rounded bg-stone-100 font-bold text-[11px]">{{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : student.classroom }}</span>
                 </td>
                 
                 <!-- Submission & Multiple Links Column -->
@@ -534,7 +534,7 @@ const handleTestRewardModal = () => {
               <LinkIcon class="w-4 h-4 text-blue-600" />
               ลิงก์ผลงานของ {{ activeLinksModal.student.name }}
             </h3>
-            <p class="text-xs text-stone-500 font-mono">{{ activeLinksModal.student.studentId }} ({{ activeLinksModal.student.classroom }})</p>
+            <p class="text-xs text-stone-500 font-mono">{{ activeLinksModal.student.studentId }} ({{ activeLinksModal.student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : activeLinksModal.student.classroom }})</p>
           </div>
           <button @click="closeLinksModal" class="p-1.5 hover:bg-stone-100 rounded-full transition-colors cursor-pointer text-stone-400">
             <X class="w-5 h-5" />

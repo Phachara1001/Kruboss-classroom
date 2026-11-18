@@ -91,7 +91,7 @@ const exportWithSheetJS = async ({
     );
 
   const targetClassroomText =
-    classroom === "all" ? course.level || "ปวส.1/1" : classroom;
+    classroom === "all" ? course.level || "ปวส.1/1" : (classroom === "teacher_room" ? "อาจารย์ผู้สอน" : classroom);
 
   // "ปวส.1/1" -> level "ปวส.", year "1", group "1"
   let levelPart = course.levelGroup || "ปวส.";
@@ -416,7 +416,7 @@ const exportWithExcelJS = async (buffer, { courseId, classroom, allStudents }) =
       String(a.studentId || a.id || "").localeCompare(String(b.studentId || b.id || "")),
     );
 
-  const targetClassroomText = classroom === "all" ? course.level || "ปวส.1/1" : classroom;
+  const targetClassroomText = classroom === "all" ? course.level || "ปวส.1/1" : (classroom === "teacher_room" ? "อาจารย์ผู้สอน" : classroom);
 
   let levelPart = course.levelGroup || "ปวส.";
   let yearPart = "1";

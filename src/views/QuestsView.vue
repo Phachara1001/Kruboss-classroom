@@ -153,7 +153,7 @@ const availableClassrooms = computed(() => {
   const rooms = studentsList.value
     .filter(isStudent)
     .map(s => s.classroom)
-    .filter(Boolean)
+    .filter(r => r && r !== 'teacher_room')
   return [...new Set(rooms)].sort()
 })
 
@@ -889,7 +889,7 @@ const getRewardImage = (reward) => {
                       <div class="flex items-center gap-1.5 mt-0.5">
                         <span class="text-[10px] text-stone-400 font-mono">{{ student.studentId }}</span>
                         <span class="px-1.5 py-0.2 bg-stone-100 rounded text-[9px] font-bold text-stone-600">
-                          {{ student.classroom }}
+                          {{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : student.classroom }}
                         </span>
                       </div>
                     </div>

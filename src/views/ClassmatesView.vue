@@ -86,7 +86,7 @@ watch([studentClassroom, isTeacher], ([room, teacher]) => {
 const availableClassrooms = computed(() => {
   const roomsFromConfig = courseClassrooms[course.value.id] || []
   const roomsFromData = [...new Set(studentsList.value.filter(s => isStudentInCourse(s, course.value.id) && isStudent(s)).map(s => s.classroom))]
-  return [...new Set([...roomsFromConfig, ...roomsFromData])].filter(Boolean)
+  return [...new Set([...roomsFromConfig, ...roomsFromData])].filter(r => r && r !== 'teacher_room')
 })
 
 const courseStudents = computed(() => {

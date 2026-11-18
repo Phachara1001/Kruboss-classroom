@@ -75,7 +75,7 @@ onMounted(() => {
     <AssignmentRewardModal />
 
     <!-- Desktop Sidebar -->
-    <Sidebar :isCollapsed="isSidebarCollapsed" @toggle="toggleDesktopSidebar" class="hidden md:flex z-20 shrink-0" />
+    <Sidebar :isCollapsed="isSidebarCollapsed" @toggle="toggleDesktopSidebar" class="hidden md:flex z-20 shrink-0 print:hidden" />
 
     <!-- Mobile Sidebar Drawer (Teleported to body for top-level stacking) -->
     <Teleport to="body">
@@ -113,13 +113,13 @@ onMounted(() => {
     </Teleport>
 
     <!-- Main Content wrapper -->
-    <div class="flex flex-col flex-1 min-w-0 overflow-hidden relative">
+    <div class="flex flex-col flex-1 min-w-0 overflow-hidden relative print:overflow-visible print:h-auto print:block">
       <!-- Topbar -->
-      <Topbar @toggle-sidebar="toggleMobileSidebar" />
+      <Topbar @toggle-sidebar="toggleMobileSidebar" class="print:hidden" />
 
       <!-- Main Content Area -->
-      <main class="flex-1 overflow-y-auto overscroll-contain p-4 md:p-6 lg:p-8 bg-green-50/30 main-scroll-area">
-        <div class="w-full h-full">
+      <main class="flex-1 overflow-y-auto overscroll-contain p-4 md:p-6 lg:p-8 bg-green-50/30 main-scroll-area print:p-0 print:bg-white print:overflow-visible print:h-auto">
+        <div class="w-full h-full print:h-auto">
           <RouterView v-slot="{ Component }">
             <transition name="fade" mode="out-in">
               <component :is="Component" />
@@ -129,12 +129,24 @@ onMounted(() => {
       </main>
 
       <!-- Footer -->
-      <Footer />
+      <Footer class="print:hidden" />
     </div>
   </div>
 </template>
 
 <style>
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .flex.h-screen {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    background: white !important;
+  }
+}
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.12s ease;

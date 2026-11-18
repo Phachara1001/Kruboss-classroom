@@ -229,6 +229,21 @@ const initFormFromState = () => {
     studentNote.value = currentSubmission.value.note || ''
   } else {
     members.value = []
+
+    // If teacher set auto randomized pair or group, pre-populate the assigned partner/members
+    const myId = studentId.value
+    if (defaultType === 'pair' && setting?.pairingMode === 'auto' && Array.isArray(setting.randomizedPairs)) {
+      const myPair = setting.randomizedPairs.find(p => p.members?.some(m => (m.studentId || m.id) === myId))
+      if (myPair) {
+        members.value = myPair.members.filter(m => (m.studentId || m.id) !== myId)
+      }
+    } else if (defaultType === 'group' && setting?.groupingMode === 'auto' && Array.isArray(setting.randomizedGroups)) {
+      const myGroup = setting.randomizedGroups.find(g => g.members?.some(m => (m.studentId || m.id) === myId))
+      if (myGroup) {
+        members.value = myGroup.members.filter(m => (m.studentId || m.id) !== myId)
+      }
+    }
+
     links.value = [{ title: '', url: '' }]
     studentNote.value = ''
   }

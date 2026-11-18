@@ -946,7 +946,7 @@ const resetTilt = (e) => {
                 <select v-model="selectedStudentToGrant"
                   class="w-full px-3 py-2.5 rounded-xl bg-stone-950 border border-white/20 text-white font-bold outline-none">
                   <option v-for="s in studentsList.filter(s => isStudent(s))" :key="s.studentId" :value="s.studentId">
-                    {{ s.name }} ({{ s.studentId }} - ห้อง {{ s.classroom }})
+                    {{ s.name }} ({{ s.studentId }} - {{ s.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + s.classroom }})
                   </option>
                 </select>
               </div>

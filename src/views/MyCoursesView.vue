@@ -1,12 +1,15 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { BookOpen, Star, Clock, ChevronRight, Lock, X, ChevronLeft, Users, Wrench, Award, CheckCircle2, AlertCircle, FileText, Eye } from '@lucide/vue'
+import { BookOpen, Star, Clock, ChevronRight, Lock, X, ChevronLeft, Users, Wrench, Award, CheckCircle2, AlertCircle, FileText, Eye, Sparkles } from '@lucide/vue'
 import { useRouter, useRoute } from 'vue-router'
 import { courses } from '../data/courses'
 import StudentRankCard from '@/components/StudentRankCard.vue'
 import { fetchAllCourseData, submissionsStore, courseAssignments, gradesStore } from '../data/gradesStore'
 import { authUser } from '../data/authStore'
 import { studentsList, isStudentInCourse, isStudent, isTeacherUser } from '../data/studentsStore'
+import { getStudentTestRecord, fetchTestAttempts } from '@/data/questionBankStore'
+import { fetchGameScores } from '@/data/gameScoresStore'
+import PreTestModal from '@/components/PreTestModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -106,20 +109,41 @@ const getSubmissionStatus = (topic) => {
   }
 }
 
+const loadCourseTestRecords = async (courseId) => {
+  if (!courseId) return
+  const currentCourse = courses.find(c => c.id === courseId)
+  if (!currentCourse || !Array.isArray(currentCourse.topics)) return
+  const openWeeks = currentCourse.topics.filter(t => t.isOpen).map(t => t.weekNumber)
+  try {
+    await Promise.all(
+      openWeeks.map(w => Promise.all([
+        fetchTestAttempts(courseId, w),
+        fetchGameScores(courseId, w)
+      ]))
+    )
+  } catch (err) {
+    console.warn('Error loading course test records from DB:', err)
+  }
+}
+
 onMounted(() => {
   if (course.value?.id) {
     fetchAllCourseData(course.value.id)
+    loadCourseTestRecords(course.value.id)
   }
 })
 
 watch(() => route.params.id, (newId) => {
   if (newId) {
     fetchAllCourseData(newId)
+    loadCourseTestRecords(newId)
   }
 })
 
 const showModal = ref(false)
 const selectedTopic = ref(null)
+const showPreTestModal = ref(false)
+const targetTopicForPreTest = ref(null)
 
 watch(showModal, (isOpen) => {
   if (typeof document !== 'undefined') {
@@ -135,10 +159,34 @@ onUnmounted(() => {
 
 const handleTopicClick = (topic) => {
   if (topic.isOpen) {
+    // If student user, check if pre-test has been completed
+    if (!effectiveIsTeacher.value) {
+      const studentId = effectiveStudentId.value
+      const preRec = getStudentTestRecord(course.value.id, topic.weekNumber, studentId, 'pre')
+      if (!preRec) {
+        targetTopicForPreTest.value = topic
+        showPreTestModal.value = true
+        return
+      }
+    }
     router.push(`/course/${course.value.id}/week/${topic.weekNumber}`)
   } else {
     selectedTopic.value = topic
     showModal.value = true
+  }
+}
+
+const openPreTestModal = (topic, e) => {
+  if (e) e.stopPropagation()
+  targetTopicForPreTest.value = topic
+  showPreTestModal.value = true
+}
+
+const onPreTestProceed = () => {
+  if (targetTopicForPreTest.value) {
+    const weekNum = targetTopicForPreTest.value.weekNumber
+    showPreTestModal.value = false
+    router.push(`/course/${course.value.id}/week/${weekNum}`)
   }
 }
 
@@ -363,10 +411,22 @@ const closeModal = () => {
               </div>
             </div>
 
-            <div class="flex items-center justify-between">
-              <span class="flex items-center gap-1.5 text-gray-500 text-sm font-medium">
-                <Clock class="w-4 h-4" /> 3 ชม.
-              </span>
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="flex items-center gap-1.5 text-gray-500 text-sm font-medium">
+                  <Clock class="w-4 h-4" /> 3 ชม.
+                </span>
+                <button
+                  v-if="topic.isOpen"
+                  type="button"
+                  @click.stop="openPreTestModal(topic, $event)"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 transition-colors flex items-center gap-1 cursor-pointer"
+                  title="ทำแบบทดสอบก่อนเรียน (Pre-test)"
+                >
+                  <Sparkles class="w-3.5 h-3.5 text-amber-500" />
+                  <span>Pre-test</span>
+                </button>
+              </div>
               <div
                 :class="['font-bold flex items-center gap-1 text-sm px-4 py-2 rounded-xl transition-colors',
                   topic.isOpen ? `${course.theme.buttonBg} ${course.theme.buttonText} ${course.theme.buttonHoverBg} group-hover:text-white` : 'bg-gray-200 text-gray-500']">
@@ -435,6 +495,17 @@ const closeModal = () => {
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Pre-test Modal for Students before starting a topic -->
+    <PreTestModal
+      :is-open="showPreTestModal"
+      :course-id="course?.id || ''"
+      :week="targetTopicForPreTest?.weekNumber || 1"
+      :topic-title="targetTopicForPreTest?.name || targetTopicForPreTest?.title || ''"
+      :can-skip="false"
+      @close="showPreTestModal = false"
+      @proceed="onPreTestProceed"
+    />
   </div>
 </template>
 

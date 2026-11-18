@@ -569,7 +569,7 @@ const handleExecuteReset = async () => {
                         {{ entry.studentName }}
                       </div>
                       <div class="text-[11px] font-bold text-amber-950/60 truncate flex items-center gap-1">
-                        <span>{{ entry.classroom || 'นักศึกษา' }}</span>
+                        <span>{{ entry.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : (entry.classroom || 'นักศึกษา') }}</span>
                         <span v-if="entry.isCurrentUser" class="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-cyan-600 text-white uppercase font-bold">คุณ</span>
                       </div>
                     </div>
@@ -678,7 +678,7 @@ const handleExecuteReset = async () => {
             >
               <div class="min-w-0">
                 <strong class="text-white">{{ w.studentName }}</strong>
-                <span class="text-slate-500 ml-1">({{ w.classroom }})</span>
+                <span class="text-slate-500 ml-1">({{ w.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : w.classroom }})</span>
                 <div class="text-[10px] text-slate-400">{{ w.gameName }} · อันดับ {{ w.rank }} · {{ w.score }} {{ w.unit }}</div>
               </div>
               <span class="font-black text-amber-300 font-mono shrink-0">+{{ w.coins }}</span>

@@ -17,6 +17,7 @@ import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
 import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
+import PreTestModal from '@/components/PreTestModal.vue'
 
 import { authUser } from '@/data/authStore'
 import { isStudent, isTeacherUser } from '@/data/studentsStore'
@@ -29,6 +30,7 @@ const currentWeek = 5
 const route = useRoute()
 const router = useRouter()
 const showTeacherModal = ref(false)
+const showPreTestModal = ref(false)
 
 // Copy snippet feedback state
 const copiedSnippet = ref('')
@@ -376,49 +378,49 @@ const quizQuestions = [
       { id: 'c', text: 'ปุ่ม Log Out มุมซ้ายล่าง', isCorrect: false },
       { id: 'd', text: 'ไอคอนรูปไมโครโฟน', isCorrect: false }
     ],
-    explanation: 'ในหน้าต่างสร้าง/แก้ไขตารางของ Supabase จะมีไอคอนรูปโซ่คล้อง (Foreign Key Relation) ให้คลิกเพื่อเลือกตารางปลายทางและคอลัมน์อ้างอิงได้โดยไม่ต้องพิมพ์โค้ดเอง'
+    explanation: 'ในหน้าต่างสร้างหรือแก้ไขคอลัมน์ของ Supabase จะมีไอคอนรูปโซ่ (Link relation) สำหรับเลือก Schema, ตารางเป้าหมาย และคอลัมน์เป้าหมาย'
   },
   {
     id: 4,
-    question: 'คำสั่ง SQL ในข้อใดเขียนกำหนด Foreign Key ให้กับคอลัมน์ category_id เพื่ออ้างอิงไปยังคอลัมน์ id ของตาราง categories ได้ถูกต้อง?',
+    question: 'ตาราง order_items ที่เชื่อมโยงระหว่าง orders (ใบสั่งซื้อ) กับ products (สินค้า) ถือเป็นตารางประเภทใดในระบบฐานข้อมูลเชิงสัมพันธ์?',
     options: [
-      { id: 'a', text: 'category_id BIGINT NOT NULL REFERENCES categories(id) ON DELETE RESTRICT', isCorrect: true },
-      { id: 'b', text: 'category_id LINK TO categories.id', isCorrect: false },
-      { id: 'c', text: 'category_id CONNECT categories(id)', isCorrect: false },
-      { id: 'd', text: 'FOREIGN category_id = categories.id', isCorrect: false }
+      { id: 'a', text: 'Junction Table (หรือ Bridge Table) เพื่อแปลงความสัมพันธ์ Many-to-Many (N:M) ให้เป็น One-to-Many (1:N) สองฝั่ง', isCorrect: true },
+      { id: 'b', text: 'Log Table ใช้บันทึกข้อความ error ของระบบ', isCorrect: false },
+      { id: 'c', text: 'Backup Table ตารางสำรองข้อมูลชั่วคราว', isCorrect: false },
+      { id: 'd', text: 'Virtual Table ตารางจำลองที่ไม่มีการเก็บข้อมูลจริง', isCorrect: false }
     ],
-    explanation: 'ไวยากรณ์มาตรฐานของ PostgreSQL คือ ชื่อคอลัมน์ ชนิดข้อมูล REFERENCES ชื่อตารางแม่(ชื่อคอลัมน์PK) ตามด้วยเงื่อนไข ON DELETE'
+    explanation: 'ตารางกลางที่ประกอบด้วย Foreign Key ชี้ไปยังตารางหลัก 2 ตารางเพื่อแก้ปัญหาความสัมพันธ์ N:M เรียกว่า Junction Table หรือ Bridge Table'
   },
   {
     id: 5,
-    question: 'หากในตาราง categories มีเพียง id = 1, 2, 3 แต่เราสั่งรัน INSERT INTO products (..., category_id) VALUES (..., 50); ระบบ Supabase จะตอบสนองอย่างไร?',
+    question: 'หากเรากำหนดเงื่อนไขการลบ Foreign Key เป็น ON DELETE CASCADE ในตาราง order_items ชี้ไปที่ orders จะเกิดอะไรขึ้นเมื่อลบข้อมูลใบสั่งซื้อ 1 แถว?',
     options: [
-      { id: 'a', text: 'ปฏิเสธการเพิ่มข้อมูลและแจ้งเตือนข้อผิดพลาด violates foreign key constraint เนื่องจากไม่มีรหัสหมวดหมู่ 50 อยู่จริง', isCorrect: true },
-      { id: 'b', text: 'เพิ่มข้อมูลให้ปกติแล้วสร้างหมวดหมู่ที่ 50 ชื่อว่างเปล่าขึ้นมาเอง', isCorrect: false },
-      { id: 'c', text: 'ลบข้อมูลสินค้าทั้งหมดในตารางทิ้ง', isCorrect: false },
-      { id: 'd', text: 'เปลี่ยนค่า 50 ให้กลายเป็น 1 โดยอัตโนมัติ', isCorrect: false }
+      { id: 'a', text: 'รายการสินค้าทั้งหมดใน order_items ที่ผูกกับ orders นั้นจะถูกลบออกอัตโนมัติ', isCorrect: true },
+      { id: 'b', text: 'ระบบจะปฏิเสธการลบและเกิดข้อผิดพลาด Error', isCorrect: false },
+      { id: 'c', text: 'ตาราง orders ทั้งหมดจะถูกลบทิ้งทั้งตาราง', isCorrect: false },
+      { id: 'd', text: 'ข้อมูลสินค้าใน order_items จะถูกเปลี่ยนเป็นค่า 0', isCorrect: false }
     ],
-    explanation: 'นี่คือกลไก Referential Integrity ของฐานข้อมูลเชิงสัมพันธ์ ที่ช่วยป้องกันไม่ให้มีข้อมูลลูกอ้างอิงไปยังรหัสแม่ที่ไม่มีอยู่จริง'
+    explanation: 'ON DELETE CASCADE หมายความว่าเมื่อแถวข้อมูลในตารางแม่ (Orders) ถูกลบ แถวข้อมูลในตารางลูก (Order_items) ที่อ้างอิงอยู่จะถูกลบทิ้งตามไปด้วยโดยอัตโนมัติ'
   },
   {
     id: 6,
-    question: 'ในตารางตัวกลาง order_items ที่เชื่อมระหว่างใบสั่งซื้อ (orders) กับสินค้า (products) เหตุใดคอลัมน์ order_id จึงนิยมตั้งค่าเป็น ON DELETE CASCADE?',
+    question: 'หากเรากำหนดเงื่อนไข ON DELETE RESTRICT (หรือ NO ACTION) ในตาราง products ชี้ไปยัง categories จะส่งผลอย่างไรเมื่อผู้ใช้พยายามลบหมวดหมู่ที่มีสินค้าผูกอยู่?',
     options: [
-      { id: 'a', text: 'เพื่อให้เมื่อลบใบสั่งซื้อหลักออก รายการสินค้าย่อยภายในบิลใบนั้นถูกลบตามไปด้วยอัตโนมัติ ไม่ค้างเป็นขยะในระบบ', isCorrect: true },
-      { id: 'b', text: 'เพื่อให้เมื่อลบใบสั่งซื้อแล้ว สินค้าในคลังถูกลบทิ้งไปด้วย', isCorrect: false },
-      { id: 'c', text: 'เพื่อห้ามไม่ให้ใครแก้ไขจำนวนสินค้า', isCorrect: false },
-      { id: 'd', text: 'เพื่อให้ราคาสินค้าเพิ่มขึ้น 2 เท่า', isCorrect: false }
+      { id: 'a', text: 'ระบบจะบล็อกไม่อนุญาตให้ลบ และแจ้งข้อผิดพลาดว่ายังมีข้อมูลสินค้าลูกอ้างอิงอยู่', isCorrect: true },
+      { id: 'b', text: 'สินค้าทั้งหมดในหมวดหมู่นั้นจะถูกลบไปด้วยทันที', isCorrect: false },
+      { id: 'c', text: 'หมวดหมู่จะถูกลบ แล้วเปลี่ยนค่า category_id ของสินค้าเป็น NULL', isCorrect: false },
+      { id: 'd', text: 'ระบบจะสุ่มย้ายสินค้าไปหมวดหมู่อื่นแทน', isCorrect: false }
     ],
-    explanation: 'รายการย่อยในบิล (order_items) เป็นส่วนหนึ่งของใบสั่งซื้อ (orders) หากบิลหลักถูกลบ รายการย่อยของบิลนั้นก็ควรลบตามไปด้วย จึงเหมาะกับการใช้ ON DELETE CASCADE'
+    explanation: 'RESTRICT หรือ NO ACTION จะช่วยป้องกันความคงสภาพของข้อมูล (Referential Integrity) โดยไม่อนุญาตให้ลบข้อมูลแม่ตราบใดที่ยังมีข้อมูลลูกอ้างอิงอยู่'
   },
   {
     id: 7,
-    question: 'ในทางกลับกัน เหตุใดคอลัมน์ product_id ในตาราง order_items จึงนิยมตั้งค่าเป็น ON DELETE RESTRICT แทนที่จะเป็น CASCADE?',
+    question: 'ในระบบสั่งซื้อสินค้า ทำไมคอลัมน์ product_id ในตาราง order_items จึงควรใช้ ON DELETE RESTRICT แทนที่จะเป็น ON DELETE CASCADE?',
     options: [
-      { id: 'a', text: 'เพื่อป้องกันไม่ให้เผลอลบข้อมูลสินค้าหลักออกจากร้าน หากสินค้านั้นเคยถูกสั่งซื้ออยู่ในประวัติใบเสร็จของลูกค้าแล้ว', isCorrect: true },
-      { id: 'b', text: 'เพื่อให้ลบสินค้าแล้วประวัติการซื้อของลูกค้าหายไปทั้งหมด', isCorrect: false },
-      { id: 'c', text: 'เพราะ PostgreSQL อนุญาตให้ใช้ CASCADE ได้แค่ตารางละ 1 ครั้ง', isCorrect: false },
-      { id: 'd', text: 'เพื่อบังคับให้สินค้าทุกชิ้นราคาเท่ากัน', isCorrect: false }
+      { id: 'a', text: 'เพื่อไม่ให้ประวัติการสั่งซื้อและสลิปรายการขายในอดีตสูญหายเมื่อมีการยกเลิกหรือลบสินค้านั้นออกจากระบบ', isCorrect: true },
+      { id: 'b', text: 'เพื่อประหยัดพื้นที่ฮาร์ดดิสก์ของ Supabase', isCorrect: false },
+      { id: 'c', text: 'เพราะระบบ Supabase ไม่อนุญาตให้ใช้ CASCADE เกิน 1 จุด', isCorrect: false },
+      { id: 'd', text: 'เพราะคำสั่ง RESTRICT ประมวลผลได้เร็วกว่า CASCADE เสมอ', isCorrect: false }
     ],
     explanation: 'หากตั้งเป็น CASCADE กับสินค้า เวลาลบสินค้าออกจากแคตตาล็อก ประวัติยอดขายในบิลเก่าๆ จะหายไปทำให้บัญชีผิดพลาด จึงต้องใช้ RESTRICT เพื่อปกป้องประวัติการซื้อขาย'
   },
@@ -518,10 +520,19 @@ const quizQuestions = [
     <div class="space-y-4">
       <CheckInSystem :course-id="currentCourseId" :week="currentWeek" />
 
-      <div v-if="isTeacher" class="flex justify-end">
+      <div class="flex items-center justify-end gap-3 flex-wrap">
         <button
+          @click="showPreTestModal = true"
+          class="px-5 py-2.5 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs sm:text-sm shadow-md flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+        >
+          <Sparkles class="w-4 h-4 text-amber-300" />
+          <span>แบบทดสอบก่อนเรียน (Pre-test)</span>
+        </button>
+
+        <button
+          v-if="isTeacher"
           @click="showTeacherModal = true"
-          class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md flex items-center gap-2 cursor-pointer transition-all"
+          class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md flex items-center gap-2 cursor-pointer transition-all active:scale-95"
         >
           <Trophy class="w-4 h-4" />
           <span>ดูตารางคะแนนมินิเกมและแบบทดสอบ (สำหรับครู)</span>
@@ -2506,6 +2517,16 @@ const quizQuestions = [
       :week="currentWeek"
       :games="weekGames"
       @close="showTeacherModal = false"
+    />
+
+    <!-- Pre-test Modal -->
+    <PreTestModal
+      :is-open="showPreTestModal"
+      :course-id="currentCourseId"
+      :week="currentWeek"
+      :questions="quizQuestions"
+      topic-title="แบบทดสอบก่อนเรียน: การสร้างฐานข้อมูลเชิงสัมพันธ์และคีย์นอกใน Supabase"
+      @close="showPreTestModal = false"
     />
   </div>
 </template>

@@ -177,6 +177,24 @@ const router = createRouter({
           path: 'arcade',
           name: 'arcade',
           component: () => import('../views/ArcadeView.vue')
+        },
+        {
+          path: 'assignments-management',
+          name: 'assignments-management',
+          component: () => import('../views/AssignmentsManagementView.vue'),
+          meta: { requiresTeacher: true }
+        },
+        {
+          path: 'learning-achievement',
+          name: 'learning-achievement',
+          component: () => import('../views/LearningAchievementView.vue'),
+          meta: { requiresTeacher: true }
+        },
+        {
+          path: 'submission-analytics',
+          name: 'submission-analytics',
+          component: () => import('../views/SubmissionAnalyticsView.vue'),
+          meta: { requiresTeacher: true }
         }
       ]
     }

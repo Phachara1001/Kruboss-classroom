@@ -82,16 +82,22 @@ onUnmounted(() => {
   }
 })
 
-// Enrolled students in this course
+// Enrolled students in this course (sorted by studentId ascending)
 const enrolledStudents = computed(() => {
-  return studentsList.value.filter(s => isStudent(s) && isStudentInCourse(s, props.courseId))
+  return [...studentsList.value]
+    .filter(s => isStudent(s) && isStudentInCourse(s, props.courseId))
+    .sort((a, b) => {
+      const idA = String(a.studentId || a.id || '')
+      const idB = String(b.studentId || b.id || '')
+      return idA.localeCompare(idB, undefined, { numeric: true })
+    })
 })
 
 // Available classrooms from students
 const classrooms = computed(() => {
   const rooms = new Set()
   enrolledStudents.value.forEach(s => {
-    if (s.classroom) rooms.add(s.classroom)
+    if (s.classroom && s.classroom !== 'teacher_room') rooms.add(s.classroom)
   })
   return Array.from(rooms).sort()
 })
@@ -117,7 +123,7 @@ const studentRows = computed(() => {
       index: index + 1,
       studentId: sId,
       name: student.name,
-      classroom: student.classroom || '-',
+      classroom: student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : (student.classroom || '-'),
       avatar: student.avatar,
       scores,
       earned: norm.earned,
@@ -255,7 +261,7 @@ const getScoreColorClass = (normalized) => {
 
             <select v-model="selectedClassroom" class="px-3 py-2 text-xs sm:text-sm rounded-xl border border-stone-300 bg-white font-medium text-stone-700 focus:outline-none">
               <option value="all">ทุกห้องเรียน</option>
-              <option v-for="c in classrooms" :key="c" :value="c">ห้อง {{ c }}</option>
+              <option v-for="c in classrooms" :key="c" :value="c">{{ c === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + c }}</option>
             </select>
 
             <select v-model="statusFilter" class="px-3 py-2 text-xs sm:text-sm rounded-xl border border-stone-300 bg-white font-medium text-stone-700 focus:outline-none">

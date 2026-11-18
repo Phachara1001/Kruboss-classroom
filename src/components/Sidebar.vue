@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
-import { BookOpen, Home, Settings, Users, ChevronLeft, ChevronRight, GraduationCap, Wrench, Contact, CalendarDays, Award, ShoppingBag, Package, LogOut, User, BarChart2, MoreVertical, ShieldAlert, Target, Coins, FileText, Gamepad2 } from '@lucide/vue'
+import { BookOpen, Home, Settings, Users, ChevronLeft, ChevronRight, GraduationCap, Wrench, Contact, CalendarDays, Award, ShoppingBag, Package, LogOut, User, BarChart2, MoreVertical, ShieldAlert, Target, Coins, FileText, Gamepad2, HelpCircle, TrendingUp, BarChart3, ClipboardList } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
 import { studentsList, isTeacherUser } from '../data/studentsStore'
 import StudentAvatar from './StudentAvatar.vue'
@@ -43,6 +43,15 @@ const navGroups = [
       { name: 'ยอดเหรียญ (Coins)', path: '/coins', icon: Coins, roles: ['teacher'] },
       { name: 'สมุดคะแนนและเช็คชื่อ', path: '/gradebook', icon: Award, roles: ['teacher'] },
       { name: 'จัดการประกาศ', path: '/announcements', icon: Target, roles: ['teacher'] }
+    ]
+  },
+  {
+    name: 'การประเมินและสถิติ (Analytics)',
+    roles: ['teacher'],
+    items: [
+      { name: 'จัดการใบงานรายสัปดาห์', path: '/assignments-management', icon: ClipboardList, roles: ['teacher'] },
+      { name: 'ผลสัมฤทธิ์ทางการเรียน', path: '/learning-achievement', icon: TrendingUp, roles: ['teacher'] },
+      { name: 'พฤติกรรมการส่งงาน', path: '/submission-analytics', icon: BarChart3, roles: ['teacher'] }
     ]
   },
   {

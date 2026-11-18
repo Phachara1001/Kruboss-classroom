@@ -256,8 +256,8 @@ const getFrameName = (id) => {
                   <span class="font-mono text-sm font-bold text-stone-700">{{ student.studentId }}</span>
                 </div>
                 <div class="text-right">
-                  <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block mb-0.5">ห้องเรียน</span>
-                  <span class="text-sm font-bold text-stone-700">{{ student.classroom }}</span>
+                  <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block mb-0.5">{{ student.classroom === 'teacher_room' ? 'สถานะ' : 'ห้องเรียน' }}</span>
+                  <span class="text-sm font-bold text-stone-700">{{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : student.classroom }}</span>
                 </div>
               </div>
               <div class="pt-3 border-t border-stone-200/60 flex items-center justify-between">

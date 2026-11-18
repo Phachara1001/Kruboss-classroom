@@ -297,3 +297,33 @@ model ArcadeResetLog {
 
   @@map("arcade_reset_logs")
 }
+
+// ==========================================
+// 11. Question Bank (คลังข้อสอบกลาง Pre-test / Post-test / Quiz)
+// ==========================================
+model Question {
+  id          String           @id @default(uuid())
+  courseId    String           // รหัสวิชา เช่น 31901-2007
+  week        Int              // สัปดาห์ที่ / หน่วยที่
+  type        String           @default("choice")
+  question    String           @db.Text
+  score       Float            @default(1.0)
+  explanation String?          @db.Text
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  options     QuestionOption[]
+
+  @@index([courseId, week])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid())
+  questionId String
+  text       String   @db.Text
+  isCorrect  Boolean  @default(false)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("question_options")
+}

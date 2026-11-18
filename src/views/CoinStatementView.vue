@@ -172,7 +172,9 @@ const currentOwnerLabel = computed(() => {
   }
   const name = currentStudentProfile.value?.name || 'ผู้ใช้งาน'
   const sId = activeStudentId.value
-  const room = currentStudentProfile.value?.classroom ? ` | ห้อง ${currentStudentProfile.value.classroom}` : ''
+  const room = currentStudentProfile.value?.classroom
+    ? (currentStudentProfile.value.classroom === 'teacher_room' ? ' | อาจารย์ผู้สอน' : ` | ห้อง ${currentStudentProfile.value.classroom}`)
+    : ''
   return `${name} (รหัส: ${sId}${room})`
 })
 
@@ -336,7 +338,7 @@ watch(activeStudentId, async (newId) => {
                 รหัส: {{ activeStudentId }}
               </span>
               <span v-if="currentStudentProfile?.classroom" class="px-2 py-0.5 rounded bg-stone-100 text-stone-700 border border-stone-200 text-[11px] font-black">
-                ห้อง: {{ currentStudentProfile.classroom }}
+                {{ currentStudentProfile.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง: ' + currentStudentProfile.classroom }}
               </span>
             </div>
           </div>
@@ -389,7 +391,7 @@ watch(activeStudentId, async (newId) => {
               :key="s.studentId"
               :value="s.studentId"
             >
-              {{ s.studentId }} - {{ s.name }} ({{ s.classroom }})
+              {{ s.studentId }} - {{ s.name }} ({{ s.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : s.classroom }})
             </option>
           </select>
         </div>
@@ -565,7 +567,7 @@ watch(activeStudentId, async (newId) => {
               "
             >
               <div class="flex items-center justify-between w-full">
-                <span class="text-xs font-black truncate">{{ room.classroom }}</span>
+                <span class="text-xs font-black truncate">{{ room.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : room.classroom }}</span>
                 <span class="text-[10px] font-bold opacity-80">{{ room.studentCount }} คน</span>
               </div>
               <div class="flex items-center justify-between text-[10px] font-mono font-bold mt-0.5">
@@ -845,7 +847,7 @@ watch(activeStudentId, async (newId) => {
               <!-- Col 2: Classroom -->
               <div class="sm:col-span-1 flex sm:justify-center">
                 <span class="px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 border border-stone-200 text-[11px] font-black">
-                  {{ item.classroom }}
+                  {{ item.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : item.classroom }}
                 </span>
               </div>
 
@@ -929,7 +931,7 @@ watch(activeStudentId, async (newId) => {
                       v-if="tx.studentClassroom || currentStudentProfile?.classroom"
                       class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-stone-100 text-stone-700 border border-stone-200 text-[10px] font-bold"
                     >
-                      {{ tx.studentClassroom || currentStudentProfile?.classroom }}
+                      {{ (tx.studentClassroom || currentStudentProfile?.classroom) === 'teacher_room' ? 'อาจารย์ผู้สอน' : (tx.studentClassroom || currentStudentProfile?.classroom) }}
                     </span>
                   </div>
                 </div>

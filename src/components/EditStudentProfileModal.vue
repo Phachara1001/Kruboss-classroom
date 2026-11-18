@@ -266,7 +266,7 @@ const getFrameName = (id) => {
               />
               <div>
                 <h3 class="font-black text-lg text-white leading-tight">แก้ไขข้อมูลส่วนตัวนักศึกษา</h3>
-                <p class="text-xs text-stone-300">รหัส {{ student.studentId }} • ห้อง {{ student.classroom }}</p>
+                <p class="text-xs text-stone-300">รหัส {{ student.studentId }} • {{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + student.classroom }}</p>
               </div>
             </div>
 
@@ -322,7 +322,7 @@ const getFrameName = (id) => {
                 <span class="font-bold font-mono text-sm text-stone-800">{{ student.studentId }}</span>
               </div>
               <span class="px-2.5 py-1 bg-stone-200 text-stone-700 font-bold rounded-lg text-[11px]">
-                ห้อง {{ student.classroom }}
+                {{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + student.classroom }}
               </span>
             </div>
 

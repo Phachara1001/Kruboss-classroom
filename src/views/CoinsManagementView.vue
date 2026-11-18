@@ -15,7 +15,7 @@ const coinAdjustAmount = ref(10)
 
 // Computed
 const classrooms = computed(() => {
-  const rooms = new Set(studentsList.value.filter(s => isStudent(s)).map(s => s.classroom).filter(Boolean))
+  const rooms = new Set(studentsList.value.filter(s => isStudent(s)).map(s => s.classroom).filter(r => r && r !== 'teacher_room'))
   return Array.from(rooms).sort()
 })
 

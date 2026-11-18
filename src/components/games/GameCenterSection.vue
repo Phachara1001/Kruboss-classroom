@@ -22,6 +22,7 @@ import { courses } from '@/data/courses'
 import { authUser } from '@/data/authStore'
 import { isTeacherUser } from '@/data/studentsStore'
 import { gameScoresStore, fetchGameScores, calculateNormalizedScore } from '@/data/gameScoresStore'
+import { getQuestionsByTopic } from '@/data/questionBankStore'
 
 const props = defineProps({
   courseId: {
@@ -142,9 +143,16 @@ const resolvedWeekTitle = computed(() => {
   return `สัปดาห์ที่ ${props.week}`
 })
 
+const resolvedQuizQuestions = computed(() => {
+  if (props.quizQuestions && props.quizQuestions.length > 0) {
+    return props.quizQuestions
+  }
+  return getQuestionsByTopic(props.courseId, props.week)
+})
+
 const maxDragScore = computed(() => props.dragItems?.length || 6)
 const maxMatchScore = computed(() => props.matchLeftTerms?.length || 5)
-const maxQuizScore = computed(() => props.quizQuestions?.length || 10)
+const maxQuizScore = computed(() => resolvedQuizQuestions.value?.length || 10)
 
 const resolvedDragTitle = computed(() => {
   return props.dragTitle || `มินิเกมที่ 1: แยกประเภทประจำสัปดาห์ที่ ${props.week}`
@@ -426,7 +434,7 @@ watch(
       gameId="quiz"
       :courseId="courseId"
       :week="week"
-      :questions="quizQuestions"
+      :questions="resolvedQuizQuestions"
     />
 
     <!-- Teacher Scoreboard Modal -->

@@ -244,8 +244,21 @@ const onKey = (e) => {
         </div>
       </div>
 
+      <!-- ================= กรณีไม่มีข้อสอบ ================= -->
+      <div v-if="total === 0" class="text-center py-16 space-y-4 rounded-2xl border border-white/10 bg-white/5 p-8 my-auto">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+          <FileQuestion class="w-8 h-8" />
+        </div>
+        <div class="space-y-1.5">
+          <h4 class="text-lg font-bold text-white">ยังไม่มีข้อสอบในหน่วยการเรียนรู้นี้</h4>
+          <p class="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+            คุณครูสามารถเพิ่มข้อสอบ หรือนำเข้าไฟล์ข้อสอบ (Excel, Word, Text) ผ่านเมนู <strong class="text-emerald-400">คลังข้อสอบ (Question Bank)</strong> ได้ทันที
+          </p>
+        </div>
+      </div>
+
       <!-- ================= หน้าผลคะแนนและเฉลยละเอียด ================= -->
-      <div v-if="isFinished" class="space-y-6">
+      <div v-else-if="isFinished" class="space-y-6">
         <div class="rounded-2xl border border-white/15 bg-white/5 p-6 md:p-8 text-center">
           <div class="mb-3 flex justify-center gap-2">
             <Star v-for="n in 3" :key="n"

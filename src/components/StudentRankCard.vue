@@ -80,7 +80,7 @@ const enrolledStudents = computed(() => {
 
 // Available classrooms for filtering in overview
 const availableClassrooms = computed(() => {
-  const rooms = enrolledStudents.value.map(s => s.classroom).filter(Boolean)
+  const rooms = enrolledStudents.value.map(s => s.classroom).filter(r => r && r !== 'teacher_room')
   return [...new Set(rooms)]
 })
 
@@ -288,7 +288,7 @@ const showRoadmapModal = ref(false)
                 :value="room"
                 class="bg-stone-900 text-white"
               >
-                ห้อง {{ room }}
+                {{ room === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + room }}
               </option>
             </select>
           </div>
@@ -399,7 +399,7 @@ const showRoadmapModal = ref(false)
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-stone-300">
               <span class="text-white">{{ currentStudent.name }}</span>
               <span class="text-stone-400 font-mono text-[11px]">({{ currentStudent.studentId }})</span>
-              <span class="px-2 py-0.5 rounded bg-white/10 text-[10px] text-stone-300 font-semibold">ห้อง {{ currentStudent.classroom }}</span>
+              <span class="px-2 py-0.5 rounded bg-white/10 text-[10px] text-stone-300 font-semibold">{{ currentStudent.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + currentStudent.classroom }}</span>
             </div>
 
             <!-- Rank Name and Thai Title -->
@@ -931,7 +931,7 @@ const showRoadmapModal = ref(false)
                   <!-- Classroom -->
                   <td class="py-3 px-3 text-stone-300">
                     <span class="px-2 py-0.5 rounded bg-white/10 text-[10px] font-semibold">
-                      {{ item.student.classroom }}
+                      {{ item.student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : item.student.classroom }}
                     </span>
                   </td>
 

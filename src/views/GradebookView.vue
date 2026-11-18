@@ -132,7 +132,7 @@ const availableClassrooms = computed(() => {
   const roomsFromData = studentsList.value
     .filter(s => isStudentInCourse(s, selectedCourseId.value) && isStudent(s))
     .map(s => s.classroom)
-  return [...new Set([...roomsFromConfig, ...roomsFromData])].filter(Boolean)
+  return [...new Set([...roomsFromConfig, ...roomsFromData])].filter(r => r && r !== 'teacher_room')
 })
 
 // Students in this course & classroom (Locked to own classroom for teacher filter, strictly own record for students, Sorted by studentId ascending)
@@ -621,7 +621,7 @@ const handleExportAttendanceExcel = async () => {
         >
           <option value="all">ทุกห้องเรียน (ทั้งหมด)</option>
           <option v-for="room in availableClassrooms" :key="room" :value="room">
-            ห้อง {{ room }}
+            {{ room === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + room }}
           </option>
         </select>
 
@@ -862,7 +862,7 @@ const handleExportAttendanceExcel = async () => {
                           ตัวคุณ
                         </span>
                       </div>
-                      <span class="text-stone-400 font-mono text-[10px]">{{ student.studentId }} • ห้อง {{ student.classroom }}</span>
+                      <span class="text-stone-400 font-mono text-[10px]">{{ student.studentId }} • {{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + student.classroom }}</span>
                     </div>
                   </div>
                 </td>
@@ -1084,7 +1084,7 @@ const handleExportAttendanceExcel = async () => {
               </td>
               <td class="py-3 px-4 font-mono text-stone-600">{{ student.studentId }}</td>
               <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded bg-stone-100 font-bold text-[11px]">{{ student.classroom }}</span>
+                <span class="px-2 py-0.5 rounded bg-stone-100 font-bold text-[11px]">{{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : student.classroom }}</span>
               </td>
               
               <!-- Score Input (Teacher) / Score Badge (Student) -->
@@ -1407,7 +1407,7 @@ const handleExportAttendanceExcel = async () => {
                   </span>
                 </div>
               </td>
-              <td class="py-3 px-4 font-mono text-stone-500">{{ student.studentId }} ({{ student.classroom }})</td>
+              <td class="py-3 px-4 font-mono text-stone-500">{{ student.studentId }} ({{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : student.classroom }})</td>
 
               <!-- Status Action Buttons Group (Teacher) / Read-only Badges (Student) -->
               <td class="py-3 px-4 text-center">
