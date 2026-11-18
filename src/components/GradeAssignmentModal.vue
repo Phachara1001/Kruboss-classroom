@@ -136,7 +136,9 @@ const handleScoreInput = (student, val) => {
 const fillFullScoreForSubmitted = () => {
   courseStudents.value.forEach(student => {
     const sId = student.studentId || student.id
-    if (getSubmission(student)) {
+    const currentScore = draftScores.value[sId]
+    const hasCurrentScore = currentScore !== undefined && currentScore !== '' && !isNaN(Number(currentScore))
+    if (getSubmission(student) || hasCurrentScore) {
       draftScores.value[sId] = props.maxScore
     }
   })
@@ -457,6 +459,11 @@ const handleTestRewardModal = () => {
                       class="text-[10px] text-stone-500 italic max-w-[170px] truncate block" 
                       :title="getSubmission(student).note">
                       โน้ต: {{ getSubmission(student).note }}
+                    </span>
+                  </div>
+                  <div v-else-if="draftScores[student.studentId || student.id] !== undefined && draftScores[student.studentId || student.id] !== '' && !isNaN(Number(draftScores[student.studentId || student.id]))" class="flex flex-col items-center gap-1">
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold inline-flex items-center gap-1">
+                      <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" /> ส่งแล้ว (มีคะแนน)
                     </span>
                   </div>
                   <span v-else class="text-stone-400 text-xs font-medium">ยังไม่ส่งงาน</span>

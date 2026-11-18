@@ -47,8 +47,13 @@ const closeModal = () => {
 }
 
 const handleClickImage = () => {
-  if (currentAnnouncement.value?.url) {
-    window.open(currentAnnouncement.value.url, '_blank')
+  const url = currentAnnouncement.value?.url
+  if (!url) return
+  closeModal()
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    window.open(url, '_blank')
+  } else {
+    router.push(url)
   }
 }
 

@@ -120,6 +120,27 @@ model Submission {
   @@unique([courseId, assignmentId, studentId])
 }
 
+model AssignmentSetting {
+  id                Int      @id @default(autoincrement())
+  courseId          String   // รหัสวิชา เช่น 31901-2007
+  assignmentId      String   // รหัสใบงาน เช่น asm-4
+  workType          String   @default("individual") // individual, pair, group
+  pairingMode       String?  @default("manual")     // manual, auto
+  groupingMode      String?  @default("manual")     // manual, auto
+  groupCount        Int?     @default(3)
+  targetClassroom   String?  @default("all")
+  randomizedPairs   Json?    // Array คู่ที่สุ่มได้ [{ pairIndex, isTrio, members: [{ studentId, name, classroom }] }]
+  randomizedGroups  Json?    // Array กลุ่มที่สุ่มได้ [{ groupIndex, groupName, members: [...] }]
+  customDescription String?  @db.Text
+  deadline          String?
+  maxScore          Float?   @default(10)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([courseId, assignmentId])
+  @@map("assignment_settings")
+}
+
 // ==========================================
 // 3. Quests & Missions (ระบบภารกิจ)
 // ==========================================

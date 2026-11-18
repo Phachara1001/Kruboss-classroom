@@ -55,7 +55,10 @@ const getAssignmentSubmissionStats = (topic) => {
   let count = 0
   courseStudents.value.forEach(s => {
     const sId = s.studentId || s.id
-    if (submissionsStore.value?.[`${course.value?.id}_${sId}_${asmId}`]) {
+    const hasSub = !!submissionsStore.value?.[`${course.value?.id}_${sId}_${asmId}`]
+    const gradeRec = gradesStore.value?.[`${course.value?.id}_${sId}`]
+    const hasScore = gradeRec?.assignments && gradeRec.assignments[asmId] !== undefined && gradeRec.assignments[asmId] !== null && gradeRec.assignments[asmId] !== ''
+    if (hasSub || hasScore) {
       count++
     }
   })
@@ -90,11 +93,11 @@ const getSubmissionStatus = (topic) => {
     }
   }
 
-  if (assignment || sub) {
+  if (assignment || sub || isGraded) {
     return {
       hasAssignment: true,
-      isSubmitted: !!sub,
-      submittedAt: sub?.submittedAt,
+      isSubmitted: !!sub || isGraded,
+      submittedAt: sub?.submittedAt || (isGraded ? 'บันทึกคะแนนแล้ว' : null),
       isGraded,
       score,
       maxScore: assignment?.maxScore || 10,

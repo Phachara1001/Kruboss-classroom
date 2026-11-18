@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import {
   X, UploadCloud, Link as LinkIcon, FileText, CheckCircle2,
   AlertCircle, Pencil, Users, User, UserPlus, Plus, Trash2,
@@ -8,11 +8,13 @@ import {
 import { authUser } from '@/data/authStore'
 import { studentsList, isStudentInCourse, isStudent, isTeacherUser } from '@/data/studentsStore'
 import {
+  courseAssignments,
   submissionsStore,
   submitAssignmentLink,
   fetchSubmissions,
   formatExternalUrl,
-  getAssignmentSetting
+  getAssignmentSetting,
+  fetchAssignmentSettings
 } from '@/data/gradesStore'
 
 const props = defineProps({
@@ -207,10 +209,15 @@ const cancelEdit = () => {
   initFormFromState()
 }
 
+const currentAssignmentDef = computed(() => {
+  const asms = courseAssignments[props.courseId] || []
+  return asms.find(a => a.id === props.assignmentId) || null
+})
+
 const initFormFromState = () => {
-  // Check if configured by assignment setting or prop
+  // Check if configured by assignment setting or courseAssignments or prop
   const setting = getAssignmentSetting(props.courseId, props.assignmentId)
-  const defaultType = setting?.workType || props.assignmentWorkType || 'individual'
+  const defaultType = setting?.workType || props.assignmentWorkType || currentAssignmentDef.value?.workType || 'individual'
   workType.value = defaultType
 
   if (currentSubmission.value) {
@@ -249,17 +256,34 @@ const initFormFromState = () => {
   }
 }
 
+const syncAndInit = async () => {
+  if (props.courseId) {
+    await fetchAssignmentSettings(props.courseId)
+    await fetchSubmissions(props.courseId)
+  }
+  if (props.initialEdit) {
+    startEdit()
+  } else {
+    isEditing.value = false
+    initFormFromState()
+  }
+}
+
+onMounted(() => {
+  if (props.isOpen) {
+    syncAndInit()
+  }
+})
+
 watch(() => props.isOpen, (open) => {
   if (open) {
-    if (props.initialEdit) {
-      startEdit()
-    } else {
-      isEditing.value = false
-      initFormFromState()
-    }
-    if (props.courseId) {
-      fetchSubmissions(props.courseId)
-    }
+    syncAndInit()
+  }
+})
+
+watch(() => props.assignmentWorkType, (val) => {
+  if (val && !isEditing.value) {
+    initFormFromState()
   }
 })
 

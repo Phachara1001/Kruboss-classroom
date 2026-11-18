@@ -1525,86 +1525,144 @@ INSERT INTO enrollments (student_id, course_id, semester, grade) VALUES
       assignment-id="asm-4"
       :course-id="currentCourseId"
       :week-number="currentWeek"
-      assignment-title="ใบงานที่ 4: การสร้างความสัมพันธ์ระหว่างตารางระบบมหาวิทยาลัย (Mini University Schema บน Supabase)"
+      assignment-title="ใบงานที่ 4: การออกแบบความสัมพันธ์ของข้อมูลและ Cardinality"
       assignment-badge="คะแนนเต็ม 10 คะแนน"
       due-date-text="กำหนดส่ง: ท้ายคาบเรียนสัปดาห์ที่ 4"
       submit-btn-text="ส่งงานใบงานที่ 4"
     >
       <template #number>4</template>
       <template #description>
-        <p class="leading-relaxed">
-          ในใบงานนี้นักศึกษาจะได้รับมอบหมายให้ออกแบบและสร้างฐานข้อมูลจำลองระบบมหาวิทยาลัย <strong>Mini University Schema</strong> 
-          บน Supabase ซึ่งประกอบด้วย 4 ตารางที่มีความสัมพันธ์ทั้งแบบ <strong>One-to-Many (1:N)</strong> และ <strong>Many-to-Many (N:M ผ่าน Junction Table)</strong> 
-          จากนั้นเปิดหน้าต่าง <strong>Schema Visualizer</strong> เพื่อตรวจสอบเส้นสายการเชื่อมโยง Foreign Key และทดสอบเพิ่มข้อมูลจริงลงในตาราง
-        </p>
+        <div class="space-y-2">
+          <p class="font-bold text-slate-900 text-sm sm:text-base">
+            เรื่อง: One-to-One, One-to-Many, Many-to-One และ Many-to-Many
+          </p>
+          <p class="leading-relaxed text-slate-700 text-xs sm:text-sm">
+            <strong>คำชี้แจง:</strong> ให้นักศึกษาศึกษาความสัมพันธ์ของข้อมูลในระบบฐานข้อมูลเชิงสัมพันธ์ (Relational Database) แล้วคิดและยกตัวอย่างสถานการณ์ที่พบได้ในชีวิตประจำวันหรือระบบสารสนเทศ โดยต้องยกตัวอย่างความสัมพันธ์ทั้ง 4 รูปแบบ รูปแบบละ 4 ตัวอย่าง รวมทั้งหมด 16 ตัวอย่าง
+          </p>
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs sm:text-sm font-medium flex items-center gap-2">
+            <span class="font-bold text-amber-700 shrink-0">📌 ข้อกำหนด:</span>
+            <span>ตัวอย่างทั้ง 16 ตัวอย่างต้องไม่ซ้ำกัน และต้องอธิบายความสัมพันธ์ของข้อมูลให้เข้าใจได้อย่างถูกต้อง</span>
+          </div>
+        </div>
       </template>
 
       <template #tasks>
-        <div class="space-y-6">
-          <!-- Step 1: SQL Code for Schema -->
-          <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-3 font-mono text-xs border border-slate-800">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span class="text-teal-400 font-bold flex items-center gap-2">
-                <Terminal class="w-4 h-4" />
-                สเต็ปที่ 1: รันคำสั่ง SQL สร้าง 4 ตารางพร้อม Foreign Key ใน SQL Editor
-              </span>
-              <button
-                @click="copyText(sqlCreateSchema, 'create_schema')"
-                class="px-2.5 py-1 rounded bg-teal-600/30 hover:bg-teal-600/50 text-teal-300 border border-teal-500/40 transition-all flex items-center gap-1 cursor-pointer"
+        <div class="space-y-5">
+          <!-- Google Docs Template Link Box -->
+          <div class="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-blue-50 via-indigo-50 to-teal-50 border-2 border-indigo-200/80 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-200 shrink-0">
+                  <FileText class="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 class="font-black text-slate-900 text-sm sm:text-base">เทมเพลตเอกสารใบงาน (Google Docs)</h4>
+                  <p class="text-xs text-slate-600">เปิดเอกสาร แล้วสำเนาแท็บเทมเพลตไปสร้างเป็นแท็บใหม่ภายในเอกสารเดียวกัน พร้อมเปลี่ยนชื่อแท็บเป็นชื่อของตนเอง</p>
+                </div>
+              </div>
+              <a
+                href="https://docs.google.com/document/d/1aP1bUiL0nrNzP7GKAr4ULwv-YBYET9du1qnwAnz3oiw/edit?usp=sharing"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-200 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
               >
-                <Check v-if="copiedSnippet === 'create_schema'" class="w-3.5 h-3.5 text-emerald-400" />
-                <Copy v-else class="w-3.5 h-3.5" />
-                <span>{{ copiedSnippet === 'create_schema' ? 'คัดลอกแล้ว' : 'คัดลอก SQL' }}</span>
-              </button>
+                <ExternalLink class="w-4 h-4" />
+                <span>เปิดเอกสาร Google Docs</span>
+              </a>
             </div>
-            <pre class="overflow-x-auto text-slate-300 leading-relaxed max-h-64 select-text"><code>{{ sqlCreateSchema }}</code></pre>
+
+            <!-- Steps for Duplicate Tab -->
+            <div class="p-4 bg-white/90 rounded-xl border border-indigo-100 text-xs text-slate-700 space-y-2">
+              <div class="font-bold text-indigo-900 flex items-center gap-1.5">
+                <Layers class="w-4 h-4 text-indigo-600" />
+                <span>ขั้นตอนการทำใบงานใน Google Docs:</span>
+              </div>
+              <ol class="list-decimal pl-5 space-y-1 text-slate-600 leading-relaxed">
+                <li>กดปุ่ม <strong>"เปิดเอกสาร Google Docs"</strong> ด้านบน</li>
+                <li>ดูที่แถบแท็บเอกสาร (Document Tabs) ทางด้านซ้าย คลิกที่เมนู <strong>⁝</strong> หรือคลิกขวาที่แท็บ <strong>"Template"</strong></li>
+                <li>เลือกเมนู <strong>"ทำสำเนา" (Duplicate tab)</strong> เพื่อสร้างแท็บใหม่ภายในเอกสารเดียวกัน</li>
+                <li>คลิกขวาที่แท็บที่สร้างขึ้นใหม่ เลือก <strong>"เปลี่ยนชื่อ" (Rename tab)</strong> และเปลี่ยนชื่อแท็บเป็น <strong>"ชื่อ-นามสกุล และรหัสนักศึกษา"</strong> ของตนเอง</li>
+                <li>พิมพ์เนื้อหาและยกตัวอย่างความสัมพันธ์ทั้ง 16 ตัวอย่างลงในแท็บของตนเองให้ครบถ้วน</li>
+              </ol>
+            </div>
+
+            <div class="p-3 bg-white/80 rounded-xl border border-indigo-100 text-xs text-slate-700 flex items-center gap-2 font-mono truncate">
+              <span class="text-indigo-600 font-bold shrink-0">URL:</span>
+              <a 
+                href="https://docs.google.com/document/d/1aP1bUiL0nrNzP7GKAr4ULwv-YBYET9du1qnwAnz3oiw/edit?usp=sharing" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="text-blue-600 hover:underline truncate"
+              >
+                https://docs.google.com/document/d/1aP1bUiL0nrNzP7GKAr4ULwv-YBYET9du1qnwAnz3oiw/edit?usp=sharing
+              </a>
+            </div>
           </div>
 
-          <!-- Step 2: SQL Code for Mock Data -->
-          <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-3 font-mono text-xs border border-slate-800">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span class="text-indigo-400 font-bold flex items-center gap-2">
-                <Terminal class="w-4 h-4" />
-                สเต็ปที่ 2: รันคำสั่งเพิ่มข้อมูลทดสอบ (Mock Data) เชื่อมโยงแต่ละตาราง
-              </span>
-              <button
-                @click="copyText(sqlInsertData, 'insert_mock')"
-                class="px-2.5 py-1 rounded bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 transition-all flex items-center gap-1 cursor-pointer"
-              >
-                <Check v-if="copiedSnippet === 'insert_mock'" class="w-3.5 h-3.5 text-emerald-400" />
-                <Copy v-else class="w-3.5 h-3.5" />
-                <span>{{ copiedSnippet === 'insert_mock' ? 'คัดลอกแล้ว' : 'คัดลอก SQL' }}</span>
-              </button>
+          <!-- Relationship 4 Categories Breakdown -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- 1. One-to-One -->
+            <div class="p-4 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+              <div class="flex items-center gap-2 text-indigo-700 font-bold text-sm">
+                <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center font-mono">1</span>
+                <span>One-to-One (1:1)</span>
+                <span class="text-xs font-normal text-slate-500">(4 ตัวอย่าง)</span>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                ข้อมูล 1 เรคคอร์ดของตาราง A สัมพันธ์กับข้อมูลเพียง 1 เรคคอร์ดของตาราง B เท่านั้น เช่น ประชาชนกับเลขบัตรประชาชน
+              </p>
             </div>
-            <pre class="overflow-x-auto text-slate-300 leading-relaxed max-h-64 select-text"><code>{{ sqlInsertData }}</code></pre>
-          </div>
 
-          <!-- Step 3: Schema Visualizer Check -->
-          <div class="p-5 rounded-2xl bg-teal-50/70 border border-teal-200 text-teal-950 space-y-3">
-            <h4 class="font-bold flex items-center gap-2 text-sm sm:text-base">
-              <Network class="w-5 h-5 text-teal-600" />
-              สเต็ปที่ 3: ตรวจสอบแผนภาพความสัมพันธ์บน Schema Visualizer
-            </h4>
-            <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">
-              ให้นักศึกษาเปิดหน้าต่าง <strong>Schema Visualizer</strong> บนแถบเมนู Database ของ Supabase จัดตำแหน่งตารางให้เห็นเส้นเชื่อมโยง Foreign Key ทั้งหมด 3 เส้นอย่างชัดเจน:
-            </p>
-            <ul class="text-xs text-gray-600 space-y-1.5 list-disc pl-5">
-              <li>เส้นที่ 1: จาก <code>departments.id</code> เชื่อมไปยัง <code>students.department_id</code> (1:N)</li>
-              <li>เส้นที่ 2: จาก <code>students.id</code> เชื่อมไปยัง <code>enrollments.student_id</code> (1:N)</li>
-              <li>เส้นที่ 3: จาก <code>courses.id</code> เชื่อมไปยัง <code>enrollments.course_id</code> (1:N)</li>
-            </ul>
+            <!-- 2. One-to-Many -->
+            <div class="p-4 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+              <div class="flex items-center gap-2 text-emerald-700 font-bold text-sm">
+                <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-mono">2</span>
+                <span>One-to-Many (1:N)</span>
+                <span class="text-xs font-normal text-slate-500">(4 ตัวอย่าง)</span>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                ข้อมูล 1 เรคคอร์ดของตาราง A สัมพันธ์กับข้อมูลได้หลายเรคคอร์ดในตาราง B เช่น สาขาวิชากับนักศึกษาในสาขา
+              </p>
+            </div>
+
+            <!-- 3. Many-to-One -->
+            <div class="p-4 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+              <div class="flex items-center gap-2 text-teal-700 font-bold text-sm">
+                <span class="w-6 h-6 rounded-lg bg-teal-100 text-teal-700 text-xs flex items-center justify-center font-mono">3</span>
+                <span>Many-to-One (N:1)</span>
+                <span class="text-xs font-normal text-slate-500">(4 ตัวอย่าง)</span>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                ข้อมูลหลายเรคคอร์ดของตาราง A เชื่อมโยงกลับไปยังข้อมูลเพียง 1 เรคคอร์ดของตาราง B เช่น พนักงานหลายคนสังกัดแผนกเดียวกัน
+              </p>
+            </div>
+
+            <!-- 4. Many-to-Many -->
+            <div class="p-4 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+              <div class="flex items-center gap-2 text-purple-700 font-bold text-sm">
+                <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 text-xs flex items-center justify-center font-mono">4</span>
+                <span>Many-to-Many (N:M)</span>
+                <span class="text-xs font-normal text-slate-500">(4 ตัวอย่าง)</span>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                ข้อมูลของทั้งสองฝั่งสัมพันธ์กันได้หลายรายการ (ต้องใช้ Junction Table ช่วยเชื่อม) เช่น นักศึกษากับวิชาเรียน
+              </p>
+            </div>
           </div>
         </div>
       </template>
 
       <template #submission-guide>
         <div class="space-y-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-          <p class="font-bold text-gray-800">เกณฑ์การให้คะแนน (10 คะแนนเต็ม):</p>
+          <p class="font-bold text-gray-800">เกณฑ์การให้คะแนนและการส่งงาน (10 คะแนนเต็ม):</p>
           <ul class="space-y-1.5 list-disc pl-5">
-            <li>สร้างตารางครบทั้ง 4 ตาราง พร้อมกำหนด Primary Key และ Foreign Key ถูกต้องตามข้อกำหนด (4 คะแนน)</li>
-            <li>เพิ่มข้อมูลทดสอบ (Mock Data) ลงในตารางครบถ้วน และข้อมูลอ้างอิงรหัสถูกต้อง (3 คะแนน)</li>
-            <li>แผนภาพใน Schema Visualizer แสดงเส้นความสัมพันธ์ครบทั้ง 3 เส้นอย่างสมบูรณ์ (3 คะแนน)</li>
+            <li>ยกตัวอย่างความสัมพันธ์ครบทั้ง 4 รูปแบบ (รูปแบบละ 4 ตัวอย่าง รวม 16 ตัวอย่าง ไม่ซ้ำกัน) (4 คะแนน)</li>
+            <li>อธิบายลักษณะความสัมพันธ์และเหตุผลของข้อมูลแต่ละคู่ได้อย่างถูกต้อง ชัดเจน (4 คะแนน)</li>
+            <li>ความสมบูรณ์ ความเป็นระเบียบเรียบร้อย และการส่งงานตามเวลาที่กำหนด (2 คะแนน)</li>
           </ul>
+          <div class="pt-1 text-slate-700">
+            <strong>วิธีส่งงาน:</strong> คัดลอกลิงก์แท็บของตนเองใน Google Docs (หรือลิงก์เอกสาร Google Docs ที่นักศึกษาได้สร้างแท็บชื่อตนเองไว้เรียบร้อยแล้ว) นำมาวางส่งในช่องส่งงานด้านล่าง
+          </div>
         </div>
       </template>
     </AssignmentSection>

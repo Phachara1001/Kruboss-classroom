@@ -706,6 +706,7 @@ import { courses } from '@/data/courses'
 import { studentsList, isStudent, isStudentInCourse } from '@/data/studentsStore'
 import {
   submissionsStore,
+  gradesStore,
   courseAssignments,
   assignmentSettingsStore,
   getAssignmentSetting
@@ -782,8 +783,12 @@ const studentSubmissionStats = computed(() => {
       const deadline = settings?.deadline ? new Date(settings.deadline) : null
       const submittedAt = submission?.submittedAt ? new Date(submission.submittedAt) : null
 
+      const gradeRec = gradesStore.value?.[`${courseId}_${sId}`]
+      const hasScore = gradeRec?.assignments && gradeRec.assignments[asm.id] !== undefined && gradeRec.assignments[asm.id] !== null && gradeRec.assignments[asm.id] !== ''
+      const isSub = !!(submission && (submission.link || submission.links?.length || submission.fileUrl)) || hasScore
+
       let status = 'missing'
-      if (submission && submission.link) {
+      if (isSub) {
         submittedCount++
         if (deadline && submittedAt && submittedAt > deadline) {
           status = 'late'
@@ -907,7 +912,11 @@ const weeklyAssignmentStats = computed(() => {
       const deadline = settings?.deadline ? new Date(settings.deadline) : null
       const submittedAt = submission?.submittedAt ? new Date(submission.submittedAt) : null
 
-      if (submission && submission.link) {
+      const gradeRec = gradesStore.value?.[`${courseId}_${sId}`]
+      const hasScore = gradeRec?.assignments && gradeRec.assignments[asm.id] !== undefined && gradeRec.assignments[asm.id] !== null && gradeRec.assignments[asm.id] !== ''
+      const isSub = !!(submission && (submission.link || submission.links?.length || submission.fileUrl)) || hasScore
+
+      if (isSub) {
         if (deadline && submittedAt && submittedAt > deadline) {
           late++
         } else {
@@ -964,7 +973,11 @@ const classroomComparison = computed(() => {
         const deadline = settings?.deadline ? new Date(settings.deadline) : null
         const submittedAt = submission?.submittedAt ? new Date(submission.submittedAt) : null
 
-        if (submission && submission.link) {
+        const gradeRec = gradesStore.value?.[`${courseId}_${sId}`]
+        const hasScore = gradeRec?.assignments && gradeRec.assignments[asm.id] !== undefined && gradeRec.assignments[asm.id] !== null && gradeRec.assignments[asm.id] !== ''
+        const isSub = !!(submission && (submission.link || submission.links?.length || submission.fileUrl)) || hasScore
+
+        if (isSub) {
           submitted++
           if (deadline && submittedAt && submittedAt > deadline) {
             late++

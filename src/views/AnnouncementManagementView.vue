@@ -1,11 +1,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   Plus, Trash2, Pencil, Image as ImageIcon, Link as LinkIcon, X,
-  UploadCloud, Megaphone, Eye, EyeOff, Loader2, MousePointerClick
+  UploadCloud, Megaphone, Eye, EyeOff, Loader2, MousePointerClick, ExternalLink
 } from '@lucide/vue'
 import { announcements, fetchAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../data/announcementStore'
 import { API_UPLOAD_URL } from '@/config/api'
+import { courses } from '@/data/courses'
+
+const router = useRouter()
 
 const isModalOpen = ref(false)
 const isEditing = ref(false)
@@ -13,23 +17,166 @@ const isSaving = ref(false)
 const currentAnnouncementId = ref(null)
 const activeFilter = ref('all')
 const isDragging = ref(false)
+const isCustomUrl = ref(false)
 
 const formData = ref({ image: '', url: '', isActive: true })
 
 const fileInput = ref(null)
 const isUploading = ref(false)
 
-const linkOptions = [
-  { value: '', label: 'ไม่ระบุลิงก์ (ดูรูปอย่างเดียว)' },
-  { value: '/', label: 'หน้าแรก' },
-  { value: '/courses', label: 'ห้องเรียน' },
-  { value: '/quests', label: 'ภารกิจประจำสัปดาห์' },
-  { value: '/shop', label: 'ร้านค้าและกล่องสุ่ม' },
-  { value: '/inventory', label: 'กระเป๋าไอเทม' },
-  { value: '/schedule', label: 'ตารางสอน' }
-]
+// Map of friendly Thai display names for system routes
+const routeLabels = {
+  '/': '🏠 หน้าแรก (Home)',
+  '/courses': '📚 ห้องเรียนทั้งหมด (Courses)',
+  '/quests': '🎯 ภารกิจประจำสัปดาห์ (Quests)',
+  '/shop': '🛍️ ร้านค้าและกล่องสุ่ม (Shop)',
+  '/inventory': '🎒 กระเป๋าไอเทม (Inventory)',
+  '/schedule': '📅 ตารางเรียน / ตารางสอน (Schedule)',
+  '/arcade': '🕹️ อาร์เคดมินิเกม (Arcade)',
+  '/wallet': '💰 บันทึกเหรียญ (Coin Statement)',
+  '/teacher': '👨‍🏫 สำหรับอาจารย์ (Teacher Dashboard)',
+  '/gradebook': '📊 สมุดบันทึกคะแนน (Gradebook)',
+  '/assignments-management': '📝 จัดการการส่งงานและใบงาน (Assignments)',
+  '/learning-achievement': '📈 ผลสัมฤทธิ์ทางการเรียน (Pre/Post Test Analytics)',
+  '/submission-analytics': '⏱️ วิเคราะห์การส่งงาน (Submission Analytics)',
+  '/students': '👥 จัดการข้อมูลนักเรียน (Students)',
+  '/coins': '🪙 จัดการเหรียญและรางวัล (Coins Management)',
+  '/announcements': '📢 จัดการข่าวประกาศ (Announcements)'
+}
 
-const linkLabel = (url) => linkOptions.find((o) => o.value === url)?.label || url
+// Automatically scan ALL routes from Vue Router (router.getRoutes()) + courses
+const dynamicRoutes = computed(() => {
+  const routes = router ? router.getRoutes() : []
+  const general = []
+  const teacher = []
+  const courseMap = {}
+
+  // Initialize course map from courses.js
+  courses.forEach(c => {
+    courseMap[c.id] = {
+      name: `${c.name} (${c.id})`,
+      items: []
+    }
+  })
+
+  const seenPaths = new Set()
+
+  routes.forEach(r => {
+    let p = r.path
+    if (!p) return
+    if (!p.startsWith('/')) p = `/${p}`
+
+    // Ignore login, internal redirects, wildcards
+    if (p === '/login' || p === '/settings' || p.includes('*')) return
+    if (r.redirect && !r.component) return
+    if (seenPaths.has(p)) return
+    seenPaths.add(p)
+
+    // A. Dynamic Course Routes with :id (e.g. /course/:id, /course/:id/classmates, /course/:id/tools)
+    if (p.includes(':id')) {
+      courses.forEach(c => {
+        const expandedPath = p.replace(':id', c.id)
+        let label = ''
+        if (p === '/course/:id') {
+          label = `📖 หน้ารายวิชา: ${c.name}`
+        } else if (p.includes('classmates')) {
+          label = `👥 รายชื่อเพื่อนร่วมชั้น: ${c.name}`
+        } else if (p.includes('tools')) {
+          label = `🛠️ เครื่องมือช่วยเรียน: ${c.name}`
+        } else {
+          label = `${c.name} - ${r.name || expandedPath}`
+        }
+        if (courseMap[c.id] && !courseMap[c.id].items.some(it => it.value === expandedPath)) {
+          courseMap[c.id].items.push({ value: expandedPath, label })
+        }
+      })
+      return
+    }
+
+    // B. Explicit Week Routes in router: /course/:courseId/week/:weekNumber
+    const weekMatch = p.match(/\/course\/([^\/]+)\/week\/(\d+)/)
+    if (weekMatch) {
+      const cId = weekMatch[1]
+      const wNum = Number(weekMatch[2])
+      const c = courses.find(item => item.id === cId)
+      const topic = c?.topics?.find(t => Number(t.weekNumber) === wNum)
+      const title = topic?.name ? `สัปดาห์ที่ ${wNum}: ${topic.name}` : `สัปดาห์ที่ ${wNum}`
+      const label = `${title}${topic && !topic.isOpen ? ' (ยังไม่เปิด)' : ''}`
+
+      if (!courseMap[cId]) {
+        courseMap[cId] = {
+          name: c?.name ? `${c.name} (${cId})` : cId,
+          items: []
+        }
+      }
+      if (!courseMap[cId].items.some(it => it.value === p)) {
+        courseMap[cId].items.push({ value: p, label })
+      }
+      return
+    }
+
+    // C. Teacher Management Routes
+    if (r.meta?.requiresTeacher || p.includes('management') || p.includes('gradebook') || p.includes('analytics') || p.includes('achievement')) {
+      const label = routeLabels[p] || `🛠️ ${r.name || p}`
+      teacher.push({ value: p, label })
+      return
+    }
+
+    // D. General System Routes
+    const label = routeLabels[p] || `📄 ${r.name || p}`
+    general.push({ value: p, label })
+  })
+
+  // Ensure any topics defined in courses.js are also present in the list
+  courses.forEach(c => {
+    if (Array.isArray(c.topics)) {
+      c.topics.forEach(t => {
+        const weekPath = `/course/${c.id}/week/${t.weekNumber}`
+        if (courseMap[c.id] && !courseMap[c.id].items.some(it => it.value === weekPath)) {
+          courseMap[c.id].items.push({
+            value: weekPath,
+            label: `สัปดาห์ที่ ${t.weekNumber}: ${t.name}${t.isOpen ? '' : ' (ยังไม่เปิด)'}`
+          })
+        }
+      })
+    }
+  })
+
+  const courseGroupsList = Object.values(courseMap).filter(g => g.items.length > 0)
+
+  return {
+    general,
+    teacher,
+    courseGroups: courseGroupsList
+  }
+})
+
+const allLinkOptions = computed(() => {
+  const list = [
+    { value: '', label: 'ไม่ระบุลิงก์ (ดูรูปอย่างเดียว)' },
+    ...dynamicRoutes.value.general,
+    ...dynamicRoutes.value.teacher
+  ]
+  dynamicRoutes.value.courseGroups.forEach(g => {
+    list.push(...g.items)
+  })
+  return list
+})
+
+const linkLabel = (url) => {
+  if (!url) return 'ไม่มีลิงก์ปลายทาง (ดูรูปอย่างเดียว)'
+  const found = allLinkOptions.value.find((o) => o.value === url)
+  if (found) return found.label
+  const weekMatch = url.match(/\/course\/([^\/]+)\/week\/(\d+)/)
+  if (weekMatch) {
+    const cId = weekMatch[1]
+    const wNum = Number(weekMatch[2])
+    const c = courses.find(item => item.id === cId)
+    const t = c?.topics?.find(item => Number(item.weekNumber) === wNum)
+    if (c && t) return `${c.name} - สัปดาห์ที่ ${wNum}: ${t.name}`
+  }
+  return url
+}
 
 const stats = computed(() => {
   const total = announcements.value.length
@@ -96,6 +243,7 @@ onMounted(async () => {
 const openAddModal = () => {
   isEditing.value = false
   currentAnnouncementId.value = null
+  isCustomUrl.value = false
   formData.value = { image: '', url: '', isActive: true }
   isModalOpen.value = true
 }
@@ -103,9 +251,11 @@ const openAddModal = () => {
 const openEditModal = (announcement) => {
   isEditing.value = true
   currentAnnouncementId.value = announcement.id
+  const targetUrl = announcement.url || ''
+  isCustomUrl.value = !!(targetUrl && !allLinkOptions.value.some(o => o.value === targetUrl))
   formData.value = {
     image: announcement.image,
-    url: announcement.url || '',
+    url: targetUrl,
     isActive: announcement.isActive
   }
   isModalOpen.value = true
@@ -391,16 +541,62 @@ const onImgError = (e) => {
 
                 <!-- Link -->
                 <div>
-                  <label class="mb-2 block text-sm font-bold text-stone-700">ลิงก์ปลายทาง</label>
-                  <div class="relative">
+                  <div class="mb-2 flex items-center justify-between">
+                    <label class="text-sm font-bold text-stone-700">ลิงก์ปลายทาง</label>
+                    <button
+                      type="button"
+                      @click="isCustomUrl = !isCustomUrl"
+                      class="text-xs font-semibold text-emerald-600 transition hover:text-emerald-700 hover:underline cursor-pointer"
+                    >
+                      {{ isCustomUrl ? '← เลือกจากทุกหน้าในระบบ' : '+ ระบุ URL กำหนดเอง' }}
+                    </button>
+                  </div>
+
+                  <!-- Select from system pages -->
+                  <div v-if="!isCustomUrl" class="relative">
                     <LinkIcon
                       class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
                     <select v-model="formData.url"
-                      class="w-full cursor-pointer appearance-none rounded-xl border border-stone-200 bg-white py-3 pl-10 pr-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
-                      <option v-for="o in linkOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+                      class="w-full cursor-pointer appearance-none rounded-xl border border-stone-200 bg-white py-3 pl-10 pr-4 text-sm font-medium text-stone-800 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+                      <option value="">🚫 ไม่ระบุลิงก์ (ดูรูปอย่างเดียว)</option>
+
+                      <optgroup label="📌 หน้าหลักและเมนูทั่วไป">
+                        <option v-for="route in dynamicRoutes.general" :key="route.value" :value="route.value">
+                          {{ route.label }}
+                        </option>
+                      </optgroup>
+
+                      <optgroup v-for="group in dynamicRoutes.courseGroups" :key="group.name" :label="'📚 รายวิชา: ' + group.name">
+                        <option v-for="item in group.items" :key="item.value" :value="item.value">
+                          {{ item.label }}
+                        </option>
+                      </optgroup>
+
+                      <optgroup label="🛠️ หน้าจัดการสำหรับอาจารย์">
+                        <option v-for="route in dynamicRoutes.teacher" :key="route.value" :value="route.value">
+                          {{ route.label }}
+                        </option>
+                      </optgroup>
                     </select>
                   </div>
-                  <p class="mt-1.5 text-xs text-stone-500">เมื่อเลือกหน้า นักศึกษาจะแตะรูปเพื่อเปิดหน้านั้นได้</p>
+
+                  <!-- Custom URL Input -->
+                  <div v-else class="relative">
+                    <ExternalLink
+                      class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                    <input
+                      v-model="formData.url"
+                      type="text"
+                      placeholder="เช่น https://google.com หรือ /course/31901-2007"
+                      class="w-full rounded-xl border border-stone-200 bg-white py-3 pl-10 pr-4 text-sm text-stone-800 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <p class="mt-1.5 text-xs text-stone-500">
+                    {{ isCustomUrl 
+                        ? 'ระบุลิงก์ภายนอก (https://...) หรือเส้นทางภายใน เมื่อคลิกจะพาไปปลายทางที่ระบุ' 
+                        : 'ระบบจะดึงทุกรายวิชาและทุกหน่วยการเรียนรู้ (สัปดาห์) ในระบบให้อัตโนมัติ' }}
+                  </p>
                 </div>
 
                 <!-- Active -->

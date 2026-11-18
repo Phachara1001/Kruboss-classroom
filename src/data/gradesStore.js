@@ -70,12 +70,18 @@ export const courseAssignments = {
       week: 3,
       title: "ใบงานที่ 3: ปฏิบัติการจัดการและสืบค้นข้อมูลในตาราง Product ด้วยคำสั่ง SQL (10 ข้อ)",
       maxScore: 10,
+      workType: "pair",
+      minMembers: 1,
+      maxMembers: 4,
     },
     {
       id: "asm-4",
       week: 4,
-      title: "ใบงานที่ 4: การออกแบบความสัมพันธ์ของข้อมูลและ Cardinality (1:1, 1:N, N:M บน Supabase)",
+      title: "ใบงานที่ 4: การออกแบบความสัมพันธ์ของข้อมูลและ Cardinality (One-to-One, One-to-Many, Many-to-One, Many-to-Many)",
       maxScore: 10,
+      workType: "pair",
+      minMembers: 1,
+      maxMembers: 3,
     },
     {
       id: "asm-5",
@@ -375,14 +381,54 @@ export const getAssignmentSetting = (courseId, assignmentId) => {
   return assignmentSettingsStore.value[key] || null;
 };
 
-export const setAssignmentSetting = (courseId, assignmentId, settings) => {
+export const setAssignmentSetting = async (courseId, assignmentId, settings) => {
   if (!courseId || !assignmentId) return;
   const key = `${courseId}_${assignmentId}`;
   assignmentSettingsStore.value[key] = {
     ...(assignmentSettingsStore.value[key] || {}),
     ...settings,
   };
+
+  // Sync to PostgreSQL Database via API
+  try {
+    await fetch(`${API_BASE_URL}/assignment-settings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        courseId,
+        assignmentId,
+        settings: assignmentSettingsStore.value[key],
+      }),
+    });
+  } catch (err) {
+    console.warn("Failed to sync assignment setting to database API:", err);
+  }
 };
+
+export const fetchAssignmentSettings = async (courseId = null) => {
+  try {
+    const url = courseId
+      ? `${API_BASE_URL}/assignment-settings/${courseId}`
+      : `${API_BASE_URL}/assignment-settings`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const result = await res.json();
+      if (result.success && result.data) {
+        for (const [key, val] of Object.entries(result.data)) {
+          assignmentSettingsStore.value[key] = {
+            ...(assignmentSettingsStore.value[key] || {}),
+            ...val,
+          };
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to fetch assignment settings from API:", e);
+  }
+};
+
+// Initial fetch from database
+fetchAssignmentSettings();
 
 // --- API Sync Functions ---
 export const fetchGrades = async (courseId) => {

@@ -554,7 +554,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import {
   ClipboardList, Search, Settings2, Users, User, Award, Clock,
   CheckCircle2, FileText, Shuffle, Save, X, RotateCw
@@ -564,9 +564,11 @@ import { studentsList, isStudent, isStudentInCourse } from '@/data/studentsStore
 import {
   courseAssignments,
   submissionsStore,
+  gradesStore,
   assignmentSettingsStore,
   setAssignmentSetting,
-  getAssignmentSetting
+  getAssignmentSetting,
+  fetchAssignmentSettings
 } from '@/data/gradesStore'
 
 const selectedCourseId = ref(courses[0]?.id || '31901-2007')
@@ -602,7 +604,7 @@ const currentAssignmentsList = computed(() => {
     const maxScore = Number(setting.maxScore) || asm.maxScore || 10
 
     // Format info
-    const workType = setting.workType || 'individual'
+    const workType = setting.workType || asm.workType || 'individual'
     const pairingMode = setting.pairingMode || 'manual'
     const groupingMode = setting.groupingMode || 'manual'
     const groupCount = Number(setting.groupCount) || 3
@@ -632,7 +634,10 @@ const currentAssignmentsList = computed(() => {
     courseStudents.forEach(s => {
       const sId = s.studentId || s.id
       const subKey = `${selectedCourseId.value}_${sId}_${asm.id}`
-      if (submissionsStore.value[subKey]?.fileUrl) submittedCount++
+      const sub = submissionsStore.value[subKey]
+      const gradeRec = gradesStore.value?.[`${selectedCourseId.value}_${sId}`]
+      const hasScore = gradeRec?.assignments && gradeRec.assignments[asm.id] !== undefined && gradeRec.assignments[asm.id] !== null && gradeRec.assignments[asm.id] !== ''
+      if (sub?.fileUrl || sub?.link || (sub?.links && sub.links.length > 0) || hasScore) submittedCount++
     })
 
     return {
@@ -796,7 +801,7 @@ const openSettingsModal = (asm) => {
     customDescription: existing.customDescription || asm.displayDescription,
     deadline: existing.deadline || '',
     maxScore: Number(existing.maxScore) || asm.maxScore || 10,
-    workType: existing.workType || 'individual',
+    workType: existing.workType || asm.workType || 'individual',
     pairingMode: existing.pairingMode || 'manual',
     groupingMode: existing.groupingMode || 'manual',
     groupCount: Number(existing.groupCount) || 3,
@@ -814,10 +819,10 @@ const openSettingsModal = (asm) => {
   showModal.value = true
 }
 
-const saveModalSettings = () => {
+const saveModalSettings = async () => {
   if (!editingAsm.value) return
 
-  setAssignmentSetting(selectedCourseId.value, editingAsm.value.id, {
+  await setAssignmentSetting(selectedCourseId.value, editingAsm.value.id, {
     customDescription: modalForm.value.customDescription.trim(),
     deadline: modalForm.value.deadline,
     maxScore: modalForm.value.maxScore,
@@ -832,8 +837,19 @@ const saveModalSettings = () => {
   showModal.value = false
 }
 
+onMounted(() => {
+  fetchAssignmentSettings(selectedCourseId.value)
+})
+
+watch(selectedCourseId, (newCourseId) => {
+  if (newCourseId) {
+    fetchAssignmentSettings(newCourseId)
+  }
+})
+
 const refreshData = () => {
-  // Trigger reactivity
+  // Trigger reactivity and reload from database
+  fetchAssignmentSettings(selectedCourseId.value)
   selectedCourseId.value = selectedCourseId.value + ''
 }
 </script>
