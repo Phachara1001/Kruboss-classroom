@@ -1,8 +1,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
-import { BookOpen, Home, Settings, Users, ChevronLeft, ChevronRight, GraduationCap, Wrench, Contact, CalendarDays, Award, ShoppingBag, Package, LogOut, User, BarChart2, MoreVertical, ShieldAlert, Target, Coins, FileText, Gamepad2, HelpCircle, TrendingUp, BarChart3, ClipboardList } from '@lucide/vue'
+import { BookOpen, Home, Settings, Users, ChevronLeft, ChevronRight, GraduationCap, Wrench, Contact, CalendarDays, Award, ShoppingBag, Package, LogOut, User, BarChart2, MoreVertical, ShieldAlert, ShieldCheck, Target, Coins, FileText, Gamepad2, HelpCircle, TrendingUp, BarChart3, ClipboardList } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
-import { studentsList, isTeacherUser } from '../data/studentsStore'
+import { studentsList, isMainTeacher, isSubjectTeacher, getUserRoleLabel } from '../data/studentsStore'
 import StudentAvatar from './StudentAvatar.vue'
 import { passwordResetRequests, fetchPasswordResetRequests } from '../data/authStore'
 
@@ -22,17 +22,17 @@ const navGroups = [
   {
     name: 'ทั่วไป',
     items: [
-      { name: 'หน้าหลัก', path: '/', icon: Home, roles: ['teacher', 'student'] },
-      { name: 'ตารางสอน', path: '/schedule', icon: CalendarDays, roles: ['teacher', 'student'] },
-      { name: 'ข้อมูลผู้สอน', path: '/teacher', icon: Contact, roles: ['teacher', 'student'] }
+      { name: 'หน้าหลัก', path: '/', icon: Home, roles: ['teacher', 'subject_teacher', 'student'] },
+      { name: 'ตารางสอน', path: '/schedule', icon: CalendarDays, roles: ['teacher', 'subject_teacher', 'student'] },
+      { name: 'ข้อมูลผู้สอน', path: '/teacher', icon: Contact, roles: ['teacher', 'subject_teacher', 'student'] }
     ]
   },
   {
     name: 'การเรียนการสอน',
     items: [
-      { name: 'หัวข้อการเรียน', path: '/courses', icon: BookOpen, roles: ['teacher', 'student'] },
+      { name: 'หัวข้อการเรียน', path: '/courses', icon: BookOpen, roles: ['teacher', 'subject_teacher', 'student'] },
       { name: 'ภารกิจประจำสัปดาห์', path: '/quests', icon: Target, roles: ['teacher', 'student'] },
-      { name: 'สมุดคะแนนและเช็คชื่อ', path: '/gradebook', icon: Award, roles: ['student'] }
+      { name: 'สมุดคะแนนและเช็คชื่อ', path: '/gradebook', icon: Award, roles: ['subject_teacher', 'student'] }
     ]
   },
   {
@@ -40,6 +40,7 @@ const navGroups = [
     roles: ['teacher'],
     items: [
       { name: 'จัดการนักศึกษา', path: '/students', icon: Users, roles: ['teacher'] },
+      { name: 'จัดการครูประจำวิชา', path: '/teachers', icon: ShieldCheck, roles: ['teacher'] },
       { name: 'ยอดเหรียญ (Coins)', path: '/coins', icon: Coins, roles: ['teacher'] },
       { name: 'สมุดคะแนนและเช็คชื่อ', path: '/gradebook', icon: Award, roles: ['teacher'] },
       { name: 'จัดการประกาศ', path: '/announcements', icon: Target, roles: ['teacher'] }
@@ -81,10 +82,13 @@ const isItemActive = (item) => {
   return route.path === item.path || route.path.startsWith(item.path + '/')
 }
 
-const isTeacher = computed(() => isTeacherUser(authUser.value))
+const isTeacher = computed(() => isMainTeacher(authUser.value))
+const isSubjectTeacherUser = computed(() => isSubjectTeacher(authUser.value))
 
 const normalizedRole = computed(() => {
-  return isTeacher.value ? 'teacher' : 'student'
+  if (isTeacher.value) return 'teacher'
+  if (isSubjectTeacherUser.value) return 'subject_teacher'
+  return 'student'
 })
 
 const filteredNavGroups = computed(() => {
@@ -105,7 +109,9 @@ const currentUser = computed(() => {
 
 const activeFrame = computed(() => {
   if (!currentUser.value) return null
-  return currentUser.value.equippedFrame || null
+  if (currentUser.value.equippedFrame) return currentUser.value.equippedFrame
+  if (isTeacher.value || isSubjectTeacherUser.value) return '/img/frame/Teacher.png'
+  return null
 })
 
 const router = useRouter()
@@ -257,7 +263,7 @@ const openProfileEdit = () => {
             <p class="text-sm font-bold whitespace-nowrap text-white truncate max-w-[120px]">{{ currentUser?.name || 'User Name' }}</p>
             <p class="text-[11px] text-emerald-300 whitespace-nowrap truncate flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
-              <span>{{ currentUser?.role || 'Student' }}</span>
+              <span>{{ getUserRoleLabel(currentUser) }}</span>
             </p>
           </div>
           <MoreVertical class="w-4 h-4 text-emerald-400/80 shrink-0 ml-1" />

@@ -49,7 +49,7 @@ async function main() {
     { courseId: "31901-2012", assignmentId: "asm-1", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 1: การสำรวจบทบาท Data Analyst และการขับเคลื่อนธุรกิจด้วยข้อมูล (Data-Driven Decision Making)" },
     { courseId: "31901-2012", assignmentId: "asm-2", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 2: การวิเคราะห์และวางแผนเก็บรวบรวมข้อมูลเพื่อพัฒนาองค์กร (Data Collection for Organizational Development)" },
     { courseId: "31901-2012", assignmentId: "asm-3", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 3: ปฏิบัติการตรวจสอบคุณภาพข้อมูลและช่วยกัน Clean ชุดข้อมูลองค์กร 500 แถว (Data Quality & Data Wrangling Workshop)" },
-    { courseId: "31901-2012", assignmentId: "asm-4", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 4: เวิร์กช็อปทำความสะอาดข้อมูล (Data Cleaning)" },
+    { courseId: "31901-2012", assignmentId: "asm-4", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 4: ปฏิบัติการวิเคราะห์เชิงสถิติและสรุปข้อมูลแบบมีเงื่อนไข (Summary Statistics & Conditional Aggregations)" },
     { courseId: "31901-2012", assignmentId: "asm-5", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 5: ออกแบบ Sales Performance Dashboard" },
 
     // วิชา 21901-2007: เทคโนโลยีระบบสมองกลฝังตัวและไอโอที

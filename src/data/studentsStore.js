@@ -56,20 +56,40 @@ export const fetchStudents = async () => {
           s.equippedFrame = `https://kruboss-classroom.loeitech.ac.th/assets/${parts[1]}`;
         }
       }
+      if (!s.equippedFrame && (s.role === 'subject_teacher' || s.classroom === 'subject_teacher_room' || s.role === 'teacher' || s.classroom === 'teacher_room' || s.studentId === 'boss')) {
+        s.equippedFrame = '/img/frame/Teacher.png';
+      }
       return s;
     });
 
     studentsList.value = sanitized;
 
-    // Sync logged in user profile & coins
+    // Sync logged in user profile, coins & permissions
     if (authUser.value) {
       const myId = authUser.value.studentId || authUser.value.id;
       const me = sanitized.find(s => s.studentId === myId || s.id === myId);
-      if (me && me.coins !== undefined && authUser.value.coins !== me.coins) {
-        updateAuthUser({ coins: me.coins });
-      }
-      if (me && me.avatar && authUser.value.avatar !== me.avatar) {
-        updateAuthUser({ avatar: me.avatar });
+      if (me) {
+        const patch = {};
+        if (me.coins !== undefined && authUser.value.coins !== me.coins) patch.coins = me.coins;
+        if (me.avatar && authUser.value.avatar !== me.avatar) patch.avatar = me.avatar;
+        if (me.equippedFrame && authUser.value.equippedFrame !== me.equippedFrame) patch.equippedFrame = me.equippedFrame;
+        if (me.role && authUser.value.role !== me.role) patch.role = me.role;
+        if (me.classroom && authUser.value.classroom !== me.classroom) patch.classroom = me.classroom;
+        if (me.canGrade !== undefined && Boolean(authUser.value.canGrade) !== Boolean(me.canGrade)) {
+          patch.canGrade = Boolean(me.canGrade);
+        }
+        if (me.isActive !== undefined && Boolean(authUser.value.isActive !== false) !== Boolean(me.isActive !== false)) {
+          patch.isActive = me.isActive !== false;
+        }
+        if (me.teacherPosition !== undefined && (authUser.value.teacherPosition || '') !== (me.teacherPosition || '')) {
+          patch.teacherPosition = me.teacherPosition || '';
+        }
+        if (Array.isArray(me.courseIds) && JSON.stringify(authUser.value.courseIds || []) !== JSON.stringify(me.courseIds)) {
+          patch.courseIds = me.courseIds;
+        }
+        if (Object.keys(patch).length > 0) {
+          updateAuthUser(patch);
+        }
       }
     }
   } catch (err) {
@@ -88,8 +108,13 @@ export const isStudentInCourse = (student, courseId) => {
   return student.courseId === courseId
 }
 
-export const isTeacherUser = (user) => {
+export const isSubjectTeacher = (user) => {
   if (!user) return false
+  return user.role === 'subject_teacher' || user.classroom === 'subject_teacher_room'
+}
+
+export const isMainTeacher = (user) => {
+  if (!user || isSubjectTeacher(user)) return false
   const r = (user.role || '').toLowerCase()
   const c = (user.classroom || '').toLowerCase()
   const id = (user.studentId || user.id || '').toString().toLowerCase()
@@ -102,9 +127,38 @@ export const isTeacherUser = (user) => {
   return false
 }
 
+export const isAnyTeacher = (user) => {
+  return isMainTeacher(user) || isSubjectTeacher(user)
+}
+
+export const isTeacherUser = isAnyTeacher
+
+export const canViewCourse = (user, courseId) => {
+  if (!user) return false
+  if (isMainTeacher(user)) return true
+  if (!courseId) return false
+  return Array.isArray(user.courseIds) && user.courseIds.includes(courseId)
+}
+
+export const canManageCourse = (user, courseId) => {
+  if (!user) return false
+  if (isMainTeacher(user)) return true
+  if (isSubjectTeacher(user)) {
+    return Boolean(user.canGrade) && canViewCourse(user, courseId)
+  }
+  return false
+}
+
+export const getUserRoleLabel = (user) => {
+  if (!user) return 'นักศึกษา'
+  if (isMainTeacher(user)) return 'ครูผู้สอน'
+  if (isSubjectTeacher(user)) return user.teacherPosition || 'ครูประจำวิชา'
+  return user.role || 'นักศึกษา'
+}
+
 export const isStudent = (student) => {
   if (!student) return false
-  if (isTeacherUser(student)) return false
+  if (isAnyTeacher(student)) return false
   return true
 }
 

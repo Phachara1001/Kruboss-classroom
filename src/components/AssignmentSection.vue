@@ -6,7 +6,7 @@ import {
   Smile, Laugh, Meh, Frown, Sparkles, AlertCircle, Users, User,
   UserCheck, Settings2, Shuffle, Check, Save, X, ChevronDown, ChevronUp
 } from '@lucide/vue'
-import { studentsList, isStudent, isStudentInCourse, isTeacherUser } from '@/data/studentsStore'
+import { studentsList, isStudent, isStudentInCourse, isTeacherUser, isSubjectTeacher, canManageCourse } from '@/data/studentsStore'
 import { authUser } from '@/data/authStore'
 import {
   courseAssignments,
@@ -49,6 +49,19 @@ const openSubmitModal = (editMode = false) => {
 
 // User / Role Context
 const isTeacher = computed(() => isTeacherUser(authUser.value))
+const isSubjectTeacherUser = computed(() => isSubjectTeacher(authUser.value))
+const canManageAssignment = computed(() => canManageCourse(authUser.value, props.courseId))
+
+const assignmentCourseStudents = computed(() => {
+  return studentsList.value.filter(s => isStudent(s) && isStudentInCourse(s, props.courseId))
+})
+
+const assignmentSubmittedCount = computed(() => {
+  return assignmentCourseStudents.value.filter(s => {
+    const sId = s.studentId || s.id
+    return Boolean(submissionsStore.value?.[`${props.courseId}_${sId}_${props.assignmentId}`])
+  }).length
+})
 
 const currentStudentId = computed(() => authUser.value?.studentId || authUser.value?.id)
 
@@ -383,7 +396,7 @@ onMounted(() => {
       </div>
 
       <!-- Teacher Format Settings Button (Gear / ฟันเฟือง) -->
-      <div v-if="isTeacher" class="flex items-center gap-2">
+      <div v-if="canManageAssignment" class="flex items-center gap-2">
         <button @click="openFormatSettingsModal" type="button"
           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer group">
           <Settings2 class="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
@@ -898,8 +911,8 @@ onMounted(() => {
 
             </div>
 
-            <!-- Teacher View Controls -->
-            <div v-else class="mt-6 pt-6 border-t border-slate-200 flex justify-end gap-3 flex-wrap">
+            <!-- Teacher View Controls (Main Teacher or Authorized Subject Teacher) -->
+            <div v-else-if="canManageAssignment" class="mt-6 pt-6 border-t border-slate-200 flex justify-end gap-3 flex-wrap">
               <button @click="toggleSubmission"
                 class="px-5 py-3 rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer"
                 :class="isSubmissionOpen ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'">
@@ -912,6 +925,17 @@ onMounted(() => {
                 <FileText class="w-4 h-4" />
                 ตรวจงานนักเรียน
               </button>
+            </div>
+
+            <!-- Subject Teacher View-Only Summary -->
+            <div v-else class="mt-6 pt-5 border-t border-slate-200 flex items-center justify-between flex-wrap gap-3 text-xs">
+              <span class="px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 font-bold inline-flex items-center gap-1.5">
+                <UserCheck class="w-4 h-4 text-sky-600" />
+                <span>โหมดครูประจำวิชา (ดูเนื้อหาและโจทย์ใบงานอย่างเดียว)</span>
+              </span>
+              <span class="px-3 py-1.5 rounded-xl bg-stone-100 border border-stone-200 text-stone-700 font-mono font-bold">
+                ส่งงานแล้ว {{ assignmentSubmittedCount }} / {{ assignmentCourseStudents.length }} คน
+              </span>
             </div>
 
           </div>

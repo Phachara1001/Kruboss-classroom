@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { 
   Award, 
@@ -16,7 +16,15 @@ import {
   GraduationCap, 
   School, 
   Search, 
-  ChevronRight, 
+  ChevronRight,
+  ChevronDown,
+  Check,
+  Layers,
+  BookOpen,
+  Database,
+  GitBranch,
+  LineChart,
+  Cpu,
   TrendingUp, 
   ShieldCheck, 
   Shield, 
@@ -27,11 +35,13 @@ import {
   Info,
   Users,
   CalendarOff,
-  Landmark 
+  Landmark,
+  ExternalLink
 } from '@lucide/vue'
 import { courses } from '../data/courses'
 import { exportAttendanceToExcel } from '../utils/exportAttendanceExcel'
-import { studentsList, courseClassrooms, isStudentInCourse, isStudent, fetchStudents, isTeacherUser } from '../data/studentsStore'
+import ConfirmModal from '@/components/ConfirmModal.vue'
+import { studentsList, courseClassrooms, isStudentInCourse, isStudent, fetchStudents, isTeacherUser, isMainTeacher, isSubjectTeacher, canManageCourse } from '../data/studentsStore'
 import { 
   gradingConfig, 
   courseAssignments, 
@@ -59,6 +69,8 @@ const route = useRoute()
 const router = useRouter()
 
 const isTeacher = computed(() => isTeacherUser(authUser.value))
+const isMainTeacherUser = computed(() => isMainTeacher(authUser.value))
+const isSubjectTeacherUser = computed(() => isSubjectTeacher(authUser.value))
 
 const currentStudent = computed(() => {
   if (isTeacher.value || !authUser.value) return null
@@ -75,6 +87,34 @@ const selectedCourseId = ref(route.query.courseId || '31901-2007')
 const selectedClassroom = ref(isTeacher.value ? 'all' : studentClassroom.value)
 const searchQuery = ref('')
 
+const courseIcons = {
+  '31901-2007': Database,
+  '21901-2012': GitBranch,
+  '31901-2012': LineChart,
+  '21901-2007': Cpu
+}
+
+const showCourseDropdown = ref(false)
+const showClassroomDropdown = ref(false)
+
+const handleOutsideDropdownClick = (e) => {
+  if (!e.target.closest('.gradebook-course-dropdown')) {
+    showCourseDropdown.value = false
+  }
+  if (!e.target.closest('.gradebook-classroom-dropdown')) {
+    showClassroomDropdown.value = false
+  }
+}
+
+const getRoomStudentCount = (room) => {
+  return studentsList.value.filter(s => {
+    if (!isStudentInCourse(s, selectedCourseId.value) || !isStudent(s)) return false
+    return room === 'all' ? true : s.classroom === room
+  }).length
+}
+
+const canEditGradebook = computed(() => canManageCourse(authUser.value, selectedCourseId.value))
+
 watch(studentClassroom, (room) => {
   if (!isTeacher.value && room) {
     selectedClassroom.value = room
@@ -82,11 +122,16 @@ watch(studentClassroom, (room) => {
 }, { immediate: true })
 
 onMounted(async () => {
+  document.addEventListener('click', handleOutsideDropdownClick)
   await fetchAllCourseData(selectedCourseId.value)
   if (!isTeacher.value && studentClassroom.value) {
     selectedClassroom.value = studentClassroom.value
   }
   initDraftAssignmentScores()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideDropdownClick)
 })
 
 watch(selectedCourseId, async (newId) => {
@@ -109,13 +154,23 @@ const checkInTimeLimit = ref('09:15 น.')
 
 // Available courses for dropdown
 const availableCourses = computed(() => {
-  if (isTeacher.value) return courses
+  if (isMainTeacherUser.value) return courses
+  if (isSubjectTeacherUser.value) {
+    const allowedIds = authUser.value?.courseIds || []
+    return courses.filter(c => allowedIds.includes(c.id))
+  }
   const studentCourses = currentStudent.value?.courseIds || []
   if (studentCourses.length > 0) {
     return courses.filter(c => studentCourses.includes(c.id))
   }
   return courses
 })
+
+watch(availableCourses, (list) => {
+  if (Array.isArray(list) && list.length > 0 && !list.some(c => c.id === selectedCourseId.value)) {
+    selectedCourseId.value = list[0].id
+  }
+}, { immediate: true })
 
 // Course info
 const currentCourse = computed(() => {
@@ -297,23 +352,71 @@ const showAlert = (msg) => {
   setTimeout(() => { alertMessage.value = '' }, 2500)
 }
 
-// Draft Assignment Scores (กรอกคะแนนก่อน แล้วกดบันทึกทีเดียว)
+// Draft Assignment Scores (กรอกคะแนนแบบตาราง Excel ทั้งหมด แล้วกดบันทึกทีเดียว)
 const draftAssignmentScores = ref({})
 const isSavingScores = ref(false)
+
+const getCellKey = (studentId, assignmentId) => `${studentId}__${assignmentId}`
+
+const totalAssignmentsMaxScore = computed(() => {
+  return currentAssignments.value.reduce((acc, a) => acc + (Number(a.maxScore) || 0), 0)
+})
+
+const getSubmittedCount = (assignmentId) => {
+  return courseStudents.value.filter(s => !!getSubmission(s.studentId || s.id, assignmentId)).length
+}
+
+const getAssignmentAvgScore = (assignmentId) => {
+  if (courseStudents.value.length === 0) return '0.0'
+  let sum = 0
+  let count = 0
+  courseStudents.value.forEach(student => {
+    const sId = student.studentId || student.id
+    const raw = getStudentFullScore(selectedCourseId.value, sId)?.rawAssignments || {}
+    const val = canEditGradebook.value ? draftAssignmentScores.value[getCellKey(sId, assignmentId)] : raw[assignmentId]
+    if (val !== '' && val !== undefined && val !== null && !isNaN(val)) {
+      sum += Number(val)
+      count++
+    }
+  })
+  if (count === 0) return '-'
+  return (sum / count).toFixed(1)
+}
+
+const getStudentRawAssignmentSum = (studentId) => {
+  const raw = getStudentFullScore(selectedCourseId.value, studentId)?.rawAssignments || {}
+  let sum = 0
+  currentAssignments.value.forEach(a => {
+    const val = canEditGradebook.value ? draftAssignmentScores.value[getCellKey(studentId, a.id)] : raw[a.id]
+    if (val !== '' && val !== undefined && val !== null && !isNaN(val)) {
+      sum += Number(val)
+    }
+  })
+  return Math.round(sum * 10) / 10
+}
+
+const getStudentScaledAssignmentScore = (studentId) => {
+  const maxSum = totalAssignmentsMaxScore.value
+  if (maxSum <= 0) return 0
+  const rawSum = getStudentRawAssignmentSum(studentId)
+  return Math.round((rawSum / maxSum) * gradingConfig.assignments.total * 10) / 10
+}
 
 const initDraftAssignmentScores = () => {
   const initial = {}
   courseStudents.value.forEach(student => {
     const sId = student.studentId || student.id
     const raw = getStudentFullScore(selectedCourseId.value, sId)?.rawAssignments || {}
-    const existing = raw[activeAssignment.value.id]
-    initial[sId] = (existing !== undefined && existing !== null) ? existing : ''
+    currentAssignments.value.forEach(a => {
+      const existing = raw[a.id]
+      initial[getCellKey(sId, a.id)] = (existing !== undefined && existing !== null) ? existing : ''
+    })
   })
   draftAssignmentScores.value = initial
 }
 
-// Watchers to keep draft synchronized with selected assignment, course, classroom
-watch([selectedAssignmentId, selectedCourseId, selectedClassroom], () => {
+// Watchers to keep draft synchronized with selected course, classroom, assignments
+watch([selectedCourseId, selectedClassroom, currentAssignments], () => {
   initDraftAssignmentScores()
 })
 
@@ -323,82 +426,76 @@ watch(courseStudents, () => {
   }
 })
 
-// Unsaved changes detection
-const hasUnsavedAssignmentScores = computed(() => {
-  return courseStudents.value.some(student => {
-    const sId = student.studentId || student.id
-    const raw = getStudentFullScore(selectedCourseId.value, sId)?.rawAssignments || {}
-    const saved = raw[activeAssignment.value.id]
-    const draft = draftAssignmentScores.value[sId]
-    
-    const savedNum = (saved !== undefined && saved !== null) ? Number(saved) : null
-    const draftNum = (draft !== '' && draft !== undefined && draft !== null && !isNaN(draft)) ? Number(draft) : null
-    return savedNum !== draftNum
-  })
-})
+const isCellDirty = (studentId, assignmentId) => {
+  const raw = getStudentFullScore(selectedCourseId.value, studentId)?.rawAssignments || {}
+  const saved = raw[assignmentId]
+  const draft = draftAssignmentScores.value[getCellKey(studentId, assignmentId)]
 
+  const savedNum = (saved !== undefined && saved !== null && saved !== '') ? Number(saved) : null
+  const draftNum = (draft !== '' && draft !== undefined && draft !== null && !isNaN(draft)) ? Number(draft) : null
+  return draftNum !== null && savedNum !== draftNum
+}
+
+// Unsaved changes detection across all (student x assignment) cells
 const unsavedCount = computed(() => {
-  return courseStudents.value.filter(student => {
+  let count = 0
+  courseStudents.value.forEach(student => {
     const sId = student.studentId || student.id
-    const raw = getStudentFullScore(selectedCourseId.value, sId)?.rawAssignments || {}
-    const saved = raw[activeAssignment.value.id]
-    const draft = draftAssignmentScores.value[sId]
-    
-    const savedNum = (saved !== undefined && saved !== null) ? Number(saved) : null
-    const draftNum = (draft !== '' && draft !== undefined && draft !== null && !isNaN(draft)) ? Number(draft) : null
-    return savedNum !== draftNum
-  }).length
+    currentAssignments.value.forEach(a => {
+      if (isCellDirty(sId, a.id)) count++
+    })
+  })
+  return count
 })
 
-// Save All Scores at once (บันทึกคะแนนทีเดียว)
+const hasUnsavedAssignmentScores = computed(() => unsavedCount.value > 0)
+
+// Save All Changed Scores at once (บันทึกคะแนนทุกใบงานทีเดียว)
 const saveAllAssignmentScores = async () => {
-  if (!isTeacher.value) return
+  if (!canEditGradebook.value) return
   isSavingScores.value = true
   try {
     let updatedCount = 0
     let totalCoinsGiven = 0
-    const assignmentId = activeAssignment.value.id
-    const maxScore = activeAssignment.value.maxScore
 
     for (const student of courseStudents.value) {
       const sId = student.studentId || student.id
       const raw = getStudentFullScore(selectedCourseId.value, sId)?.rawAssignments || {}
-      const oldScore = (raw[assignmentId] !== undefined && raw[assignmentId] !== null) 
-        ? Number(raw[assignmentId]) 
-        : null
-      const isFirstTime = oldScore === null || isNaN(oldScore)
-      
-      const draftVal = draftAssignmentScores.value[sId]
-      if (draftVal === '' || draftVal === undefined || draftVal === null || isNaN(draftVal)) {
-        continue
-      }
 
-      let val = parseFloat(draftVal)
-      if (val < 0) val = 0
-      if (val > maxScore) val = maxScore
+      for (const a of currentAssignments.value) {
+        const assignmentId = a.id
+        const maxScore = Number(a.maxScore) || 10
+        const oldScore = (raw[assignmentId] !== undefined && raw[assignmentId] !== null && raw[assignmentId] !== '')
+          ? Number(raw[assignmentId])
+          : null
+        const isFirstTime = oldScore === null || isNaN(oldScore)
 
-      let shouldAwardCoins = false
-      let coinsToAdd = 0
-
-      const isScoreChanged = oldScore !== val
-
-      if (isScoreChanged) {
-        if (isFirstTime && val > 0) {
-          shouldAwardCoins = true
-          coinsToAdd = Math.round(val * 4)
-        } else if (oldScore !== null && val > oldScore) {
-          shouldAwardCoins = true
-          coinsToAdd = Math.round((val - oldScore) * 4)
+        const draftVal = draftAssignmentScores.value[getCellKey(sId, assignmentId)]
+        if (draftVal === '' || draftVal === undefined || draftVal === null || isNaN(draftVal)) {
+          continue
         }
 
-        updatedCount++
+        let val = parseFloat(draftVal)
+        if (val < 0) val = 0
+        if (val > maxScore) val = maxScore
 
-        if (shouldAwardCoins && coinsToAdd > 0) {
-          await addCoins(sId, coinsToAdd)
-          totalCoinsGiven += coinsToAdd
+        if (oldScore !== val) {
+          let coinsToAdd = 0
+          if (isFirstTime && val > 0) {
+            coinsToAdd = Math.round(val * 4)
+          } else if (oldScore !== null && val > oldScore) {
+            coinsToAdd = Math.round((val - oldScore) * 4)
+          }
+
+          updatedCount++
+
+          if (coinsToAdd > 0) {
+            await addCoins(sId, coinsToAdd)
+            totalCoinsGiven += coinsToAdd
+          }
+
+          await setAssignmentScore(selectedCourseId.value, sId, assignmentId, val)
         }
-
-        await setAssignmentScore(selectedCourseId.value, sId, assignmentId, val)
       }
     }
 
@@ -407,7 +504,7 @@ const saveAllAssignmentScores = async () => {
     initDraftAssignmentScores()
 
     if (updatedCount > 0) {
-      let msg = `บันทึกคะแนนเรียบร้อย (${updatedCount} คน)`
+      let msg = `บันทึกคะแนนเรียบร้อย (${updatedCount} ช่อง)`
       if (totalCoinsGiven > 0) {
         msg += ` พร้อมมอบ ${totalCoinsGiven} Coins สำเร็จ`
       }
@@ -424,20 +521,30 @@ const saveAllAssignmentScores = async () => {
 }
 
 // Quick action: Pre-fill full score for students who submitted
-const fillFullScoreForSubmitted = () => {
-  if (!isTeacher.value) return
+const fillFullScoreForSubmitted = (targetAssignmentId = null) => {
+  if (!canEditGradebook.value) return
+  const targetAssignments = targetAssignmentId
+    ? currentAssignments.value.filter(a => a.id === targetAssignmentId)
+    : currentAssignments.value
+
   let count = 0
   courseStudents.value.forEach(student => {
     const sId = student.studentId || student.id
-    if (getSubmission(student.studentId, activeAssignment.value.id)) {
-      draftAssignmentScores.value[sId] = activeAssignment.value.maxScore
-      count++
-    }
+    targetAssignments.forEach(a => {
+      const key = getCellKey(sId, a.id)
+      const currentVal = draftAssignmentScores.value[key]
+      const isEmptyOrZero = currentVal === '' || currentVal === undefined || currentVal === null || Number(currentVal) === 0
+      if (getSubmission(sId, a.id) && (targetAssignmentId || isEmptyOrZero)) {
+        draftAssignmentScores.value[key] = a.maxScore
+        count++
+      }
+    })
   })
+
   if (count > 0) {
-    showAlert(`ใส่คะแนนเต็ม (${activeAssignment.value.maxScore}) ให้นักศึกษาที่ส่งงานแล้ว ${count} คน (อย่าลืมกดบันทึกคะแนน)`)
+    showAlert(`ใส่คะแนนเต็มให้นักศึกษาที่ส่งงานแล้ว ${count} ช่อง (อย่าลืมกดบันทึกคะแนน)`)
   } else {
-    showAlert('ยังไม่มีนักศึกษาที่ส่งงานในใบงานนี้')
+    showAlert(targetAssignmentId ? 'ยังไม่มีนักศึกษาที่ส่งงานในใบงานนี้' : 'ไม่มีช่องที่ต้องใส่คะแนนเต็มเพิ่มสำหรับผู้ส่งงาน')
   }
 }
 
@@ -446,8 +553,27 @@ const resetDraftScores = () => {
   showAlert('รีเซ็ตค่าคะแนนกลับเป็นค่าที่บันทึกล่าสุด')
 }
 
+const handleExcelCellKeydown = (event, rowIdx, colIdx) => {
+  let targetRow = rowIdx
+  if (event.key === 'Enter' || event.key === 'ArrowDown') {
+    event.preventDefault()
+    targetRow = rowIdx + 1
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    targetRow = rowIdx - 1
+  } else {
+    return
+  }
+
+  const nextInput = document.querySelector(`input[data-excel-row="${targetRow}"][data-excel-col="${colIdx}"]`)
+  if (nextInput) {
+    nextInput.focus()
+    nextInput.select()
+  }
+}
+
 const handleGeneralScoreInput = (studentId, field, event, maxScore) => {
-  if (!isTeacher.value) return
+  if (!canEditGradebook.value) return
   let val = parseFloat(event.target.value)
   if (isNaN(val)) val = 0
   if (val > maxScore) val = maxScore
@@ -472,8 +598,37 @@ const holidayPresets = [
   'วันครู / กิจกรรมวิทยาลัย'
 ]
 
+// Custom Confirm Modal State (แทนที่ browser confirm)
+const confirmModalState = ref({
+  isOpen: false,
+  title: '',
+  message: '',
+  type: 'confirm',
+  confirmText: 'ยืนยัน',
+  cancelText: 'ยกเลิก',
+  onConfirm: null
+})
+
+const openConfirmDialog = ({ title, message, type = 'confirm', confirmText = 'ยืนยัน', cancelText = 'ยกเลิก', onConfirm }) => {
+  confirmModalState.value = {
+    isOpen: true,
+    title,
+    message,
+    type,
+    confirmText,
+    cancelText,
+    onConfirm
+  }
+}
+
+const handleConfirmDialogAction = async () => {
+  if (typeof confirmModalState.value.onConfirm === 'function') {
+    await confirmModalState.value.onConfirm()
+  }
+}
+
 const handleOpenHolidayModal = (week) => {
-  if (!isTeacher.value) return
+  if (!canEditGradebook.value) return
   holidayTargetWeek.value = week || selectedWeek.value
   const existing = getWeekHoliday(selectedCourseId.value, holidayTargetWeek.value)
   holidayReason.value = existing?.name || 'วันหยุดราชการ'
@@ -481,49 +636,147 @@ const handleOpenHolidayModal = (week) => {
 }
 
 const handleConfirmHoliday = async () => {
-  if (!isTeacher.value) return
+  if (!canEditGradebook.value) return
   const finalName = holidayReason.value.trim() || 'วันหยุดราชการ'
   await setWeekHoliday(selectedCourseId.value, holidayTargetWeek.value, true, finalName)
   showHolidayModal.value = false
   showAlert(`กำหนดสัปดาห์ที่ ${holidayTargetWeek.value} เป็น "${finalName}" เรียบร้อย`)
 }
 
-const handleRemoveHoliday = async (week) => {
-  if (!isTeacher.value) return
+const handleRemoveHoliday = (week) => {
+  if (!canEditGradebook.value) return
   const targetW = week || selectedWeek.value
-  if (!confirm(`ต้องการยกเลิกวันหยุดราชการของสัปดาห์ที่ ${targetW} และเปิดให้เช็คชื่อตามปกติใช่หรือไม่?`)) {
-    return
-  }
-  await setWeekHoliday(selectedCourseId.value, targetW, false)
-  showAlert(`ยกเลิกวันหยุดสัปดาห์ที่ ${targetW} เรียบร้อยแล้ว`)
+  const holidayName = getWeekHoliday(selectedCourseId.value, targetW)?.name || 'วันหยุดราชการ'
+  openConfirmDialog({
+    title: `ยกเลิกวันหยุดราชการ (สัปดาห์ที่ ${targetW})`,
+    message: `ต้องการยกเลิก "${holidayName}" ของสัปดาห์ที่ ${targetW} และเปิดให้เช็คชื่อเข้าเรียนตามปกติใช่หรือไม่?`,
+    type: 'confirm',
+    confirmText: 'ยืนยันยกเลิกวันหยุด',
+    cancelText: 'ปิด',
+    onConfirm: async () => {
+      await setWeekHoliday(selectedCourseId.value, targetW, false)
+      showAlert(`ยกเลิกวันหยุดสัปดาห์ที่ ${targetW} เรียบร้อยแล้ว`)
+    }
+  })
 }
 
-// Attendance Check-in action
-const handleSetAttendance = async (studentId, status) => {
-  if (!isTeacher.value) return
-  if (isWeekHoliday(selectedCourseId.value, selectedWeek.value)) {
-    if (!confirm(`สัปดาห์ที่ ${selectedWeek.value} ถูกกำหนดเป็นวันหยุดราชการอยู่ หากท่านทำการเช็คชื่อ ระบบจะเปลี่ยนสัปดาห์นี้กลับเป็นการเรียนการสอนปกติ ต้องการดำเนินการต่อหรือไม่?`)) {
-      return
-    }
-    await setWeekHoliday(selectedCourseId.value, selectedWeek.value, false)
+// Attendance Check-in action & Excel Matrix Helpers
+const attendanceStampMode = ref('cycle') // 'cycle' | 'present' | 'late' | 'leave' | 'absent'
+
+const stampModeOptions = [
+  { id: 'cycle', label: 'คลิกสลับ (มา/สาย/ลา/ขาด)', badgeClass: 'bg-stone-800 text-white border-stone-800' },
+  { id: 'present', label: 'ปั๊ม: มาเรียน', badgeClass: 'bg-emerald-600 text-white border-emerald-600' },
+  { id: 'late', label: 'ปั๊ม: มาสาย', badgeClass: 'bg-amber-500 text-white border-amber-500' },
+  { id: 'leave', label: 'ปั๊ม: ลา', badgeClass: 'bg-blue-600 text-white border-blue-600' },
+  { id: 'absent', label: 'ปั๊ม: ขาด', badgeClass: 'bg-red-600 text-white border-red-600' }
+]
+
+const getWeekTopicTitle = (week) => {
+  const wNum = Number(week)
+  if (isWeekHoliday(selectedCourseId.value, wNum)) {
+    const hName = getWeekHoliday(selectedCourseId.value, wNum)?.name || 'วันหยุดราชการ'
+    return `สัปดาห์ที่ ${wNum}: [วันหยุด] ${hName}`
   }
-  setAttendanceCheckIn(selectedCourseId.value, studentId, selectedWeek.value, status)
-  showAlert('บันทึกการเช็คอินเรียบร้อย')
+  const topic = currentCourse.value?.topics?.find(t => Number(t.weekNumber) === wNum)
+  const topicName = topic?.name || topic?.title || ''
+  return topicName ? `สัปดาห์ที่ ${wNum}: ${topicName}` : `สัปดาห์ที่ ${wNum}`
+}
+
+const getAttendanceStatusShortLabel = (status) => {
+  if (status === 'holiday') return 'หยุด'
+  if (status === 'present') return 'มา'
+  if (status === 'late') return 'สาย'
+  if (status === 'leave') return 'ลา'
+  if (status === 'absent') return 'ขาด'
+  return '-'
+}
+
+const getStudentAttendanceCounts = (studentId) => {
+  const counts = { present: 0, late: 0, leave: 0, absent: 0 }
+  for (let w = 1; w <= totalCourseWeeks.value; w++) {
+    const st = getAttendanceRecord(studentId, w).status
+    if (st === 'present') counts.present++
+    else if (st === 'late') counts.late++
+    else if (st === 'leave') counts.leave++
+    else if (st === 'absent') counts.absent++
+  }
+  return counts
+}
+
+const getWeekPresentCount = (week) => {
+  let count = 0
+  courseStudents.value.forEach(s => {
+    const st = getAttendanceRecord(s.studentId || s.id, week).status
+    if (st === 'present' || st === 'late') count++
+  })
+  return count
+}
+
+const handleSetAttendance = async (studentId, status, targetWeek = null) => {
+  if (!canEditGradebook.value) return
+  const weekToUse = targetWeek || selectedWeek.value
+  selectedWeek.value = weekToUse
+  if (isWeekHoliday(selectedCourseId.value, weekToUse)) {
+    openConfirmDialog({
+      title: `สัปดาห์ที่ ${weekToUse} เป็นวันหยุดราชการ`,
+      message: `สัปดาห์ที่ ${weekToUse} ถูกกำหนดเป็นวันหยุดราชการอยู่ หากทำการเช็คชื่อ ระบบจะเปลี่ยนสัปดาห์นี้กลับเป็นการเรียนการสอนปกติ ต้องการดำเนินการต่อหรือไม่?`,
+      type: 'confirm',
+      confirmText: 'เปิดเช็คชื่อปกติ',
+      cancelText: 'ยกเลิก',
+      onConfirm: async () => {
+        await setWeekHoliday(selectedCourseId.value, weekToUse, false)
+        setAttendanceCheckIn(selectedCourseId.value, studentId, weekToUse, status)
+      }
+    })
+    return
+  }
+  setAttendanceCheckIn(selectedCourseId.value, studentId, weekToUse, status)
+}
+
+const handleCellAttendanceClick = async (studentId, week) => {
+  if (!canEditGradebook.value) return
+  selectedWeek.value = week
+  const currentSt = getAttendanceRecord(studentId, week).status
+  let nextStatus = 'present'
+  if (attendanceStampMode.value !== 'cycle') {
+    nextStatus = attendanceStampMode.value
+  } else {
+    if (currentSt === 'present') nextStatus = 'late'
+    else if (currentSt === 'late') nextStatus = 'leave'
+    else if (currentSt === 'leave') nextStatus = 'absent'
+    else nextStatus = 'present'
+  }
+  await handleSetAttendance(studentId, nextStatus, week)
 }
 
 // Batch Check-in
-const handleBatchAllPresent = async () => {
-  if (!isTeacher.value) return
-  if (isWeekHoliday(selectedCourseId.value, selectedWeek.value)) {
-    if (!confirm(`สัปดาห์ที่ ${selectedWeek.value} ถูกกำหนดเป็นวันหยุดราชการอยู่ หากท่านเช็คชื่อมาเรียนทุกคน ระบบจะเปลี่ยนสัปดาห์นี้กลับเป็นการเรียนการสอนปกติ ต้องการดำเนินการต่อหรือไม่?`)) {
-      return
-    }
-    await setWeekHoliday(selectedCourseId.value, selectedWeek.value, false)
+const handleBatchAllPresent = async (targetWeek = null) => {
+  if (!canEditGradebook.value) return
+  const weekToUse = typeof targetWeek === 'number' ? targetWeek : selectedWeek.value
+  selectedWeek.value = weekToUse
+
+  const applyAllPresent = () => {
+    courseStudents.value.forEach(s => {
+      setAttendanceCheckIn(selectedCourseId.value, s.studentId, weekToUse, 'present')
+    })
+    showAlert(`เช็คชื่อ "มาเรียนตรงเวลา" สัปดาห์ที่ ${weekToUse} ให้นักศึกษาทั้งหมด ${courseStudents.value.length} คนเรียบร้อยแล้ว`)
   }
-  courseStudents.value.forEach(s => {
-    setAttendanceCheckIn(selectedCourseId.value, s.studentId, selectedWeek.value, 'present')
-  })
-  showAlert(`เช็คชื่อ "มาเรียนตรงเวลา" ให้นักศึกษาทั้งหมด ${courseStudents.value.length} คนเรียบร้อยแล้ว`)
+
+  if (isWeekHoliday(selectedCourseId.value, weekToUse)) {
+    openConfirmDialog({
+      title: `สัปดาห์ที่ ${weekToUse} เป็นวันหยุดราชการ`,
+      message: `สัปดาห์ที่ ${weekToUse} ถูกกำหนดเป็นวันหยุดราชการอยู่ หากเช็คชื่อมาเรียนทุกคน ระบบจะเปลี่ยนสัปดาห์นี้กลับเป็นการเรียนการสอนปกติ ต้องการดำเนินการต่อหรือไม่?`,
+      type: 'confirm',
+      confirmText: 'เช็คมาเรียนทุกคน',
+      cancelText: 'ยกเลิก',
+      onConfirm: async () => {
+        await setWeekHoliday(selectedCourseId.value, weekToUse, false)
+        applyAllPresent()
+      }
+    })
+    return
+  }
+  applyAllPresent()
 }
 
 // Test Graded Assignment Reward Modal
@@ -591,9 +844,9 @@ const handleExportAttendanceExcel = async () => {
           <span>{{ isExportingExcel ? 'กำลังสร้างไฟล์...' : 'พิมพ์ตารางเข้าเรียน (Excel)' }}</span>
         </button>
 
-        <!-- Test Reward Modal (Teacher only) -->
+        <!-- Test Reward Modal (Main Teacher only) -->
         <button 
-          v-if="isTeacher"
+          v-if="isMainTeacherUser"
           type="button"
           @click="handleTestRewardModal"
           class="px-3.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-xs sm:text-sm font-bold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -603,27 +856,179 @@ const handleExportAttendanceExcel = async () => {
           <span>ทดสอบ Modal เหรียญ</span>
         </button>
 
-        <!-- Select Course -->
-        <select 
-          v-model="selectedCourseId"
-          class="px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs sm:text-sm font-bold text-stone-800 shadow-xs focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer"
-        >
-          <option v-for="c in availableCourses" :key="c.id" :value="c.id">
-            {{ c.name }} ({{ c.level }})
-          </option>
-        </select>
+        <!-- Custom Professional Course Selector Dropdown -->
+        <div class="relative gradebook-course-dropdown">
+          <button
+            type="button"
+            @click="showCourseDropdown = !showCourseDropdown; showClassroomDropdown = false"
+            class="flex items-center justify-between gap-2.5 px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-200/90 rounded-2xl text-xs sm:text-sm font-bold text-stone-800 shadow-xs transition-all cursor-pointer min-w-[260px]"
+            :class="{ 'ring-2 ring-emerald-500/40 border-emerald-400 shadow-md': showCourseDropdown }"
+          >
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div
+                class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                :class="currentCourse?.levelGroup === 'ปวส.' ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700'"
+              >
+                <component :is="courseIcons[currentCourse?.id] || BookOpen" class="w-4 h-4" />
+              </div>
+              <div class="text-left min-w-0">
+                <div class="text-xs font-black text-stone-900 truncate max-w-[200px]">
+                  {{ currentCourse?.name }}
+                </div>
+                <div class="flex items-center gap-1.5 text-[10px] text-stone-500 font-normal">
+                  <span class="font-mono font-bold text-emerald-700">{{ currentCourse?.code }}</span>
+                  <span>•</span>
+                  <span
+                    class="px-1.5 py-0.2 rounded font-bold"
+                    :class="currentCourse?.levelGroup === 'ปวส.' ? 'bg-emerald-50 text-emerald-700' : 'bg-purple-50 text-purple-700'"
+                  >
+                    ห้อง {{ currentCourse?.level }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <ChevronDown
+              class="w-4 h-4 text-stone-400 shrink-0 transition-transform duration-200"
+              :class="{ 'rotate-180 text-emerald-600': showCourseDropdown }"
+            />
+          </button>
 
-        <!-- Select Classroom (Teacher only) -->
-        <select 
-          v-if="isTeacher"
-          v-model="selectedClassroom"
-          class="px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs sm:text-sm font-bold text-stone-800 shadow-xs focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer"
-        >
-          <option value="all">ทุกห้องเรียน (ทั้งหมด)</option>
-          <option v-for="room in availableClassrooms" :key="room" :value="room">
-            {{ room === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + room }}
-          </option>
-        </select>
+          <!-- Floating Course Options Menu -->
+          <div
+            v-if="showCourseDropdown"
+            class="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-stone-200 p-2 z-50 space-y-1 animate-[fadeIn_0.15s_ease-out]"
+          >
+            <div class="px-2.5 py-1.5 text-[10px] font-black text-stone-400 uppercase tracking-wider flex items-center justify-between">
+              <span>เลือกรายวิชาที่ต้องการดูข้อมูล</span>
+              <span>{{ availableCourses.length }} รายวิชา</span>
+            </div>
+
+            <button
+              v-for="c in availableCourses"
+              :key="c.id"
+              type="button"
+              @click="selectedCourseId = c.id; showCourseDropdown = false"
+              class="w-full flex items-center justify-between gap-3 p-2.5 rounded-xl text-left transition-all cursor-pointer border"
+              :class="selectedCourseId === c.id
+                ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-2xs'
+                : 'bg-white border-transparent hover:bg-stone-50 text-stone-700'"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                <div
+                  class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs"
+                  :class="c.levelGroup === 'ปวส.' ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700'"
+                >
+                  <component :is="courseIcons[c.id] || BookOpen" class="w-4 h-4" />
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-black text-stone-900 truncate">{{ c.name }}</div>
+                  <div class="flex items-center gap-1.5 text-[10px] text-stone-500 mt-0.5">
+                    <span class="font-mono font-bold text-stone-700">รหัส {{ c.code }}</span>
+                    <span>•</span>
+                    <span>ระดับ {{ c.level }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <span
+                  class="px-2 py-0.5 rounded-md text-[10px] font-bold border"
+                  :class="c.levelGroup === 'ปวส.'
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                    : 'bg-purple-100 text-purple-800 border-purple-200'"
+                >
+                  {{ c.levelGroup }}
+                </span>
+                <div
+                  class="w-5 h-5 rounded-lg flex items-center justify-center border transition-colors"
+                  :class="selectedCourseId === c.id
+                    ? 'bg-emerald-600 border-emerald-600 text-white'
+                    : 'border-stone-200 bg-stone-50'"
+                >
+                  <Check v-if="selectedCourseId === c.id" class="w-3.5 h-3.5" stroke-width="3" />
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Professional Classroom Selector Dropdown (Teacher only) -->
+        <div v-if="isTeacher" class="relative gradebook-classroom-dropdown">
+          <button
+            type="button"
+            @click="showClassroomDropdown = !showClassroomDropdown; showCourseDropdown = false"
+            class="flex items-center justify-between gap-2.5 px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-200/90 rounded-2xl text-xs sm:text-sm font-bold text-stone-800 shadow-xs transition-all cursor-pointer min-w-[185px]"
+            :class="{ 'ring-2 ring-emerald-500/40 border-emerald-400 shadow-md': showClassroomDropdown }"
+          >
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-stone-100 text-stone-700 flex items-center justify-center shrink-0">
+                <School class="w-4 h-4 text-emerald-600" />
+              </div>
+              <div class="text-left">
+                <div class="text-xs font-black text-stone-900">
+                  {{ selectedClassroom === 'all' ? 'ทุกห้องเรียน' : (selectedClassroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + selectedClassroom) }}
+                </div>
+                <div class="text-[10px] text-stone-500 font-normal">
+                  นักศึกษา {{ getRoomStudentCount(selectedClassroom) }} คน
+                </div>
+              </div>
+            </div>
+            <ChevronDown
+              class="w-4 h-4 text-stone-400 shrink-0 transition-transform duration-200"
+              :class="{ 'rotate-180 text-emerald-600': showClassroomDropdown }"
+            />
+          </button>
+
+          <!-- Floating Classroom Options Menu -->
+          <div
+            v-if="showClassroomDropdown"
+            class="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-2xl border border-stone-200 p-1.5 z-50 space-y-1 animate-[fadeIn_0.15s_ease-out]"
+          >
+            <div class="px-2.5 py-1 text-[10px] font-black text-stone-400 uppercase tracking-wider">
+              เลือกกลุ่ม / ห้องเรียน
+            </div>
+
+            <button
+              type="button"
+              @click="selectedClassroom = 'all'; showClassroomDropdown = false"
+              class="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer"
+              :class="selectedClassroom === 'all' ? 'bg-emerald-50 text-emerald-950 font-bold' : 'hover:bg-stone-50 text-stone-700'"
+            >
+              <div class="flex items-center gap-2">
+                <Layers class="w-4 h-4 text-emerald-600" />
+                <span class="text-xs font-bold">ทุกห้องเรียน (ทั้งหมด)</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.2 rounded bg-stone-100 text-stone-600 font-mono text-[10px] font-bold">
+                  {{ getRoomStudentCount('all') }} คน
+                </span>
+                <Check v-if="selectedClassroom === 'all'" class="w-4 h-4 text-emerald-600" />
+              </div>
+            </button>
+
+            <div v-if="availableClassrooms.length > 0" class="border-t border-stone-100 my-1"></div>
+
+            <button
+              v-for="room in availableClassrooms"
+              :key="room"
+              type="button"
+              @click="selectedClassroom = room; showClassroomDropdown = false"
+              class="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer"
+              :class="selectedClassroom === room ? 'bg-emerald-50 text-emerald-950 font-bold' : 'hover:bg-stone-50 text-stone-700'"
+            >
+              <div class="flex items-center gap-2">
+                <School class="w-4 h-4 text-stone-500" />
+                <span class="text-xs font-bold">{{ room === 'teacher_room' ? 'อาจารย์ผู้สอน' : 'ห้อง ' + room }}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.2 rounded bg-stone-100 text-stone-600 font-mono text-[10px] font-bold">
+                  {{ getRoomStudentCount(room) }} คน
+                </span>
+                <Check v-if="selectedClassroom === room" class="w-4 h-4 text-emerald-600" />
+              </div>
+            </button>
+          </div>
+        </div>
 
         <!-- Locked Classroom Badge for Students -->
         <div 
@@ -635,6 +1040,18 @@ const handleExportAttendanceExcel = async () => {
           <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-800 font-bold ml-1">ห้องของคุณ</span>
         </div>
       </div>
+    </div>
+
+    <!-- Subject Teacher View-Only Notice Banner -->
+    <div
+      v-if="isSubjectTeacherUser && !canEditGradebook"
+      class="p-4 rounded-2xl bg-sky-50 border border-sky-200 text-sky-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs shadow-2xs"
+    >
+      <div class="flex items-center gap-2.5 font-bold">
+        <ShieldCheck class="w-5 h-5 text-sky-600 shrink-0" />
+        <span>โหมดครูประจำวิชา (ดูข้อมูลอย่างเดียว) • แสดงเฉพาะรายวิชาที่ได้รับมอบหมาย</span>
+      </div>
+      <span class="text-sky-700 font-medium">สามารถดูคะแนน การส่งงาน สถิติเข้าเรียน และพิมพ์ไฟล์ Excel ได้</span>
     </div>
 
     <!-- Alert Toast Notification -->
@@ -874,10 +1291,10 @@ const handleExportAttendanceExcel = async () => {
                   </span>
                 </td>
 
-                <!-- 2. ความรับผิดชอบ (10) - แก้ไขได้เฉพาะอาจารย์ -->
+                <!-- 2. ความรับผิดชอบ (10) - แก้ไขได้เฉพาะผู้มีสิทธิ์ -->
                 <td class="py-3 px-3 text-center bg-emerald-50/30 border-r border-emerald-100">
                   <input 
-                    v-if="isTeacher"
+                    v-if="canEditGradebook"
                     type="number" 
                     step="0.5" 
                     min="0" 
@@ -901,10 +1318,10 @@ const handleExportAttendanceExcel = async () => {
                   {{ getStudentFullScore(selectedCourseId, student.studentId, totalRecordedWeeks).assignmentsScore }}
                 </td>
 
-                <!-- 4. สอบกลางภาค (20) - แก้ไขได้เฉพาะอาจารย์ -->
+                <!-- 4. สอบกลางภาค (20) - แก้ไขได้เฉพาะผู้มีสิทธิ์ -->
                 <td class="py-3 px-3 text-center border-r border-stone-200">
                   <input 
-                    v-if="isTeacher"
+                    v-if="canEditGradebook"
                     type="number" 
                     step="0.5" 
                     min="0" 
@@ -918,10 +1335,10 @@ const handleExportAttendanceExcel = async () => {
                   </span>
                 </td>
 
-                <!-- 5. สอบปลายภาค (20) - แก้ไขได้เฉพาะอาจารย์ -->
+                <!-- 5. สอบปลายภาค (20) - แก้ไขได้เฉพาะผู้มีสิทธิ์ -->
                 <td class="py-3 px-3 text-center border-r border-stone-200">
                   <input 
-                    v-if="isTeacher"
+                    v-if="canEditGradebook"
                     type="number" 
                     step="0.5" 
                     min="0" 
@@ -966,196 +1383,313 @@ const handleExportAttendanceExcel = async () => {
     </div>
 
     <!-- ======================================================== -->
-    <!-- TAB 2: บันทึกคะแนนตามใบงาน (ASSIGNMENT SCORING) -->
+    <!-- TAB 2: บันทึกคะแนนตามใบงาน (EXCEL MATRIX SCORING) -->
     <!-- ======================================================== -->
-    <div v-if="activeTab === 'assignments'" class="space-y-6">
-      
-      <!-- Assignment Selection Bar -->
-      <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div v-if="activeTab === 'assignments'" class="space-y-5">
+
+      <!-- Excel Toolbar Header Card -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
-            <FileText class="w-5 h-5" />
+          <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold shrink-0">
+            <FileSpreadsheet class="w-5 h-5" />
           </div>
           <div>
-            <h4 class="font-bold text-stone-900 text-sm">เลือกใบงานที่ต้องการลงคะแนน</h4>
-            <p class="text-xs text-stone-500">{{ currentAssignments.length }} ใบงานในรายวิชานี้</p>
+            <h4 class="font-bold text-stone-900 text-sm sm:text-base">
+              {{ canEditGradebook ? 'ตารางกรอกคะแนนใบงานทั้งหมด (แบบ Excel Matrix)' : (isTeacher ? 'ตารางคะแนนใบงานทั้งหมด (ดูอย่างเดียว)' : 'ตารางคะแนนใบงานรายสัปดาห์ของคุณ') }}
+            </h4>
+            <p class="text-xs text-stone-500">
+              {{ currentAssignments.length }} ใบงาน • คะแนนดิบรวมเต็ม {{ totalAssignmentsMaxScore }} คะแนน (คิดเป็นคะแนนเก็บ {{ gradingConfig.assignments.total }} คะแนน)
+            </p>
           </div>
         </div>
 
-        <div class="flex flex-wrap gap-2 w-full md:w-auto">
-          <button
-            v-for="a in currentAssignments"
-            :key="a.id"
-            @click="selectedAssignmentId = a.id"
-            :class="[
-              'px-3.5 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer',
-              selectedAssignmentId === a.id
-                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
-            ]"
-          >
-            {{ a.title.split(':')[0] }} ({{ a.maxScore }} คะแนน)
-          </button>
-        </div>
-      </div>
-
-      <!-- Current Selected Assignment Header Card -->
-      <div class="p-5 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <span class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
-            {{ isTeacher ? 'กำลังลงคะแนนสำหรับ:' : 'กำลังดูคะแนนสำหรับ:' }}
-          </span>
-          <h4 class="text-base font-black text-emerald-950">{{ activeAssignment.title }}</h4>
-          <span class="text-xs text-emerald-700">คะแนนเต็ม {{ activeAssignment.maxScore }} คะแนน</span>
-        </div>
-
-        <!-- Teacher Actions in Header -->
-        <div v-if="isTeacher" class="flex flex-wrap items-center gap-2">
+        <!-- Teacher Actions (Main Teacher or Authorized Subject Teacher) -->
+        <div v-if="canEditGradebook" class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-start lg:justify-end">
           <button
             type="button"
-            @click="fillFullScoreForSubmitted"
-            class="px-3.5 py-2 rounded-xl bg-white hover:bg-emerald-100/70 text-emerald-800 border border-emerald-300 font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
-            title="กรอกคะแนนเต็มให้อัตโนมัติสำหรับทุกคนที่ส่งงานแล้ว"
+            @click="fillFullScoreForSubmitted(null)"
+            class="px-3.5 py-2 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+            title="กรอกคะแนนเต็มให้อัตโนมัติสำหรับทุกช่องที่ส่งงานแล้วและยังไม่มีคะแนน"
           >
             <Sparkles class="w-3.5 h-3.5 text-amber-500" />
             <span>ใส่คะแนนเต็มผู้ส่งงาน</span>
           </button>
-          
+
+          <button
+            v-if="hasUnsavedAssignmentScores"
+            type="button"
+            @click="resetDraftScores"
+            class="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <RotateCcw class="w-3.5 h-3.5" />
+            <span>รีเซ็ตค่า</span>
+          </button>
+
           <button
             type="button"
             @click="saveAllAssignmentScores"
             :disabled="isSavingScores"
             class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-sm hover:shadow cursor-pointer disabled:opacity-50"
-            title="บันทึกคะแนนทั้งหมดที่กรอกไว้"
+            title="บันทึกคะแนนที่แก้ไขทั้งหมด"
           >
             <Save v-if="!isSavingScores" class="w-3.5 h-3.5" />
             <svg v-else class="animate-spin -ml-0.5 mr-1 h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span>{{ isSavingScores ? 'กำลังบันทึก...' : 'บันทึกคะแนน' }}</span>
+            <span>{{ isSavingScores ? 'กำลังบันทึก...' : 'บันทึกคะแนนทั้งหมด' }}</span>
             <span v-if="unsavedCount > 0" class="ml-1 px-1.5 py-0.2 rounded-full bg-amber-400 text-stone-900 text-[10px] font-black">
               {{ unsavedCount }}
             </span>
           </button>
         </div>
-        <span v-else class="px-3 py-1 bg-white text-emerald-800 text-xs font-bold rounded-xl border border-emerald-300 shadow-xs">
-          คะแนนเก็บสะสมในส่วน 40 คะแนน
+
+        <!-- Student Legend -->
+        <div v-else class="flex flex-wrap items-center gap-2 text-[11px] font-bold">
+          <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">ตรวจแล้ว</span>
+          <span class="px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200">ส่งแล้ว / รอตรวจ</span>
+          <span class="px-2.5 py-1 rounded-lg bg-stone-50 text-stone-500 border border-stone-200">ยังไม่ส่ง (-)</span>
+          <span class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-800 border border-indigo-200">
+            คะแนนเก็บส่วน {{ gradingConfig.assignments.total }} คะแนน
+          </span>
+        </div>
+      </div>
+
+      <!-- Color Legend Strip for Editable Mode -->
+      <div v-if="canEditGradebook" class="flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] text-stone-600">
+        <div class="flex flex-wrap items-center gap-3 font-medium">
+          <span class="inline-flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded border border-emerald-300 bg-emerald-50 inline-block"></span>
+            ตรวจให้คะแนนแล้ว
+          </span>
+          <span class="inline-flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded border border-sky-300 bg-sky-50 inline-block"></span>
+            ส่งงานแล้ว (รอตรวจ)
+          </span>
+          <span class="inline-flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded border border-amber-400 bg-amber-100 inline-block"></span>
+            แก้ไขแล้วยังไม่บันทึก
+          </span>
+          <span class="inline-flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded border border-stone-300 bg-white inline-block"></span>
+            ยังไม่ส่งงาน
+          </span>
+        </div>
+        <span class="text-stone-400">
+          กด Enter หรือลูกศร ขึ้น/ลง เพื่อเลื่อนช่องคะแนน • คลิกมุมขวาบนของช่องเพื่อเปิดลิงก์งาน
         </span>
       </div>
 
-      <!-- Assignment Scoring Table -->
-      <div class="bg-white rounded-3xl border border-stone-200 shadow-xs overflow-hidden">
-        <table class="w-full text-left text-xs text-stone-700">
-          <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold text-[11px] uppercase tracking-wider">
-            <tr>
-              <th class="py-3.5 px-4 w-12 text-center">ลำดับ</th>
-              <th class="py-3.5 px-4">นักศึกษา</th>
-              <th class="py-3.5 px-4">รหัสนักศึกษา</th>
-              <th class="py-3.5 px-4">ห้องเรียน</th>
-              <th class="py-3.5 px-4 text-center">คะแนนที่ได้ (เต็ม {{ activeAssignment.maxScore }})</th>
-              <th class="py-3.5 px-4 text-center">สถานะการส่งงาน</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-stone-100">
-            <tr 
-              v-for="(student, index) in courseStudents" 
-              :key="student.id"
-              :class="[
-                'hover:bg-stone-50/80 transition-colors',
-                (!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)) ? 'bg-emerald-50/50 font-medium' : ''
-              ]"
-            >
-              <td class="py-3 px-4 text-center text-stone-400 font-mono">{{ index + 1 }}</td>
-              <td class="py-3 px-4 font-bold text-stone-900">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span>{{ student.name }}</span>
-                  <span v-if="!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)" class="px-1.5 py-0.2 rounded bg-emerald-600 text-white text-[9px] font-bold">
-                    ตัวคุณ
-                  </span>
-                  <!-- Group / Pair Work Badge -->
-                  <span v-if="getSubmission(student.studentId, activeAssignment.id)?.workType === 'pair'" class="px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-800 text-[9px] font-bold inline-flex items-center gap-0.5">
-                    <Users class="w-2.5 h-2.5 text-indigo-600" /> งานคู่
-                  </span>
-                  <span v-else-if="getSubmission(student.studentId, activeAssignment.id)?.workType === 'group'" class="px-1.5 py-0.2 rounded bg-purple-100 text-purple-800 text-[9px] font-bold inline-flex items-center gap-0.5">
-                    <Users class="w-2.5 h-2.5 text-purple-600" /> งานกลุ่ม
-                  </span>
-                </div>
-              </td>
-              <td class="py-3 px-4 font-mono text-stone-600">{{ student.studentId }}</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded bg-stone-100 font-bold text-[11px]">{{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : student.classroom }}</span>
-              </td>
-              
-              <!-- Score Input (Teacher) / Score Badge (Student) -->
-              <td class="py-3 px-4 text-center">
-                <div v-if="isTeacher" class="inline-flex items-center gap-2">
-                  <input 
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    :max="activeAssignment.maxScore"
-                    v-model="draftAssignmentScores[student.studentId || student.id]"
-                    @keydown.enter="saveAllAssignmentScores"
-                    placeholder="-"
-                    class="w-20 px-3 py-1.5 text-center font-mono font-bold bg-stone-50 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition-all shadow-xs"
-                    :class="{ 'border-amber-400 bg-amber-50/40 ring-1 ring-amber-300': (draftAssignmentScores[student.studentId || student.id] !== '' && draftAssignmentScores[student.studentId || student.id] !== undefined && Number(draftAssignmentScores[student.studentId || student.id]) !== (getStudentFullScore(selectedCourseId, student.studentId).rawAssignments[activeAssignment.id] ?? null)) }"
-                  />
-                  <span class="text-stone-400 text-xs">/ {{ activeAssignment.maxScore }}</span>
-                </div>
-                <div v-else class="inline-flex items-center gap-1.5 font-mono font-bold text-xs sm:text-sm">
-                  <span class="px-2.5 py-1 bg-stone-100 rounded-lg text-stone-800">
-                    {{ getStudentFullScore(selectedCourseId, student.studentId).rawAssignments[activeAssignment.id] || 0 }}
-                  </span>
-                  <span class="text-stone-400 text-xs">/ {{ activeAssignment.maxScore }}</span>
-                </div>
-              </td>
+      <!-- Compact Excel Matrix Table -->
+      <div class="bg-white rounded-3xl border border-stone-300 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-xs text-stone-700">
+            <thead>
+              <!-- Row 1: Rotated Assignment Headers -->
+              <tr class="bg-stone-100 text-stone-800">
+                <th rowspan="2" class="border border-stone-300 px-2 py-2 text-center font-bold w-10">
+                  ลำดับ
+                </th>
+                <th rowspan="2" class="border border-stone-300 px-2.5 py-2 text-center font-bold w-28">
+                  รหัสนักศึกษา
+                </th>
+                <th rowspan="2" class="border border-stone-300 px-3 py-2 text-left font-bold min-w-[190px] sticky left-0 z-20 bg-stone-100">
+                  ชื่อ - นามสกุล
+                </th>
+                <th rowspan="2" class="border border-stone-300 px-2 py-2 text-center font-bold w-16">
+                  ห้อง
+                </th>
 
-              <!-- Status Badge -->
-              <td class="py-3 px-4 text-center">
-                <div class="flex flex-col items-center gap-1.5">
-                  <!-- ตรวจให้คะแนนแล้ว -->
-                  <span 
-                    v-if="(getStudentFullScore(selectedCourseId, student.studentId).rawAssignments[activeAssignment.id] || 0) > 0"
-                    class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] inline-flex items-center gap-1"
-                  >
-                    <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" /> ตรวจแล้ว
-                  </span>
+                <!-- Vertical Rotated (Clockwise / Tilt Head) Assignment Columns -->
+                <th
+                  v-for="a in currentAssignments"
+                  :key="a.id"
+                  class="excel-th-vertical border border-stone-300 bg-emerald-50/70 hover:bg-emerald-100/70 transition-colors"
+                  :title="a.title + ' (เต็ม ' + a.maxScore + ' คะแนน)'"
+                >
+                  <div class="excel-vertical-text">{{ a.title }}</div>
+                </th>
 
-                  <!-- ลิงก์ดูงาน (ถ้ามี) -->
-                  <a v-if="getSubmission(student.studentId, activeAssignment.id)"
-                     :href="formatExternalUrl(getSubmission(student.studentId, activeAssignment.id).link)"
-                     target="_blank"
-                     rel="noopener noreferrer"
-                     class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold text-[11px] inline-flex items-center gap-1 transition-colors"
+                <th rowspan="2" class="border border-stone-300 px-2 py-2 text-center font-bold bg-stone-100 w-16 leading-tight">
+                  <span>รวมดิบ</span>
+                  <span class="block text-[10px] font-mono text-stone-500 mt-0.5">({{ totalAssignmentsMaxScore }})</span>
+                </th>
+                <th rowspan="2" class="border border-stone-300 px-2 py-2 text-center font-black bg-indigo-50 text-indigo-900 w-16 leading-tight">
+                  <span>เก็บ</span>
+                  <span class="block text-[10px] font-mono text-indigo-700 mt-0.5">({{ gradingConfig.assignments.total }})</span>
+                </th>
+              </tr>
+
+              <!-- Row 2: Compact Max Score & Quick Column Fill -->
+              <tr class="bg-emerald-100/50 text-[10px]">
+                <th
+                  v-for="a in currentAssignments"
+                  :key="`sub-${a.id}`"
+                  class="border border-stone-300 px-1 py-1 text-center font-mono text-emerald-950"
+                >
+                  <div class="font-black">เต็ม {{ a.maxScore }}</div>
+                  <div v-if="isTeacher" class="flex items-center justify-center gap-0.5 mt-0.5">
+                    <span class="text-[9px] font-sans text-stone-500">ส่ง {{ getSubmittedCount(a.id) }}</span>
+                    <button
+                      v-if="canEditGradebook"
+                      type="button"
+                      @click="fillFullScoreForSubmitted(a.id)"
+                      class="p-0.5 rounded hover:bg-amber-100 text-amber-600 cursor-pointer transition-colors"
+                      :title="'ใส่คะแนนเต็ม (' + a.maxScore + ') ให้ทุกคนที่ส่ง ' + a.title.split(':')[0]"
+                    >
+                      <Sparkles class="w-2.5 h-2.5" />
+                    </button>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr
+                v-for="(student, index) in courseStudents"
+                :key="student.id"
+                class="group transition-colors"
+                :class="(!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)) ? 'bg-emerald-50/40' : 'hover:bg-stone-50/60'"
+              >
+                <td class="border border-stone-300 px-2 py-1.5 text-center font-mono text-stone-400">
+                  {{ index + 1 }}
+                </td>
+                <td class="border border-stone-300 px-2.5 py-1.5 text-center font-mono text-[11px] text-stone-600 whitespace-nowrap">
+                  {{ student.studentId }}
+                </td>
+                <td
+                  class="border border-stone-300 px-3 py-1.5 font-bold text-stone-900 sticky left-0 z-10 whitespace-nowrap"
+                  :class="(!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)) ? 'bg-emerald-50' : 'bg-white group-hover:bg-stone-50'"
+                >
+                  <div class="flex items-center gap-1.5">
+                    <span>{{ student.name }}</span>
+                    <span
+                      v-if="!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)"
+                      class="px-1.5 py-0.2 rounded bg-emerald-600 text-white text-[9px] font-bold shrink-0"
+                    >
+                      ตัวคุณ
+                    </span>
+                  </div>
+                </td>
+                <td class="border border-stone-300 px-2 py-1.5 text-center whitespace-nowrap">
+                  <span class="px-1.5 py-0.5 rounded bg-stone-100 font-bold text-[10px]">
+                    {{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : student.classroom }}
+                  </span>
+                </td>
+
+                <!-- Compact Excel Assignment Cells -->
+                <td
+                  v-for="(a, aIdx) in currentAssignments"
+                  :key="`cell-${student.id}-${a.id}`"
+                  class="relative p-0 border border-stone-300 text-center align-middle w-[56px] min-w-[54px] max-w-[64px]"
+                  :class="[
+                    canEditGradebook && isCellDirty(student.studentId || student.id, a.id)
+                      ? 'bg-amber-100/90'
+                      : ((getStudentFullScore(selectedCourseId, student.studentId).rawAssignments[a.id] || 0) > 0
+                          ? 'bg-emerald-50/70'
+                          : (getSubmission(student.studentId, a.id) ? 'bg-sky-50/80' : 'bg-white'))
+                  ]"
+                >
+                  <!-- Editable Input Cell (Main Teacher or Authorized Subject Teacher) -->
+                  <template v-if="canEditGradebook">
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      :max="a.maxScore"
+                      v-model="draftAssignmentScores[getCellKey(student.studentId || student.id, a.id)]"
+                      :data-excel-row="index"
+                      :data-excel-col="aIdx"
+                      @keydown="handleExcelCellKeydown($event, index, aIdx)"
+                      placeholder="-"
+                      :title="student.name + ' • ' + a.title + ' (เต็ม ' + a.maxScore + ')'"
+                      class="excel-score-input w-full h-9 px-1 text-center font-mono font-bold text-xs text-stone-900 bg-transparent outline-none focus:bg-white focus:ring-2 focus:ring-inset focus:ring-emerald-500"
+                    />
+                  </template>
+
+                  <!-- Student Read-Only Cell -->
+                  <template v-else>
+                    <div
+                      class="h-9 flex items-center justify-center font-mono font-bold text-xs px-1"
+                      :class="[
+                        (getStudentFullScore(selectedCourseId, student.studentId).rawAssignments[a.id] || 0) > 0
+                          ? 'text-emerald-800'
+                          : (getSubmission(student.studentId, a.id) ? 'text-sky-700' : 'text-stone-400')
+                      ]"
+                      :title="a.title + ' • คะแนน ' + (getStudentFullScore(selectedCourseId, student.studentId).rawAssignments[a.id] ?? 0) + '/' + a.maxScore"
+                    >
+                      <template v-if="getStudentFullScore(selectedCourseId, student.studentId).rawAssignments[a.id] !== undefined && getStudentFullScore(selectedCourseId, student.studentId).rawAssignments[a.id] !== null && getStudentFullScore(selectedCourseId, student.studentId).rawAssignments[a.id] !== ''">
+                        {{ getStudentFullScore(selectedCourseId, student.studentId).rawAssignments[a.id] }}
+                      </template>
+                      <template v-else-if="getSubmission(student.studentId, a.id)">
+                        <span class="text-[10px] font-sans font-bold">รอตรวจ</span>
+                      </template>
+                      <template v-else>-</template>
+                    </div>
+                  </template>
+
+                  <!-- Corner Link Icon when Submitted -->
+                  <a
+                    v-if="getSubmission(student.studentId, a.id)"
+                    :href="formatExternalUrl(getSubmission(student.studentId, a.id).link)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="absolute top-0.5 right-0.5 p-0.5 rounded bg-blue-100/90 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors"
+                    :title="(getSubmission(student.studentId, a.id).workType === 'pair' ? '[งานคู่] ' : (getSubmission(student.studentId, a.id).workType === 'group' ? '[งานกลุ่ม] ' : '')) + 'เปิดลิงก์งานที่ส่ง: ' + a.title"
                   >
-                    <Search class="w-3.5 h-3.5" />
-                    <span>{{ getSubmission(student.studentId, activeAssignment.id).links?.length > 1 ? `ดูงาน (${getSubmission(student.studentId, activeAssignment.id).links.length} ลิงก์)` : 'ดูงาน (Link)' }}</span>
+                    <ExternalLink class="w-2.5 h-2.5" />
                   </a>
-                  
-                  <!-- ยังไม่มีอะไรเลย -->
-                  <span 
-                    v-if="!getSubmission(student.studentId, activeAssignment.id) && (getStudentFullScore(selectedCourseId, student.studentId).rawAssignments[activeAssignment.id] || 0) === 0"
-                    class="px-2.5 py-1 rounded-full bg-stone-100 text-stone-500 font-semibold text-[11px]"
-                  >
-                    รอส่งงาน
-                  </span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
 
-        <!-- Table Footer / Action Bar for Teacher -->
-        <div v-if="isTeacher" class="p-4 bg-stone-50/80 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <!-- Raw Sum Column -->
+                <td class="border border-stone-300 px-2 py-1.5 text-center font-mono font-bold text-stone-800 bg-stone-50/80">
+                  {{ getStudentRawAssignmentSum(student.studentId || student.id) }}
+                </td>
+
+                <!-- Scaled (40) Column -->
+                <td class="border border-stone-300 px-2 py-1.5 text-center font-mono font-black text-indigo-800 bg-indigo-50/50">
+                  {{ getStudentScaledAssignmentScore(student.studentId || student.id) }}
+                </td>
+              </tr>
+
+              <tr v-if="courseStudents.length === 0">
+                <td :colspan="6 + currentAssignments.length" class="py-10 text-center text-stone-400 border border-stone-300">
+                  ไม่พบข้อมูลนักศึกษาในวิชาและห้องเรียนที่เลือก
+                </td>
+              </tr>
+            </tbody>
+
+            <!-- Footer Average Row for Teacher -->
+            <tfoot v-if="isTeacher && courseStudents.length > 0">
+              <tr class="bg-stone-100 font-bold text-stone-700 text-[11px]">
+                <td colspan="4" class="border border-stone-300 px-3 py-2 text-right">
+                  ค่าเฉลี่ยแต่ละใบงาน (จำนวนผู้ส่งงาน):
+                </td>
+                <td
+                  v-for="a in currentAssignments"
+                  :key="`avg-${a.id}`"
+                  class="border border-stone-300 px-1 py-1.5 text-center font-mono"
+                >
+                  <div class="text-emerald-800">{{ getAssignmentAvgScore(a.id) }}</div>
+                  <div class="text-[9px] text-stone-500 font-sans">{{ getSubmittedCount(a.id) }}/{{ courseStudents.length }}</div>
+                </td>
+                <td class="border border-stone-300 px-2 py-1.5 text-center font-mono text-stone-500">-</td>
+                <td class="border border-stone-300 px-2 py-1.5 text-center font-mono text-indigo-700">-</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Bottom Action Bar for Editable Mode -->
+        <div v-if="canEditGradebook" class="p-4 bg-stone-50/80 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div class="flex items-center gap-2 text-xs">
             <span v-if="hasUnsavedAssignmentScores" class="inline-flex items-center gap-1.5 text-amber-800 font-bold bg-amber-100/90 px-3 py-1.5 rounded-xl border border-amber-300">
               <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-              มีการแก้ไขคะแนน {{ unsavedCount }} รายการที่ยังไม่ได้บันทึก
+              มีการแก้ไขคะแนน {{ unsavedCount }} ช่องที่ยังไม่ได้บันทึก
             </span>
             <span v-else class="text-stone-500 font-medium inline-flex items-center gap-1.5">
               <Info class="w-3.5 h-3.5 text-stone-400 shrink-0" />
-              <span>กรอกคะแนนลงในตารางให้ครบทุกคน แล้วกดปุ่ม "บันทึกคะแนน" ด้านขวา</span>
+              <span>กรอกคะแนนลงในตารางแบบ Excel แล้วกดปุ่ม "บันทึกคะแนนทั้งหมด" ด้านขวา</span>
             </span>
           </div>
 
@@ -1187,353 +1721,310 @@ const handleExportAttendanceExcel = async () => {
     </div>
 
     <!-- ======================================================== -->
-    <!-- TAB 3: เช็คชื่อการเข้าเรียนรายสัปดาห์ (WEEKLY ATTENDANCE) -->
+    <!-- TAB 3: เช็คชื่อการเข้าเรียนรายสัปดาห์ (EXCEL ATTENDANCE MATRIX) -->
     <!-- ======================================================== -->
-    <div v-if="activeTab === 'attendance'" class="space-y-6">
-      
-      <!-- Week Selection & Quick Actions -->
-      <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        
-        <!-- Week Buttons -->
-        <div class="space-y-1.5">
-          <label class="block text-xs font-bold text-stone-700 flex items-center gap-1.5">
-            <Calendar class="w-4 h-4 text-blue-600" />
-            เลือกรอบสัปดาห์ที่เช็คชื่อ (สัปดาห์ที่ 1 - {{ totalCourseWeeks }})
-          </label>
-          <div class="flex flex-wrap gap-1.5">
+    <div v-if="activeTab === 'attendance'" class="space-y-5">
+
+      <!-- Excel Attendance Toolbar Card -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold shrink-0">
+              <Calendar class="w-5 h-5" />
+            </div>
+            <div>
+              <h4 class="font-bold text-stone-900 text-sm sm:text-base">
+                {{ canEditGradebook ? 'ตารางเช็คชื่อเข้าเรียนรายสัปดาห์ทั้งหมด (แบบ Excel Matrix)' : 'ตารางสรุปการเข้าเรียนรายสัปดาห์ทั้งหมด' }}
+              </h4>
+              <p class="text-xs text-stone-500">
+                รวม {{ totalCourseWeeks }} สัปดาห์ • จิตพิสัยการเข้าเรียนเต็ม 10 คะแนน (มาเรียน 100%, มาสายหัก 0.2 คะแนน, ลา/วันหยุดไม่หักคะแนน)
+              </p>
+            </div>
+          </div>
+
+          <!-- Top Actions: Week Holiday / Quick Check-in / Export Excel -->
+          <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-start lg:justify-end">
+            <template v-if="canEditGradebook">
+              <button
+                v-if="!isWeekHoliday(selectedCourseId, selectedWeek)"
+                @click="handleOpenHolidayModal(selectedWeek)"
+                type="button"
+                class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
+                title="กำหนดให้สัปดาห์ที่เลือกเป็นวันหยุดราชการ (ไม่หักคะแนนเข้าเรียน)"
+              >
+                <CalendarOff class="w-3.5 h-3.5 text-rose-500" />
+                <span>ตั้ง W{{ selectedWeek }} เป็นวันหยุด</span>
+              </button>
+
+              <button
+                v-else
+                @click="handleRemoveHoliday(selectedWeek)"
+                type="button"
+                class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <RotateCcw class="w-3.5 h-3.5" />
+                <span>ยกเลิกวันหยุด (W{{ selectedWeek }})</span>
+              </button>
+
+              <button
+                @click="handleBatchAllPresent(selectedWeek)"
+                :disabled="isWeekHoliday(selectedCourseId, selectedWeek)"
+                type="button"
+                class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <UserCheck class="w-3.5 h-3.5" />
+                <span>มาเรียนครบทุกคน (W{{ selectedWeek }})</span>
+              </button>
+            </template>
+
             <button
-              v-for="w in totalCourseWeeks"
-              :key="w"
-              @click="selectedWeek = w"
-              :class="[
-                'min-w-10 h-10 px-2.5 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 cursor-pointer relative whitespace-nowrap',
-                // 1. วันหยุดราชการ (Holiday) -> สีแดง
-                getWeekAttendanceStatus(w).status === 'holiday'
-                  ? (selectedWeek === w
-                      ? 'bg-rose-600 text-white border-rose-600 shadow-xs ring-2 ring-rose-400 ring-offset-1'
-                      : 'bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100')
-                  // 2. เช็คครบแล้ว (Complete) -> สีเขียว
-                  : getWeekAttendanceStatus(w).status === 'complete'
-                    ? (selectedWeek === w
-                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs ring-2 ring-emerald-400 ring-offset-1'
-                        : 'bg-emerald-50 border-emerald-400 text-emerald-800 hover:bg-emerald-100')
-                    // 3. เช็คไม่ครบ (Partial) -> สีเหลือง
-                    : getWeekAttendanceStatus(w).status === 'partial'
-                      ? (selectedWeek === w
-                          ? 'bg-amber-500 text-white border-amber-600 shadow-xs ring-2 ring-amber-400 ring-offset-1'
-                          : 'bg-amber-50 border-amber-400 text-amber-900 hover:bg-amber-100')
-                      // 4. ยังไม่ได้เช็ค -> สีเดิม (stone-50 / เมื่อถูกเลือกเป็นสีน้ำเงิน)
-                      : (selectedWeek === w
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs ring-2 ring-blue-400 ring-offset-1'
-                          : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100')
-              ]"
-              :title="getWeekAttendanceStatus(w).status === 'holiday'
-                ? `สัปดาห์ที่ ${w}: ${getWeekHoliday(selectedCourseId, w)?.name || 'วันหยุดราชการ'}`
-                : getWeekAttendanceStatus(w).status === 'complete'
-                  ? `สัปดาห์ที่ ${w}: เช็คชื่อครบแล้ว (${getWeekAttendanceStatus(w).totalCount} คน)`
-                  : getWeekAttendanceStatus(w).status === 'partial'
-                    ? `สัปดาห์ที่ ${w}: เช็คชื่อแล้ว ${getWeekAttendanceStatus(w).checkedCount} จาก ${getWeekAttendanceStatus(w).totalCount} คน`
-                    : `สัปดาห์ที่ ${w}: ยังไม่ได้เช็คชื่อ`"
+              v-if="isTeacher"
+              @click="handleExportAttendanceExcel"
+              :disabled="isExportingExcel"
+              type="button"
+              class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <span>W{{ w }}</span>
-
-              <!-- Badge: วันหยุด -->
-              <span
-                v-if="getWeekAttendanceStatus(w).status === 'holiday'"
-                class="text-[9px] px-1 py-0.2 rounded font-bold"
-                :class="selectedWeek === w ? 'bg-white/20 text-white' : 'bg-rose-200 text-rose-800'"
-              >
-                หยุด
-              </span>
-
-              <!-- Badge: เช็คครบแล้ว -> เช็คแล้ว -->
-              <span
-                v-else-if="getWeekAttendanceStatus(w).status === 'complete'"
-                class="text-[10px] px-1.5 py-0.5 rounded font-black leading-none"
-                :class="selectedWeek === w ? 'bg-white/25 text-white' : 'bg-emerald-600 text-white'"
-              >
-                เช็คแล้ว
-              </span>
-
-              <!-- Badge: เช็คไม่ครบ -> เช็คแล้ว n/n -->
-              <span
-                v-else-if="getWeekAttendanceStatus(w).status === 'partial'"
-                class="text-[10px] px-1.5 py-0.5 rounded font-black leading-none"
-                :class="selectedWeek === w ? 'bg-white/25 text-white' : 'bg-amber-500 text-white'"
-              >
-                เช็คแล้ว {{ getWeekAttendanceStatus(w).checkedCount }}/{{ getWeekAttendanceStatus(w).totalCount }}
-              </span>
+              <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-200" />
+              <span>{{ isExportingExcel ? 'กำลังสร้างไฟล์...' : 'พิมพ์ตารางเข้าเรียน (Excel)' }}</span>
             </button>
           </div>
         </div>
 
-        <!-- Quick Batch Check-in, Holiday & Export Excel (Teacher Only) -->
-        <div v-if="isTeacher" class="flex flex-wrap items-center gap-2 self-stretch md:self-auto">
-          <!-- Button: Mark / Unmark Holiday -->
-          <button
-            v-if="!isWeekHoliday(selectedCourseId, selectedWeek)"
-            @click="handleOpenHolidayModal(selectedWeek)"
-            type="button"
-            class="w-full md:w-auto px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-            title="กำหนดให้สัปดาห์นี้เป็นวันหยุดราชการ (ไม่หักคะแนนเข้าเรียน)"
-          >
-            <CalendarOff class="w-4 h-4 text-rose-500" />
-            <span>ตั้งเป็นวันหยุดราชการ</span>
-          </button>
-
-          <button
-            v-else
-            @click="handleRemoveHoliday(selectedWeek)"
-            type="button"
-            class="w-full md:w-auto px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-            title="ยกเลิกวันหยุดและเปิดให้เช็คชื่อปกติ"
-          >
-            <RotateCcw class="w-4 h-4" />
-            <span>ยกเลิกวันหยุด (สัปดาห์ที่ {{ selectedWeek }})</span>
-          </button>
-
-          <button
-            @click="handleExportAttendanceExcel"
-            :disabled="isExportingExcel"
-            class="w-full md:w-auto px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-            title="พิมพ์ตารางการเข้าเรียนของวิชา/ห้องนี้ออกมาเป็นไฟล์ Excel"
-          >
-            <FileSpreadsheet class="w-4 h-4 text-emerald-200" />
-            <span>{{ isExportingExcel ? 'กำลังสร้างไฟล์...' : 'พิมพ์ตารางเข้าเรียน (Excel)' }}</span>
-          </button>
-          
-          <button
-            @click="handleBatchAllPresent"
-            :disabled="isWeekHoliday(selectedCourseId, selectedWeek)"
-            class="w-full md:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <UserCheck class="w-4 h-4" />
-            <span>มาเรียนตรงเวลาทุกคน (Quick Check-in)</span>
-          </button>
-        </div>
-
-      </div>
-
-      <!-- Holiday Alert Banner (When Selected Week is a Holiday) -->
-      <div v-if="isWeekHoliday(selectedCourseId, selectedWeek)" class="p-4 bg-gradient-to-r from-rose-50 via-orange-50 to-rose-50 border border-rose-200 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs text-rose-950 shadow-xs">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <CalendarOff class="w-5 h-5" />
-          </div>
-          <div>
-            <div class="font-bold text-sm text-rose-900 flex items-center gap-2 flex-wrap">
-              <span>สัปดาห์ที่ {{ selectedWeek }} เป็นวันหยุดราชการ</span>
-              <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold">
-                {{ getWeekHoliday(selectedCourseId, selectedWeek)?.name || 'วันหยุดราชการ' }}
-              </span>
-            </div>
-            <p class="text-rose-700 text-xs mt-0.5">
-              สัปดาห์นี้ไม่มีการเรียนการสอนและการเช็คชื่อเข้าเรียน ระบบจะไม่หักคะแนนจิตพิสัยของนักศึกษาทุกคน
-            </p>
-          </div>
-        </div>
-
-        <div v-if="isTeacher" class="flex items-center gap-2">
-          <button
-            @click="handleRemoveHoliday(selectedWeek)"
-            type="button"
-            class="px-3.5 py-2 rounded-xl bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-bold text-xs shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
-          >
-            <RotateCcw class="w-3.5 h-3.5 text-rose-600" /> ยกเลิกวันหยุด (เปิดให้เช็คชื่อปกติ)
-          </button>
-        </div>
-      </div>
-
-      <!-- Warning / Deduction Policy Alert Banner -->
-      <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 text-xs text-amber-900 leading-relaxed">
-        <AlertCircle class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-        <div>
-          <strong class="font-bold">กติกาการเช็คอินและการหักคะแนน:</strong>
-          ระบบจิตพิสัยการเข้าเรียนมีคะแนนเต็ม <strong>10 คะแนน</strong>
-          <ul class="list-disc pl-5 mt-1 space-y-0.5 text-amber-800">
-            <li><strong>มาเรียนตรงเวลา (Present):</strong> เช็คอินก่อน {{ checkInTimeLimit }} ได้คะแนนเต็ม 100%</li>
-            <li><strong>มาสาย (Late):</strong> เช็คอินหลังเวลาที่กำหนด ได้คะแนน 80% (หัก 0.2 คะแนนต่อครั้ง)</li>
-            <li><strong>ขาดเรียน / ไม่เข้าเช็คอิน (Absent):</strong> ไม่ได้คะแนนในสัปดาห์นั้น (หักคะแนนจิตพิสัย)</li>
-            <li><strong>ลากิจ/ลาป่วย (Leave):</strong> ยื่นใบลาพร้อมเหตุผล ได้รับการยกเว้นไม่หักคะแนน</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Attendance Check-in Table -->
-      <div class="bg-white rounded-3xl border border-stone-200 shadow-xs overflow-hidden">
-        <div class="p-4 border-b border-stone-100 flex items-center justify-between">
-          <h4 class="font-bold text-sm text-stone-800 flex items-center gap-2">
-            <Clock class="w-4 h-4 text-blue-600" />
-            บันทึกการเข้าเรียน: สัปดาห์ที่ {{ selectedWeek }}
-          </h4>
-          <span class="text-xs text-stone-400">
-            {{ isTeacher ? 'คลิกสถานะเพื่อปรับเปลี่ยนการเช็คอิน' : 'สรุปการเข้าเรียนประจำสัปดาห์ (ดูได้อย่างเดียว)' }}
-          </span>
-        </div>
-
-        <table class="w-full text-left text-xs text-stone-700">
-          <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold text-[11px] uppercase tracking-wider">
-            <tr>
-              <th class="py-3.5 px-4 w-12 text-center">ลำดับ</th>
-              <th class="py-3.5 px-4">นักศึกษา</th>
-              <th class="py-3.5 px-4">รหัส / ห้อง</th>
-              <th class="py-3.5 px-4 text-center">{{ isTeacher ? 'สถานะการเช็คอิน (คลิกเพื่อเลือก)' : 'สถานะการเช็คอิน' }}</th>
-              <th class="py-3.5 px-4 text-center">เวลาที่เช็ค</th>
-              <th class="py-3.5 px-4 text-center">คะแนนสะสมเข้าเรียน</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-stone-100">
-            <tr 
-              v-for="(student, index) in courseStudents" 
-              :key="student.id"
-              :class="[
-                'hover:bg-stone-50/80 transition-colors',
-                (!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)) ? 'bg-emerald-50/50 font-medium' : ''
-              ]"
+        <!-- Stamp Mode Selector (Editable Teacher) OR Legend Strip (Read-Only / Student) -->
+        <div class="pt-3 border-t border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div v-if="canEditGradebook" class="flex flex-wrap items-center gap-1.5">
+            <span class="font-bold text-stone-600 mr-1">โหมดคลิกช่องตาราง:</span>
+            <button
+              v-for="mode in stampModeOptions"
+              :key="mode.id"
+              type="button"
+              @click="attendanceStampMode = mode.id"
+              class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer"
+              :class="attendanceStampMode === mode.id
+                ? mode.badgeClass + ' shadow-2xs'
+                : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'"
             >
-              <td class="py-3 px-4 text-center text-stone-400 font-mono">{{ index + 1 }}</td>
-              <td class="py-3 px-4 font-bold text-stone-900">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span>{{ student.name }}</span>
-                  <span v-if="!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)" class="px-1.5 py-0.2 rounded bg-emerald-600 text-white text-[9px] font-bold">
-                    ตัวคุณ
-                  </span>
-                  <!-- Group / Pair Work Badge -->
-                  <span v-if="getSubmission(student.studentId, activeAssignment.id)?.workType === 'pair'" class="px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-800 text-[9px] font-bold inline-flex items-center gap-0.5">
-                    <Users class="w-2.5 h-2.5 text-indigo-600" /> งานคู่
-                  </span>
-                  <span v-else-if="getSubmission(student.studentId, activeAssignment.id)?.workType === 'group'" class="px-1.5 py-0.2 rounded bg-purple-100 text-purple-800 text-[9px] font-bold inline-flex items-center gap-0.5">
-                    <Users class="w-2.5 h-2.5 text-purple-600" /> งานกลุ่ม
-                  </span>
-                </div>
-              </td>
-              <td class="py-3 px-4 font-mono text-stone-500">{{ student.studentId }} ({{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : student.classroom }})</td>
+              {{ mode.label }}
+            </button>
+          </div>
 
-              <!-- Status Action Buttons Group (Teacher) / Read-only Badges (Student) -->
-              <td class="py-3 px-4 text-center">
-                <!-- If Week is a Holiday -->
-                <div v-if="isWeekHoliday(selectedCourseId, selectedWeek)" class="inline-flex items-center justify-center">
-                  <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-800 font-bold text-xs inline-flex items-center gap-1.5 border border-rose-200">
-                    <CalendarOff class="w-3.5 h-3.5 text-rose-600" />
-                    <span>วันหยุดราชการ</span>
-                    <span class="text-rose-600/70 text-[10px]">({{ getWeekHoliday(selectedCourseId, selectedWeek)?.name || 'งดเรียน' }})</span>
+          <div class="flex flex-wrap items-center gap-2 text-[11px] font-bold">
+            <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">มา = มาเรียนตรงเวลา</span>
+            <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">สาย = มาสาย (-0.2)</span>
+            <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">ลา = ลากิจ/ป่วย</span>
+            <span class="px-2 py-0.5 rounded bg-red-100 text-red-800 border border-red-200">ขาด = ขาดเรียน</span>
+            <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200">หยุด = วันหยุดราชการ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compact Excel Attendance Matrix Table -->
+      <div class="bg-white rounded-3xl border border-stone-300 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-xs text-stone-700">
+            <thead>
+              <!-- Row 1: Rotated Vertical Week Topic Headers -->
+              <tr class="bg-stone-100 text-stone-800">
+                <th rowspan="2" class="border border-stone-300 px-2 py-2 text-center font-bold w-10">
+                  ลำดับ
+                </th>
+                <th rowspan="2" class="border border-stone-300 px-2.5 py-2 text-center font-bold w-28">
+                  รหัสนักศึกษา
+                </th>
+                <th rowspan="2" class="border border-stone-300 px-3 py-2 text-left font-bold min-w-[190px] sticky left-0 z-20 bg-stone-100">
+                  ชื่อ - นามสกุล
+                </th>
+                <th rowspan="2" class="border border-stone-300 px-2 py-2 text-center font-bold w-16">
+                  ห้อง
+                </th>
+
+                <!-- Vertical Rotated Week Columns (W1..W15/18) -->
+                <th
+                  v-for="w in totalCourseWeeks"
+                  :key="`th-w-${w}`"
+                  @click="selectedWeek = w"
+                  class="excel-th-week-vertical border border-stone-300 transition-colors cursor-pointer"
+                  :class="isWeekHoliday(selectedCourseId, w)
+                    ? 'bg-rose-50/90 hover:bg-rose-100/80'
+                    : (selectedWeek === w ? 'bg-blue-100/70' : 'bg-blue-50/35 hover:bg-blue-50/80')"
+                  :title="getWeekTopicTitle(w)"
+                >
+                  <div
+                    class="excel-week-vertical-text"
+                    :class="{ 'text-rose-800': isWeekHoliday(selectedCourseId, w) }"
+                  >
+                    สัปดาห์ที่ {{ w }}
+                  </div>
+                </th>
+
+                <!-- Rightmost Summary Headers -->
+                <th rowspan="2" class="border border-stone-300 px-1.5 py-2 text-center font-black bg-emerald-50 text-emerald-800 w-11">
+                  มา
+                </th>
+                <th rowspan="2" class="border border-stone-300 px-1.5 py-2 text-center font-black bg-amber-50 text-amber-800 w-11">
+                  สาย
+                </th>
+                <th rowspan="2" class="border border-stone-300 px-1.5 py-2 text-center font-black bg-blue-50 text-blue-800 w-11">
+                  ลา
+                </th>
+                <th rowspan="2" class="border border-stone-300 px-1.5 py-2 text-center font-black bg-red-50 text-red-800 w-11">
+                  ขาด
+                </th>
+                <th rowspan="2" class="border border-stone-300 px-2 py-2 text-center font-black bg-indigo-50 text-indigo-900 w-14 leading-tight">
+                  <span>คะแนน</span>
+                  <span class="block text-[10px] font-mono text-indigo-700 mt-0.5">(10)</span>
+                </th>
+              </tr>
+
+              <!-- Row 2: Week Number + Quick Actions per Column -->
+              <tr class="bg-blue-50/60 text-[10px]">
+                <th
+                  v-for="w in totalCourseWeeks"
+                  :key="`sub-w-${w}`"
+                  @click="selectedWeek = w"
+                  class="border border-stone-300 px-1 py-1 text-center font-mono cursor-pointer transition-colors"
+                  :class="selectedWeek === w ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-400' : ''"
+                >
+                  <div class="font-black text-stone-900">W{{ w }}</div>
+                  <div v-if="isWeekHoliday(selectedCourseId, w)" class="text-[9px] font-sans font-bold text-rose-700">
+                    หยุด
+                  </div>
+                  <div v-else class="text-[9px] font-sans text-stone-500">
+                    {{ getWeekAttendanceStatus(w).checkedCount }}/{{ courseStudents.length }}
+                  </div>
+
+                  <!-- Column Quick Buttons for Editable Teacher -->
+                  <div v-if="canEditGradebook" class="flex items-center justify-center gap-0.5 mt-0.5">
+                    <button
+                      v-if="!isWeekHoliday(selectedCourseId, w)"
+                      type="button"
+                      @click.stop="handleBatchAllPresent(w)"
+                      class="p-0.5 rounded hover:bg-emerald-100 text-emerald-700 cursor-pointer transition-colors"
+                      :title="'เช็คมาเรียนครบทุกคนในสัปดาห์ที่ ' + w"
+                    >
+                      <UserCheck class="w-2.5 h-2.5" />
+                    </button>
+                    <button
+                      type="button"
+                      @click.stop="isWeekHoliday(selectedCourseId, w) ? handleRemoveHoliday(w) : handleOpenHolidayModal(w)"
+                      class="p-0.5 rounded hover:bg-rose-100 text-rose-600 cursor-pointer transition-colors"
+                      :title="isWeekHoliday(selectedCourseId, w) ? 'ยกเลิกวันหยุดสัปดาห์ที่ ' + w : 'ตั้งสัปดาห์ที่ ' + w + ' เป็นวันหยุดราชการ'"
+                    >
+                      <CalendarOff class="w-2.5 h-2.5" />
+                    </button>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr
+                v-for="(student, index) in courseStudents"
+                :key="`att-row-${student.id}`"
+                class="group transition-colors"
+                :class="(!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)) ? 'bg-emerald-50/40' : 'hover:bg-stone-50/60'"
+              >
+                <td class="border border-stone-300 px-2 py-1.5 text-center font-mono text-stone-400">
+                  {{ index + 1 }}
+                </td>
+                <td class="border border-stone-300 px-2.5 py-1.5 text-center font-mono text-[11px] text-stone-600 whitespace-nowrap">
+                  {{ student.studentId }}
+                </td>
+                <td
+                  class="border border-stone-300 px-3 py-1.5 font-bold text-stone-900 sticky left-0 z-10 whitespace-nowrap"
+                  :class="(!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)) ? 'bg-emerald-50' : 'bg-white group-hover:bg-stone-50'"
+                >
+                  <div class="flex items-center gap-1.5">
+                    <span>{{ student.name }}</span>
+                    <span
+                      v-if="!isTeacher && (student.studentId === authUser?.studentId || student.studentId === authUser?.id)"
+                      class="px-1.5 py-0.2 rounded bg-emerald-600 text-white text-[9px] font-bold shrink-0"
+                    >
+                      ตัวคุณ
+                    </span>
+                  </div>
+                </td>
+                <td class="border border-stone-300 px-2 py-1.5 text-center whitespace-nowrap">
+                  <span class="px-1.5 py-0.5 rounded bg-stone-100 font-bold text-[10px]">
+                    {{ student.classroom === 'teacher_room' ? 'อาจารย์ผู้สอน' : student.classroom }}
                   </span>
-                </div>
+                </td>
 
-                <!-- Student Read-only Badges (Normal Week) -->
-                <div v-else-if="!isTeacher" class="inline-flex items-center justify-center">
-                  <span 
-                    v-if="getAttendanceRecord(student.studentId, selectedWeek).status === 'present'"
-                    class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs inline-flex items-center gap-1 border border-emerald-200"
-                  >
-                    <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" /> มาเรียนตรงเวลา
+                <!-- Compact Excel Attendance Cells (1 Cell per Week) -->
+                <td
+                  v-for="w in totalCourseWeeks"
+                  :key="`att-${student.id}-w-${w}`"
+                  @click="canEditGradebook && handleCellAttendanceClick(student.studentId, w)"
+                  class="p-0 border border-stone-300 text-center align-middle w-[50px] min-w-[46px] max-w-[58px] h-9 select-none transition-colors"
+                  :class="[
+                    canEditGradebook ? 'cursor-pointer hover:ring-2 hover:ring-inset hover:ring-blue-400' : '',
+                    getAttendanceRecord(student.studentId, w).status === 'holiday'
+                      ? 'bg-rose-50/90 text-rose-700 font-bold'
+                      : getAttendanceRecord(student.studentId, w).status === 'present'
+                        ? 'bg-emerald-50/90 text-emerald-800 font-black'
+                        : getAttendanceRecord(student.studentId, w).status === 'late'
+                          ? 'bg-amber-100/90 text-amber-900 font-black'
+                          : getAttendanceRecord(student.studentId, w).status === 'leave'
+                            ? 'bg-blue-100/90 text-blue-800 font-black'
+                            : getAttendanceRecord(student.studentId, w).status === 'absent'
+                              ? 'bg-red-100/90 text-red-800 font-black'
+                              : 'bg-white text-stone-300'
+                  ]"
+                  :title="`${student.name} • สัปดาห์ที่ ${w}: ${getAttendanceStatusShortLabel(getAttendanceRecord(student.studentId, w).status)}${getAttendanceRecord(student.studentId, w).checkedAt && getAttendanceRecord(student.studentId, w).checkedAt !== '-' ? ' (เวลา ' + getAttendanceRecord(student.studentId, w).checkedAt + ')' : ''}`"
+                >
+                  <span class="text-[11px]">
+                    {{ getAttendanceStatusShortLabel(getAttendanceRecord(student.studentId, w).status) }}
                   </span>
-                  <span 
-                    v-else-if="getAttendanceRecord(student.studentId, selectedWeek).status === 'late'"
-                    class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-xs inline-flex items-center gap-1 border border-amber-200"
-                  >
-                    <Clock class="w-3.5 h-3.5 text-amber-600" /> มาสาย
+                </td>
+
+                <!-- Rightmost Summary Counts & Score -->
+                <td class="border border-stone-300 px-1.5 py-1.5 text-center font-mono font-bold text-emerald-800 bg-emerald-50/40">
+                  {{ getStudentAttendanceCounts(student.studentId).present }}
+                </td>
+                <td class="border border-stone-300 px-1.5 py-1.5 text-center font-mono font-bold text-amber-800 bg-amber-50/40">
+                  {{ getStudentAttendanceCounts(student.studentId).late }}
+                </td>
+                <td class="border border-stone-300 px-1.5 py-1.5 text-center font-mono font-bold text-blue-800 bg-blue-50/40">
+                  {{ getStudentAttendanceCounts(student.studentId).leave }}
+                </td>
+                <td class="border border-stone-300 px-1.5 py-1.5 text-center font-mono font-bold text-red-700 bg-red-50/40">
+                  {{ getStudentAttendanceCounts(student.studentId).absent }}
+                </td>
+                <td class="border border-stone-300 px-2 py-1.5 text-center font-mono font-black bg-indigo-50/50">
+                  <span :class="getStudentFullScore(selectedCourseId, student.studentId, totalRecordedWeeks).attendanceScore >= 8 ? 'text-indigo-800' : 'text-red-600'">
+                    {{ getStudentFullScore(selectedCourseId, student.studentId, totalRecordedWeeks).attendanceScore }}
                   </span>
-                  <span 
-                    v-else-if="getAttendanceRecord(student.studentId, selectedWeek).status === 'leave'"
-                    class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 font-bold text-xs inline-flex items-center gap-1 border border-blue-200"
-                  >
-                    <FileText class="w-3.5 h-3.5 text-blue-600" /> ลา
-                  </span>
-                  <span 
-                    v-else-if="getAttendanceRecord(student.studentId, selectedWeek).status === 'absent'"
-                    class="px-3 py-1 rounded-full bg-red-100 text-red-800 font-bold text-xs inline-flex items-center gap-1 border border-red-200"
-                  >
-                    <XCircle class="w-3.5 h-3.5 text-red-600" /> ขาดเรียน
-                  </span>
-                  <span 
-                    v-else
-                    class="px-3 py-1 rounded-full bg-stone-100 text-stone-500 font-medium text-xs inline-flex items-center gap-1 border border-stone-200"
-                  >
-                    ยังไม่เช็คอิน
-                  </span>
-                </div>
+                </td>
+              </tr>
 
-                <!-- Teacher Interactive Buttons -->
-                <div v-else class="inline-flex items-center gap-1.5 p-1 bg-stone-100 rounded-xl border border-stone-200">
-                  <!-- Present -->
-                  <button 
-                    type="button"
-                    @click="handleSetAttendance(student.studentId, 'present')"
-                    :class="[
-                      'px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
-                      getAttendanceRecord(student.studentId, selectedWeek).status === 'present'
-                        ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'text-stone-600 hover:bg-white'
-                    ]"
-                  >
-                    <CheckCircle2 class="w-3.5 h-3.5" /> มาเรียน
-                  </button>
+              <tr v-if="courseStudents.length === 0">
+                <td :colspan="9 + totalCourseWeeks" class="py-10 text-center text-stone-400 border border-stone-300">
+                  ไม่พบข้อมูลนักศึกษาในวิชาและห้องเรียนที่เลือก
+                </td>
+              </tr>
+            </tbody>
 
-                  <!-- Late -->
-                  <button 
-                    type="button"
-                    @click="handleSetAttendance(student.studentId, 'late')"
-                    :class="[
-                      'px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
-                      getAttendanceRecord(student.studentId, selectedWeek).status === 'late'
-                        ? 'bg-amber-500 text-white shadow-xs'
-                        : 'text-stone-600 hover:bg-white'
-                    ]"
-                  >
-                    <Clock class="w-3.5 h-3.5" /> สาย
-                  </button>
-
-                  <!-- Leave -->
-                  <button 
-                    type="button"
-                    @click="handleSetAttendance(student.studentId, 'leave')"
-                    :class="[
-                      'px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
-                      getAttendanceRecord(student.studentId, selectedWeek).status === 'leave'
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'text-stone-600 hover:bg-white'
-                    ]"
-                  >
-                    <FileText class="w-3.5 h-3.5" /> ลา
-                  </button>
-
-                  <!-- Absent (ขาดเรียน / ไม่เข้าเช็คอิน) -->
-                  <button 
-                    type="button"
-                    @click="handleSetAttendance(student.studentId, 'absent')"
-                    :class="[
-                      'px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
-                      getAttendanceRecord(student.studentId, selectedWeek).status === 'absent'
-                        ? 'bg-red-600 text-white shadow-xs'
-                        : 'text-stone-600 hover:bg-white text-red-600'
-                    ]"
-                  >
-                    <XCircle class="w-3.5 h-3.5" /> ขาดเรียน
-                  </button>
-                </div>
-              </td>
-
-              <!-- Checked At -->
-              <td class="py-3 px-4 text-center font-mono text-xs text-stone-500">
-                <span v-if="isWeekHoliday(selectedCourseId, selectedWeek)" class="text-rose-600 font-sans font-medium">
-                  - (วันหยุด)
-                </span>
-                <span v-else>
-                  {{ getAttendanceRecord(student.studentId, selectedWeek).checkedAt }}
-                </span>
-              </td>
-
-              <!-- Current Total Attendance Score Out of 10 -->
-              <td class="py-3 px-4 text-center font-mono font-black text-sm">
-                <span :class="getStudentFullScore(selectedCourseId, student.studentId, totalRecordedWeeks).attendanceScore >= 8 ? 'text-emerald-600' : 'text-red-600'">
-                  {{ getStudentFullScore(selectedCourseId, student.studentId, totalRecordedWeeks).attendanceScore }}
-                </span>
-                <span class="text-stone-400 text-xs">/10</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+            <!-- Footer Summary Row for Teacher -->
+            <tfoot v-if="isTeacher && courseStudents.length > 0">
+              <tr class="bg-stone-100 font-bold text-stone-700 text-[10px]">
+                <td colspan="4" class="border border-stone-300 px-3 py-2 text-right">
+                  จำนวนผู้เข้าเรียนแต่ละสัปดาห์ (มา+สาย):
+                </td>
+                <td
+                  v-for="w in totalCourseWeeks"
+                  :key="`foot-w-${w}`"
+                  class="border border-stone-300 px-1 py-1.5 text-center font-mono"
+                >
+                  <span v-if="isWeekHoliday(selectedCourseId, w)" class="text-rose-700 font-sans font-bold">หยุด</span>
+                  <span v-else class="text-emerald-800">{{ getWeekPresentCount(w) }}/{{ courseStudents.length }}</span>
+                </td>
+                <td colspan="5" class="border border-stone-300 px-2 py-1.5 text-center font-sans text-stone-500">
+                  เฉลี่ยเข้าเรียน W{{ selectedWeek }}: {{ attendancePresentRate }}%
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
 
     </div>
@@ -1541,110 +2032,179 @@ const handleExportAttendanceExcel = async () => {
     <!-- ========================================== -->
     <!-- MODAL: กำหนดวันหยุดราชการ (Holiday Modal) -->
     <!-- ========================================== -->
-    <div
-      v-if="showHolidayModal"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
-      @click.self="showHolidayModal = false"
-    >
-      <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-5 animate-scaleIn">
-        
-        <!-- Header -->
-        <div class="flex items-start justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-              <CalendarOff class="w-5 h-5 text-rose-600" />
+    <Teleport to="body">
+      <div
+        v-if="showHolidayModal"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm overflow-y-auto"
+        @click.self="showHolidayModal = false"
+      >
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-5 my-auto animate-[bounceIn_0.25s_ease-out]">
+          
+          <!-- Header -->
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                <CalendarOff class="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <h3 class="text-base font-black text-stone-900">
+                  กำหนดวันหยุดราชการ: สัปดาห์ที่ {{ holidayTargetWeek }}
+                </h3>
+                <p class="text-xs text-stone-500 mt-0.5">
+                  วิชา: {{ currentCourse?.name }}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 class="text-base font-black text-stone-900">
-                กำหนดวันหยุดราชการ: สัปดาห์ที่ {{ holidayTargetWeek }}
-              </h3>
-              <p class="text-xs text-stone-500 mt-0.5">
-                วิชา: {{ currentCourse?.name }}
-              </p>
-            </div>
-          </div>
-          <button
-            @click="showHolidayModal = false"
-            type="button"
-            class="text-stone-400 hover:text-stone-600 p-1 rounded-lg transition-colors cursor-pointer"
-          >
-            <XCircle class="w-5 h-5" />
-          </button>
-        </div>
-
-        <!-- Info Description -->
-        <div class="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-xs text-rose-900 leading-relaxed space-y-1">
-          <div class="font-bold flex items-center gap-1.5">
-            <ShieldCheck class="w-4 h-4 text-rose-600" />
-            สัปดาห์นี้จะถูกยกเว้นการหักคะแนนเข้าเรียน
-          </div>
-          <p class="text-rose-700 text-[11px]">
-            เมื่อตั้งเป็นวันหยุดราชการ นักศึกษาทุกคนจะไม่ถูกหักคะแนนจิตพิสัย และระบบเช็คชื่อสัปดาห์นี้จะถูกปิดอัตโนมัติ
-          </p>
-        </div>
-
-        <!-- Quick Presets -->
-        <div class="space-y-2">
-          <label class="block text-xs font-bold text-stone-700">
-            เลือกประเภท / ชื่อวันหยุดด่วน:
-          </label>
-          <div class="flex flex-wrap gap-1.5">
             <button
-              v-for="preset in holidayPresets"
-              :key="preset"
-              @click="holidayReason = preset"
+              @click="showHolidayModal = false"
               type="button"
-              class="px-2.5 py-1 rounded-xl text-xs font-semibold transition-all border cursor-pointer"
-              :class="holidayReason === preset 
-                ? 'bg-rose-600 text-white border-rose-600 shadow-2xs font-bold' 
-                : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'"
+              class="text-stone-400 hover:text-stone-600 p-1 rounded-lg transition-colors cursor-pointer"
             >
-              {{ preset }}
+              <XCircle class="w-5 h-5" />
             </button>
           </div>
-        </div>
 
-        <!-- Custom Reason Input -->
-        <div class="space-y-1.5">
-          <label class="block text-xs font-bold text-stone-700">
-            หรือระบุชื่อวันหยุดเอง:
-          </label>
-          <input
-            v-model="holidayReason"
-            type="text"
-            maxlength="60"
-            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-xs text-stone-800"
-            placeholder="เช่น วันหยุดราชการ, วันเฉลิมพระชนมพรรษา..."
-            @keyup.enter="handleConfirmHoliday"
-          />
-        </div>
+          <!-- Info Description -->
+          <div class="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-xs text-rose-900 leading-relaxed space-y-1">
+            <div class="font-bold flex items-center gap-1.5">
+              <ShieldCheck class="w-4 h-4 text-rose-600" />
+              สัปดาห์นี้จะถูกยกเว้นการหักคะแนนเข้าเรียน
+            </div>
+            <p class="text-rose-700 text-[11px]">
+              เมื่อตั้งเป็นวันหยุดราชการ นักศึกษาทุกคนจะไม่ถูกหักคะแนนจิตพิสัย และระบบเช็คชื่อสัปดาห์นี้จะถูกปิดอัตโนมัติ
+            </p>
+          </div>
 
-        <!-- Action Buttons -->
-        <div class="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
-          <button
-            @click="showHolidayModal = false"
-            type="button"
-            class="px-4 py-2 rounded-xl text-xs font-bold text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer"
-          >
-            ยกเลิก
-          </button>
-          <button
-            @click="handleConfirmHoliday"
-            type="button"
-            class="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <CalendarOff class="w-3.5 h-3.5" />
-            <span>ยืนยันตั้งเป็นวันหยุดราชการ</span>
-          </button>
-        </div>
+          <!-- Quick Presets -->
+          <div class="space-y-2">
+            <label class="block text-xs font-bold text-stone-700">
+              เลือกประเภท / ชื่อวันหยุดด่วน:
+            </label>
+            <div class="flex flex-wrap gap-1.5">
+              <button
+                v-for="preset in holidayPresets"
+                :key="preset"
+                @click="holidayReason = preset"
+                type="button"
+                class="px-2.5 py-1 rounded-xl text-xs font-semibold transition-all border cursor-pointer"
+                :class="holidayReason === preset 
+                  ? 'bg-rose-600 text-white border-rose-600 shadow-2xs font-bold' 
+                  : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'"
+              >
+                {{ preset }}
+              </button>
+            </div>
+          </div>
 
+          <!-- Custom Reason Input -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-700">
+              หรือระบุชื่อวันหยุดเอง:
+            </label>
+            <input
+              v-model="holidayReason"
+              type="text"
+              maxlength="60"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-xs text-stone-800"
+              placeholder="เช่น วันหยุดราชการ, วันเฉลิมพระชนมพรรษา..."
+              @keyup.enter="handleConfirmHoliday"
+            />
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+            <button
+              @click="showHolidayModal = false"
+              type="button"
+              class="px-4 py-2 rounded-xl text-xs font-bold text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer"
+            >
+              ยกเลิก
+            </button>
+            <button
+              @click="handleConfirmHoliday"
+              type="button"
+              class="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <CalendarOff class="w-3.5 h-3.5" />
+              <span>ยืนยันตั้งเป็นวันหยุดราชการ</span>
+            </button>
+          </div>
+
+        </div>
       </div>
-    </div>
+    </Teleport>
+
+    <!-- Custom Confirm Modal (แทนที่ Browser Alert / Confirm) -->
+    <ConfirmModal
+      v-model="confirmModalState.isOpen"
+      :title="confirmModalState.title"
+      :message="confirmModalState.message"
+      :type="confirmModalState.type"
+      :confirmText="confirmModalState.confirmText"
+      :cancelText="confirmModalState.cancelText"
+      @confirm="handleConfirmDialogAction"
+    />
 
   </div>
 </template>
 
 <style scoped>
+.excel-th-vertical {
+  height: 215px;
+  vertical-align: bottom;
+  padding: 10px 4px 8px;
+  width: 58px;
+  min-width: 54px;
+  max-width: 68px;
+}
+
+.excel-vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: sideways;
+  max-height: 195px;
+  max-width: 48px;
+  overflow: hidden;
+  text-align: left;
+  line-height: 1.3;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1c1917;
+  margin: 0 auto;
+  word-break: break-word;
+}
+
+.excel-th-week-vertical {
+  height: 98px;
+  vertical-align: middle;
+  padding: 8px 4px;
+  width: 50px;
+  min-width: 46px;
+  max-width: 58px;
+}
+
+.excel-week-vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: sideways;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.2;
+  font-size: 11px;
+  font-weight: 800;
+  color: #1c1917;
+  margin: 0 auto;
+}
+
+.excel-score-input::-webkit-outer-spin-button,
+.excel-score-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.excel-score-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }

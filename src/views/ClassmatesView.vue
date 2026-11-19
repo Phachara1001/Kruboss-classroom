@@ -23,7 +23,7 @@ import StudentAvatar from '@/components/StudentAvatar.vue'
 import StudentProfileModal from '@/components/StudentProfileModal.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { courses } from '../data/courses'
-import { studentsList, courseClassrooms, isStudentInCourse, isStudent, isTeacherUser } from '../data/studentsStore'
+import { studentsList, courseClassrooms, isStudentInCourse, isStudent, isTeacherUser, isMainTeacher, isSubjectTeacher, canManageCourse } from '../data/studentsStore'
 import { getStudentRank, unrankedTier } from '../data/rankConfig'
 import { getStudentFullScore, fetchAllCourseData } from '../data/gradesStore'
 import { authUser } from '../data/authStore'
@@ -44,6 +44,7 @@ watch(() => route.params.id, (newId) => {
 })
 
 const isTeacher = computed(() => isTeacherUser(authUser.value))
+const isMainTeacherUser = computed(() => isMainTeacher(authUser.value))
 
 const currentStudent = computed(() => {
   if (isTeacher.value || !authUser.value) return null
@@ -56,20 +57,39 @@ const studentClassroom = computed(() => {
 })
 
 const course = computed(() => courses.find(c => c.id === route.params.id) || courses[0])
+const canEditClassmates = computed(() => canManageCourse(authUser.value, course.value?.id))
 
 const teacher = computed(() => {
-  const t = studentsList.value.find(s => s.role === 'teacher' || s.classroom === 'teacher_room' || s.studentId === '0000')
+  const t = studentsList.value.find(s => isMainTeacher(s))
   return t ? {
     name: t.name || 'นายพชร เพียซ้าย (ครูบอส)',
     role: 'อาจารย์ผู้สอนหลัก',
     avatar: t.avatar || '/Me.png',
-    equippedFrame: t.equippedFrame || null
+    equippedFrame: t.equippedFrame || '/img/frame/Teacher.png',
+    raw: t
   } : {
     name: 'นายพชร เพียซ้าย (ครูบอส)',
     role: 'อาจารย์ผู้สอนหลัก',
     avatar: '/Me.png',
-    equippedFrame: null
+    equippedFrame: '/img/frame/Teacher.png',
+    raw: null
   }
+})
+
+// ครูประจำวิชาที่ได้รับมอบหมายในรายวิชานี้
+const courseSubjectTeachers = computed(() => {
+  const cid = course.value?.id
+  return studentsList.value
+    .filter(s => isSubjectTeacher(s) && s.isActive !== false && isStudentInCourse(s, cid))
+    .map(st => ({
+      id: st.id || st.studentId,
+      studentId: st.studentId,
+      name: st.name,
+      role: st.teacherPosition || 'ครูประจำวิชา',
+      avatar: st.avatar || '/placeholder_profile.png',
+      equippedFrame: st.equippedFrame || '/img/frame/Teacher.png',
+      raw: st
+    }))
 })
 
 // Classroom Filter State
@@ -86,7 +106,7 @@ watch([studentClassroom, isTeacher], ([room, teacher]) => {
 const availableClassrooms = computed(() => {
   const roomsFromConfig = courseClassrooms[course.value.id] || []
   const roomsFromData = [...new Set(studentsList.value.filter(s => isStudentInCourse(s, course.value.id) && isStudent(s)).map(s => s.classroom))]
-  return [...new Set([...roomsFromConfig, ...roomsFromData])].filter(r => r && r !== 'teacher_room')
+  return [...new Set([...roomsFromConfig, ...roomsFromData])].filter(r => r && r !== 'teacher_room' && r !== 'subject_teacher_room')
 })
 
 const courseStudents = computed(() => {
@@ -249,7 +269,7 @@ const handleStudentUpdated = (updated) => {
           <span>สมุดคะแนนและเช็คชื่อ</span>
         </button>
 
-        <button v-if="isTeacher" @click="showAddModal = true"
+        <button v-if="isMainTeacherUser" @click="showAddModal = true"
           class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0">
           <UserPlus class="w-4 h-4" />
           <span>เพิ่มนักศึกษา</span>
@@ -313,25 +333,60 @@ const handleStudentUpdated = (updated) => {
     <!-- ============ THE TREE ============ -->
     <section class="flex flex-col items-center" aria-label="โครงสร้างชั้นเรียน">
 
-      <!-- Root: Teacher -->
-      <div class="flex flex-col items-center text-center relative z-10 pb-1">
-        <StudentAvatar
-          :avatar="teacher.avatar"
-          :frame="teacher.equippedFrame"
-          :name="teacher.name"
-          size="w-32 h-32"
-          avatarClass="bg-[#E3DCD2]"
-          borderClass="border-4 border-white shadow-xl ring-2 ring-emerald-500"
+      <!-- Root: Main Teacher & Subject Teachers -->
+      <div class="flex flex-wrap items-start justify-center gap-10 sm:gap-16 relative z-10 pb-2">
+        <!-- Main Teacher (ครูผู้สอนหลัก) -->
+        <div
+          class="flex flex-col items-center text-center"
+          :class="{ 'cursor-pointer group': teacher.raw }"
+          @click="teacher.raw && openProfileModal(teacher.raw)"
         >
-          <template #badge>
-            <div
-              class="absolute -bottom-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-stone-900 text-white text-[11px] font-bold rounded-full shadow-md whitespace-nowrap z-20">
-              อาจารย์ผู้สอน
-            </div>
-          </template>
-        </StudentAvatar>
-        <h3 class="font-black text-xl text-stone-900 mt-6">{{ teacher.name }}</h3>
-        <p class="text-xs text-stone-500">{{ teacher.role }}</p>
+          <StudentAvatar
+            :avatar="teacher.avatar"
+            :frame="teacher.equippedFrame || '/img/frame/Teacher.png'"
+            :name="teacher.name"
+            size="w-32 h-32"
+            avatarClass="bg-[#E3DCD2]"
+            borderClass="border-4 border-white shadow-xl ring-2 ring-emerald-500"
+            class="transition-transform duration-300 group-hover:scale-105"
+          >
+            <template #badge>
+              <div
+                class="absolute -bottom-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-stone-900 text-white text-[11px] font-bold rounded-full shadow-md whitespace-nowrap z-20">
+                อาจารย์ผู้สอน
+              </div>
+            </template>
+          </StudentAvatar>
+          <h3 class="font-black text-xl text-stone-900 mt-6">{{ teacher.name }}</h3>
+          <p class="text-xs text-stone-500">{{ teacher.role }}</p>
+        </div>
+
+        <!-- Subject Teachers assigned to this course (ครูประจำวิชา) -->
+        <div
+          v-for="st in courseSubjectTeachers"
+          :key="st.id"
+          class="flex flex-col items-center text-center cursor-pointer group"
+          @click="st.raw && openProfileModal(st.raw)"
+        >
+          <StudentAvatar
+            :avatar="st.avatar"
+            :frame="st.equippedFrame || '/img/frame/Teacher.png'"
+            :name="st.name"
+            size="w-32 h-32"
+            avatarClass="bg-[#E3DCD2]"
+            borderClass="border-4 border-white shadow-xl ring-2 ring-sky-500"
+            class="transition-transform duration-300 group-hover:scale-105"
+          >
+            <template #badge>
+              <div
+                class="absolute -bottom-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-sky-800 text-white text-[11px] font-bold rounded-full shadow-md whitespace-nowrap z-20">
+                {{ st.role }}
+              </div>
+            </template>
+          </StudentAvatar>
+          <h3 class="font-black text-xl text-stone-900 mt-6">{{ st.name }}</h3>
+          <p class="text-xs text-stone-500">ครูประจำวิชารายวิชานี้</p>
+        </div>
       </div>
 
       <!-- Trunk + branches -->
@@ -350,7 +405,7 @@ const handleStudentUpdated = (updated) => {
             <h4 class="text-lg font-bold text-stone-800">ไม่พบรายชื่อนักศึกษา</h4>
             <p class="text-xs text-stone-500 mt-1">ยังไม่มีนักศึกษาในห้องที่เลือก หรือคำค้นหาไม่ตรงกับข้อมูลใด</p>
           </div>
-          <button v-if="isTeacher" @click="showAddModal = true"
+          <button v-if="isMainTeacherUser" @click="showAddModal = true"
             class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all inline-flex items-center gap-2 cursor-pointer">
             <UserPlus class="w-4 h-4" /> เพิ่มนักศึกษาคนแรก
           </button>
@@ -370,7 +425,7 @@ const handleStudentUpdated = (updated) => {
           <!-- President -->
           <div v-if="group.president" class="w-full flex justify-center pt-9">
             <MemberCard :student="group.president" variant="president"
-              :rank="getStudentRankTier(group.president.studentId)" :can-edit="isTeacher" @view="openProfileModal"
+              :rank="getStudentRankTier(group.president.studentId)" :can-edit="canEditClassmates" @view="openProfileModal"
               @edit="openEditModal" />
           </div>
 
@@ -378,7 +433,7 @@ const handleStudentUpdated = (updated) => {
           <div v-if="group.vices.length" class="w-full flex flex-wrap justify-center pt-9">
             <div v-for="vp in group.vices" :key="vp.id"
               class="relative pt-8 px-3 pb-1 before:absolute before:top-0 before:left-1/2 before:h-8 before:w-0.5 before:bg-emerald-300 after:absolute after:top-0 after:inset-x-0 after:h-0.5 after:bg-emerald-300 first:after:left-1/2 last:after:right-1/2 only:after:hidden">
-              <MemberCard :student="vp" variant="vice" :rank="getStudentRankTier(vp.studentId)" :can-edit="isTeacher"
+              <MemberCard :student="vp" variant="vice" :rank="getStudentRankTier(vp.studentId)" :can-edit="canEditClassmates"
                 @view="openProfileModal" @edit="openEditModal" />
             </div>
           </div>
@@ -396,7 +451,7 @@ const handleStudentUpdated = (updated) => {
 
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
               <MemberCard v-for="student in group.students" :key="student.id" :student="student" variant="student"
-                :rank="getStudentRankTier(student.studentId)" :can-edit="isTeacher" @view="openProfileModal"
+                :rank="getStudentRankTier(student.studentId)" :can-edit="canEditClassmates" @view="openProfileModal"
                 @edit="openEditModal" />
             </div>
           </div>

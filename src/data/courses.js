@@ -442,14 +442,14 @@ export const courses = [
       {
         id: "สัปดาห์ที่ 4",
         weekNumber: 4,
-        name: "การจัดเตรียมและแปลงรูปแบบข้อมูลขั้นสูง (Data Preparation & Transformation)",
+        name: "การวิเคราะห์เชิงสถิติและการสรุปข้อมูลแบบมีเงื่อนไข (Conditional Aggregations & Summary Statistics)",
         phase: "Phase 1: Data Analysis (สัปดาห์ที่ 1–6)",
-        desc: "การจัดโครงสร้างตาราง Tidy Data, การแยกและรวมคอลัมน์ (SPLIT/CONCAT), การจัดกลุ่มช่วงข้อมูลด้วยสูตร IF/IFS และการเชื่อมโยงตารางด้วย VLOOKUP/XLOOKUP",
+        desc: "คำนวณสถิติเชิงพรรณนา (SUM, AVERAGE, MEDIAN, MODE, MIN, MAX, STDEV) วิเคราะห์กับดัก Mean vs Median และประยุกต์ใช้ฟังก์ชันแบบมีเงื่อนไข (COUNTIF/COUNTIFS, SUMIF/SUMIFS, AVERAGEIF/AVERAGEIFS) เพื่อตอบคำถามทางธุรกิจ",
         activity:
-          "แปลงรูปแบบและจัดเตรียมตารางข้อมูลด้วยสูตร Google Sheets / Excel",
-        isOpen: false,
+          "ปฏิบัติการแยกชีต Master_data และสร้างแดชบอร์ดตัวเลข Numeric_Dashboard จากข้อมูลโปรเจกต์ 40 แถว",
+        isOpen: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "เปิดให้เรียน",
         image: "bg-teal-600",
       },
       {

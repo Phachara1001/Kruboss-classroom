@@ -19,6 +19,12 @@ model User {
   courseIds String[] // เก็บวิชาเรียนเป็น Array ของรหัสวิชา
   classroom String
 
+  // สิทธิ์และข้อมูลเพิ่มเติมสำหรับระบบครูผู้สอน / ครูประจำวิชา
+  isActive        Boolean @default(true)
+  canGrade        Boolean @default(false) // false = ดูเนื้อหาและคะแนนอย่างเดียว, true = ตรวจงาน/ลงคะแนน/เช็กชื่อได้
+  teacherPosition String? @default("")
+  createdBy       String?
+
   // ข้อมูลโปรไฟล์
   avatar      String?
   nickname    String? @default("-")

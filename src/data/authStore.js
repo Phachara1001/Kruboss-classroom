@@ -27,6 +27,14 @@ function loadAuth() {
   return null
 }
 
+export function getAuthHeaders() {
+  const token = localStorage.getItem('auth_token')
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  }
+}
+
 export function updateAuthUser(newFields) {
   if (authUser.value) {
     authUser.value = sanitizeUserAvatar({ ...authUser.value, ...newFields })
@@ -101,7 +109,7 @@ export async function login(username, password) {
       // Auto-heal teacher 'boss' account if password in DB was unhashed, null, or not yet seeded
       if (isBoss && normalizedPassword) {
         try {
-          if (data.message && data.message.includes('ไม่พบรหัสนักศึกษา')) {
+          if (data.message && (data.message.includes('ไม่พบรหัสนักศึกษา') || data.message.includes('ไม่พบบัญชีผู้ใช้งาน'))) {
             await fetch(`${API_BASE_URL}/students`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

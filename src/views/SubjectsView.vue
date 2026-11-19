@@ -1,10 +1,10 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { BookOpen, ChevronRight, GraduationCap, Layers, Award } from '@lucide/vue'
+import { BookOpen, ChevronRight, GraduationCap, Layers, Award, ShieldCheck } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { courses } from '../data/courses'
 import { authUser } from '../data/authStore'
-import { studentsList, isTeacherUser } from '../data/studentsStore'
+import { studentsList, isMainTeacher, isSubjectTeacher } from '../data/studentsStore'
 import { Database, GitBranch, LineChart, Cpu } from '@lucide/vue'
 
 const courseIcons = {
@@ -21,13 +21,14 @@ const handleCourseClick = (courseId) => {
   router.push(`/course/${courseId}`)
 }
 
-const isTeacher = computed(() => isTeacherUser(authUser.value))
+const isTeacherMain = computed(() => isMainTeacher(authUser.value))
+const isSubjectTeacherUser = computed(() => isSubjectTeacher(authUser.value))
 
 const visibleCourses = computed(() => {
-  if (isTeacher.value) return courses
-  const student = studentsList.value.find(s => s.studentId === authUser.value?.id || s.id === authUser.value?.id)
-  const studentCourseIds = student?.courseIds || []
-  return courses.filter(c => studentCourseIds.includes(c.id))
+  if (isTeacherMain.value) return courses
+  const userRec = studentsList.value.find(s => s.studentId === authUser.value?.id || s.id === authUser.value?.id) || authUser.value
+  const allowedCourseIds = userRec?.courseIds || authUser.value?.courseIds || []
+  return courses.filter(c => allowedCourseIds.includes(c.id))
 })
 
 const pchCourses = computed(() => visibleCourses.value.filter(c => c.levelGroup === 'ปวช.'))
@@ -89,6 +90,32 @@ const pwsCourses = computed(() => visibleCourses.value.filter(c => c.levelGroup 
           </span>
         </button>
       </div>
+    </div>
+
+    <!-- Subject Teacher Role Banner -->
+    <div
+      v-if="isSubjectTeacherUser"
+      class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-sky-50 via-cyan-50 to-emerald-50 border border-sky-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+    >
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center shrink-0">
+          <ShieldCheck class="w-5 h-5" />
+        </div>
+        <div>
+          <div class="text-sm font-black text-sky-950">
+            บัญชี{{ authUser?.teacherPosition || 'ครูประจำวิชา' }} • เข้าถึงเฉพาะรายวิชาที่ได้รับมอบหมาย ({{ visibleCourses.length }} รายวิชา)
+          </div>
+          <p class="text-xs text-sky-800">
+            สามารถคลิกเข้าชมเนื้อหาบทเรียน สไลด์ แบบทดสอบ โจทย์ใบงาน และรายงานผลในรายวิชาด้านล่างได้ทันที
+          </p>
+        </div>
+      </div>
+      <span
+        class="px-3 py-1.5 rounded-xl text-xs font-bold border shrink-0 self-start sm:self-auto"
+        :class="authUser?.canGrade ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-white text-sky-800 border-sky-300'"
+      >
+        {{ authUser?.canGrade ? 'สิทธิ์: ตรวจงาน & เช็กชื่อได้' : 'สิทธิ์: ดูเนื้อหาและคะแนนอย่างเดียว' }}
+      </span>
     </div>
 
     <!-- Section 1: ระดับประกาศนียบัตรวิชาชีพ (ปวช.) -->

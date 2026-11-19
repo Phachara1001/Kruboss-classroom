@@ -144,7 +144,7 @@ export const courseAssignments = {
     {
       id: "asm-4",
       week: 4,
-      title: "ใบงานที่ 4: เวิร์กช็อปทำความสะอาดข้อมูล (Data Cleaning)",
+      title: "ใบงานที่ 4: ปฏิบัติการวิเคราะห์เชิงสถิติและสรุปข้อมูลแบบมีเงื่อนไข (Summary Statistics & Conditional Aggregations)",
       maxScore: 10,
     },
     {

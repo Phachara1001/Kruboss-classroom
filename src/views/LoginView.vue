@@ -45,6 +45,11 @@ const handleNextStep = () => {
       st => String(st.studentId || '').trim().toLowerCase() === rawInput.toLowerCase()
     )
     if (s) {
+      if (s.isActive === false) {
+        errorMsg.value = 'บัญชีนี้ถูกระงับการใช้งานชั่วคราว กรุณาติดต่อครูผู้สอน'
+        isLoading.value = false
+        return
+      }
       username.value = s.studentId
       studentObj.value = s
       if (s.password) {
@@ -53,7 +58,7 @@ const handleNextStep = () => {
         step.value = 'setPassword'
       }
     } else {
-      errorMsg.value = 'ไม่พบรหัสนักศึกษาในระบบ'
+      errorMsg.value = 'ไม่พบบัญชีผู้ใช้งานในระบบ'
     }
     isLoading.value = false
   }, 400)
@@ -159,15 +164,9 @@ const goBack = () => {
               </div>
             </template>
             <template v-else>
-              <StudentAvatar
-                :avatar="studentObj.avatar"
-                :frame="studentObj.equippedFrame"
-                :name="studentObj.name"
-                size="w-24 h-24"
-                avatarClass="bg-emerald-100"
-                borderClass="border-2 border-emerald-200/50 shadow-inner"
-                class="transition-transform hover:scale-105 duration-300 drop-shadow-md"
-              />
+              <StudentAvatar :avatar="studentObj.avatar" :frame="studentObj.equippedFrame" :name="studentObj.name"
+                size="w-24 h-24" avatarClass="bg-emerald-100" borderClass="border-2 border-emerald-200/50 shadow-inner"
+                class="transition-transform hover:scale-105 duration-300 drop-shadow-md" />
             </template>
           </div>
 
@@ -180,7 +179,8 @@ const goBack = () => {
           <form v-if="step === 'checkUsername'" @submit.prevent="handleNextStep"
             class="space-y-5 animate-[fadeIn_0.3s_ease-out]">
             <div class="space-y-1.5">
-              <label class="block text-xs font-bold text-stone-500 ml-1">ชื่อผู้ใช้งาน (รหัสนักศึกษา)</label>
+              <label class="block text-xs font-bold text-stone-500 ml-1">ชื่อผู้ใช้งาน (รหัสนักศึกษา หรือ
+                บัญชีครู)</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <User class="h-5 w-5 text-stone-400" />
@@ -193,7 +193,7 @@ const goBack = () => {
 
             <div v-if="errorMsg"
               class="bg-red-50 text-red-600 text-xs font-bold p-3 rounded-xl border border-red-100 flex items-center gap-2 animate-[shake_0.5s_ease-in-out]">
-              <span class="text-lg leading-none">⚠️</span> {{ errorMsg }}
+              <ShieldAlert class="w-4 h-4 shrink-0" /> {{ errorMsg }}
             </div>
 
             <button type="submit" :disabled="isLoading"
@@ -236,7 +236,7 @@ const goBack = () => {
 
             <div v-if="errorMsg"
               class="bg-red-50 text-red-600 text-xs font-bold p-3 rounded-xl border border-red-100 flex items-center gap-2 animate-[shake_0.5s_ease-in-out]">
-              <span class="text-lg leading-none">⚠️</span> {{ errorMsg }}
+              <ShieldAlert class="w-4 h-4 shrink-0" /> {{ errorMsg }}
             </div>
 
             <button type="submit" :disabled="isLoading"
@@ -284,7 +284,7 @@ const goBack = () => {
 
             <div v-if="errorMsg"
               class="bg-red-50 text-red-600 text-xs font-bold p-3 rounded-xl border border-red-100 flex items-center gap-2 animate-[shake_0.5s_ease-in-out]">
-              <span class="text-lg leading-none">⚠️</span> {{ errorMsg }}
+              <ShieldAlert class="w-4 h-4 shrink-0" /> {{ errorMsg }}
             </div>
 
             <button type="submit" :disabled="isLoading"

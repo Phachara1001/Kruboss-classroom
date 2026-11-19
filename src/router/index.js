@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { isLoggedIn, authUser } from '../data/authStore'
-import { isTeacherUser } from '../data/studentsStore'
+import { isMainTeacher, isSubjectTeacher, isAnyTeacher, canViewCourse } from '../data/studentsStore'
 import DefaultLayout from '../layouts/DefaultLayout.vue'
 
 const router = createRouter({
@@ -87,6 +87,11 @@ const router = createRouter({
           component: () => import('../views/analysis/Week3View.vue')
         },
         {
+          path: 'course/31901-2012/week/4',
+          name: 'data-analysis-week4',
+          component: () => import('../views/analysis/Week4View.vue')
+        },
+        {
           path: 'course/21901-2007/week/1',
           name: 'iot-week1',
           component: () => import('../views/iot/Week1View.vue')
@@ -134,7 +139,13 @@ const router = createRouter({
           path: 'students',
           name: 'students',
           component: () => import('../views/StudentsManagementView.vue'),
-          meta: { requiresTeacher: true }
+          meta: { requiresMainTeacher: true }
+        },
+        {
+          path: 'teachers',
+          name: 'teachers',
+          component: () => import('../views/TeachersManagementView.vue'),
+          meta: { requiresMainTeacher: true }
         },
         {
           path: 'gradebook',
@@ -150,7 +161,7 @@ const router = createRouter({
           path: 'coins',
           name: 'coins',
           component: () => import('../views/CoinsManagementView.vue'),
-          meta: { requiresTeacher: true }
+          meta: { requiresMainTeacher: true }
         },
         {
           path: 'shop',
@@ -171,7 +182,7 @@ const router = createRouter({
           path: 'announcements',
           name: 'announcements',
           component: () => import('../views/AnnouncementManagementView.vue'),
-          meta: { requiresTeacher: true }
+          meta: { requiresMainTeacher: true }
         },
         {
           path: 'arcade',
@@ -182,19 +193,19 @@ const router = createRouter({
           path: 'assignments-management',
           name: 'assignments-management',
           component: () => import('../views/AssignmentsManagementView.vue'),
-          meta: { requiresTeacher: true }
+          meta: { requiresMainTeacher: true }
         },
         {
           path: 'learning-achievement',
           name: 'learning-achievement',
           component: () => import('../views/LearningAchievementView.vue'),
-          meta: { requiresTeacher: true }
+          meta: { requiresMainTeacher: true }
         },
         {
           path: 'submission-analytics',
           name: 'submission-analytics',
           component: () => import('../views/SubmissionAnalyticsView.vue'),
-          meta: { requiresTeacher: true }
+          meta: { requiresMainTeacher: true }
         }
       ]
     }
@@ -202,16 +213,23 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from) => {
-  const isTeacher = isTeacherUser(authUser.value)
-
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     return '/login'
   }
   if (to.path === '/login' && isLoggedIn.value) {
     return '/'
   }
-  if (to.meta.requiresTeacher && !isTeacher) {
+  if (to.meta.requiresMainTeacher && !isMainTeacher(authUser.value)) {
     return '/'
+  }
+  if (to.meta.requiresTeacher && !isAnyTeacher(authUser.value)) {
+    return '/'
+  }
+  if (isSubjectTeacher(authUser.value) && to.path.startsWith('/course/')) {
+    const courseId = to.params.id || to.path.match(/^\/course\/([^/]+)/)?.[1]
+    if (courseId && !canViewCourse(authUser.value, courseId)) {
+      return '/courses'
+    }
   }
 })
 

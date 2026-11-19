@@ -18,6 +18,140 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
+function isSubjectTeacherRole(user) {
+  return Boolean(
+    user &&
+      (user.role === "subject_teacher" ||
+        user.classroom === "subject_teacher_room"),
+  );
+}
+
+function isMainTeacherRole(user) {
+  if (!user || isSubjectTeacherRole(user)) return false;
+  const r = String(user.role || "").toLowerCase();
+  const c = String(user.classroom || "").toLowerCase();
+  const id = String(user.studentId || "").toLowerCase();
+  if (
+    ["teacher", "admin"].some((t) => r.includes(t)) ||
+    r.includes("ครู") ||
+    r.includes("อาจารย์")
+  ) {
+    return true;
+  }
+  if (
+    c === "teacher_room" ||
+    c.includes("teacher") ||
+    c.includes("ครู") ||
+    c.includes("อาจารย์")
+  ) {
+    return true;
+  }
+  return ["boss", "admin", "teacher", "0000"].includes(id);
+}
+
+function serializeAuthUser(user) {
+  const defaultTeacherFrame =
+    isSubjectTeacherRole(user) || isMainTeacherRole(user)
+      ? "/img/frame/Teacher.png"
+      : null;
+  return {
+    id: user.studentId,
+    studentId: user.studentId,
+    role: user.role,
+    name: user.name,
+    classroom: user.classroom,
+    courseIds: user.courseIds,
+    avatar: fixAssetUrl(user.avatar),
+    equippedFrame: fixAssetUrl(user.equippedFrame) || defaultTeacherFrame,
+    isActive: user.isActive !== false,
+    canGrade: Boolean(user.canGrade),
+    teacherPosition: user.teacherPosition || "",
+  };
+}
+
+function serializeTeacherSafe(user) {
+  return {
+    id: user.id,
+    studentId: user.studentId,
+    username: user.studentId,
+    name: user.name,
+    role: user.role,
+    classroom: user.classroom,
+    courseIds: Array.isArray(user.courseIds) ? user.courseIds : [],
+    avatar: fixAssetUrl(user.avatar),
+    equippedFrame: fixAssetUrl(user.equippedFrame) || "/img/frame/Teacher.png",
+    isActive: user.isActive !== false,
+    canGrade: Boolean(user.canGrade),
+    teacherPosition: user.teacherPosition || "ครูประจำวิชา",
+    createdBy: user.createdBy || null,
+    hasPassword: Boolean(user.password),
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+
+async function findUserByIdOrStudentId(idParam) {
+  const clean = String(idParam || "").trim();
+  let target = await prisma.user.findUnique({ where: { studentId: clean } });
+  if (
+    !target &&
+    !isNaN(Number(clean)) &&
+    Number(clean) > 0 &&
+    Number(clean) <= 2147483647
+  ) {
+    target = await prisma.user.findUnique({ where: { id: parseInt(clean, 10) } });
+  }
+  return target;
+}
+
+async function requireAuth(req, res, next) {
+  const authHeader = String(req.headers.authorization || "");
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
+
+  if (!token) {
+    return res
+      .status(401)
+      .json({ success: false, message: "กรุณาเข้าสู่ระบบก่อนใช้งาน" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await prisma.user.findUnique({
+      where: { studentId: String(decoded.id || "") },
+    });
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "ไม่พบบัญชีผู้ใช้งาน" });
+    }
+    if (user.isActive === false) {
+      return res.status(403).json({
+        success: false,
+        message: "บัญชีนี้ถูกระงับการใช้งานชั่วคราว กรุณาติดต่อครูผู้สอน",
+      });
+    }
+    req.user = user;
+    next();
+  } catch (err) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Session หมดอายุหรือไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่" });
+  }
+}
+
+function requireMainTeacher(req, res, next) {
+  requireAuth(req, res, () => {
+    if (!isMainTeacherRole(req.user)) {
+      return res
+        .status(403)
+        .json({ success: false, message: "สิทธิ์เฉพาะครูผู้สอนเท่านั้น" });
+    }
+    next();
+  });
+}
+
 // Ensure 'assets' bucket exists
 ensureBucket("assets");
 
@@ -124,7 +258,14 @@ app.post("/api/auth/login", async (req, res) => {
     if (!student) {
       return res
         .status(400)
-        .json({ success: false, message: "ไม่พบรหัสนักศึกษาในระบบ" });
+        .json({ success: false, message: "ไม่พบบัญชีผู้ใช้งานในระบบ" });
+    }
+
+    if (student.isActive === false) {
+      return res.status(403).json({
+        success: false,
+        message: "บัญชีนี้ถูกระงับการใช้งานชั่วคราว กรุณาติดต่อครูผู้สอน",
+      });
     }
 
     if (student.password) {
@@ -185,7 +326,11 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: student.studentId, role: student.role },
+      {
+        id: student.studentId,
+        role: student.role,
+        canGrade: Boolean(student.canGrade),
+      },
       JWT_SECRET,
       { expiresIn: "1d" },
     );
@@ -193,16 +338,7 @@ app.post("/api/auth/login", async (req, res) => {
     res.json({
       success: true,
       token,
-      user: {
-        id: student.studentId,
-        studentId: student.studentId,
-        role: student.role,
-        name: student.name,
-        classroom: student.classroom,
-        courseIds: student.courseIds,
-        avatar: student.avatar,
-        equippedFrame: student.equippedFrame,
-      },
+      user: serializeAuthUser(student),
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -217,7 +353,14 @@ app.post("/api/auth/setup-password", async (req, res) => {
     if (!student) {
       return res
         .status(400)
-        .json({ success: false, message: "ไม่พบรหัสนักศึกษา" });
+        .json({ success: false, message: "ไม่พบบัญชีผู้ใช้งาน" });
+    }
+
+    if (student.isActive === false) {
+      return res.status(403).json({
+        success: false,
+        message: "บัญชีนี้ถูกระงับการใช้งานชั่วคราว กรุณาติดต่อครูผู้สอน",
+      });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -227,7 +370,11 @@ app.post("/api/auth/setup-password", async (req, res) => {
     });
 
     const token = jwt.sign(
-      { id: updatedStudent.studentId, role: updatedStudent.role },
+      {
+        id: updatedStudent.studentId,
+        role: updatedStudent.role,
+        canGrade: Boolean(updatedStudent.canGrade),
+      },
       JWT_SECRET,
       { expiresIn: "1d" },
     );
@@ -235,16 +382,7 @@ app.post("/api/auth/setup-password", async (req, res) => {
     res.json({
       success: true,
       token,
-      user: {
-        id: updatedStudent.studentId,
-        studentId: updatedStudent.studentId,
-        role: updatedStudent.role,
-        name: updatedStudent.name,
-        classroom: updatedStudent.classroom,
-        courseIds: updatedStudent.courseIds,
-        avatar: updatedStudent.avatar,
-        equippedFrame: updatedStudent.equippedFrame,
-      },
+      user: serializeAuthUser(updatedStudent),
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -479,6 +617,213 @@ app.delete("/api/students/:id", async (req, res) => {
     res.json(deleted);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ==========================================
+// 2B. SUBJECT TEACHER MANAGEMENT FLOW (เฉพาะครูผู้สอน)
+// ==========================================
+
+app.get("/api/teachers", requireMainTeacher, async (req, res) => {
+  try {
+    const teachers = await prisma.user.findMany({
+      where: { role: "subject_teacher" },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(teachers.map(serializeTeacherSafe));
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post("/api/teachers", requireMainTeacher, async (req, res) => {
+  try {
+    const {
+      username,
+      name,
+      password,
+      courseIds,
+      canGrade,
+      teacherPosition,
+      isActive,
+    } = req.body || {};
+
+    const cleanUsername = String(username || "").trim();
+    const cleanName = String(name || "").trim();
+    const cleanPosition = String(teacherPosition || "ครูประจำวิชา").trim() || "ครูประจำวิชา";
+    const cleanCourseIds = Array.isArray(courseIds)
+      ? [...new Set(courseIds.map((c) => String(c || "").trim()).filter(Boolean))]
+      : [];
+
+    if (!cleanUsername || cleanUsername.length < 3 || /\s/.test(cleanUsername)) {
+      return res.status(400).json({
+        success: false,
+        message: "ชื่อผู้ใช้งาน (Username) ต้องมีอย่างน้อย 3 ตัวอักษรและห้ามเว้นวรรค",
+      });
+    }
+
+    if (["boss", "admin", "teacher", "0000", "ครูบอส"].includes(cleanUsername.toLowerCase())) {
+      return res.status(400).json({
+        success: false,
+        message: "ชื่อผู้ใช้งานนี้ถูกสงวนไว้สำหรับระบบหลัก กรุณาใช้ชื่ออื่น",
+      });
+    }
+
+    if (!cleanName) {
+      return res.status(400).json({
+        success: false,
+        message: "กรุณากรอกชื่อ - นามสกุลของครูประจำวิชา",
+      });
+    }
+
+    if (cleanCourseIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "กรุณาเลือกอย่างน้อย 1 รายวิชาที่ครูประจำวิชาสามารถเข้าดูได้",
+      });
+    }
+
+    const existing = await prisma.user.findFirst({
+      where: {
+        studentId: { equals: cleanUsername, mode: "insensitive" },
+      },
+    });
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: `ชื่อผู้ใช้งาน "${cleanUsername}" มีอยู่ในระบบแล้ว`,
+      });
+    }
+
+    const cleanPass = String(password || "").trim();
+    if (cleanPass && cleanPass.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: "รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร",
+      });
+    }
+    const hashedPassword = cleanPass ? await bcrypt.hash(cleanPass, 10) : null;
+
+    const created = await prisma.user.create({
+      data: {
+        studentId: cleanUsername,
+        name: cleanName,
+        password: hashedPassword,
+        role: "subject_teacher",
+        classroom: "subject_teacher_room",
+        courseIds: cleanCourseIds,
+        isActive: isActive !== false,
+        canGrade: Boolean(canGrade),
+        teacherPosition: cleanPosition,
+        createdBy: req.user.studentId,
+        avatar: "/placeholder_profile.png",
+        equippedFrame: "/img/frame/Teacher.png",
+        coins: 0,
+        quote: cleanPosition,
+      },
+    });
+
+    res.json({ success: true, teacher: serializeTeacherSafe(created) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.put("/api/teachers/:id", requireMainTeacher, async (req, res) => {
+  try {
+    const target = await findUserByIdOrStudentId(req.params.id);
+    if (!target || target.role !== "subject_teacher") {
+      return res.status(404).json({
+        success: false,
+        message: "ไม่พบบัญชีครูประจำวิชาที่ต้องการแก้ไข",
+      });
+    }
+
+    const {
+      name,
+      courseIds,
+      canGrade,
+      teacherPosition,
+      isActive,
+      newPassword,
+      resetPassword,
+    } = req.body || {};
+
+    const updateData = {};
+
+    if (name !== undefined) {
+      const cleanName = String(name || "").trim();
+      if (!cleanName) {
+        return res.status(400).json({ success: false, message: "ชื่อ - นามสกุลห้ามว่าง" });
+      }
+      updateData.name = cleanName;
+    }
+
+    if (teacherPosition !== undefined) {
+      const cleanPos = String(teacherPosition || "ครูประจำวิชา").trim() || "ครูประจำวิชา";
+      updateData.teacherPosition = cleanPos;
+      updateData.quote = cleanPos;
+    }
+
+    if (courseIds !== undefined) {
+      const cleanCourseIds = Array.isArray(courseIds)
+        ? [...new Set(courseIds.map((c) => String(c || "").trim()).filter(Boolean))]
+        : [];
+      if (cleanCourseIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "ต้องระบุรายวิชาที่ดูแลอย่างน้อย 1 รายวิชา",
+        });
+      }
+      updateData.courseIds = cleanCourseIds;
+    }
+
+    if (canGrade !== undefined) {
+      updateData.canGrade = Boolean(canGrade);
+    }
+
+    if (isActive !== undefined) {
+      updateData.isActive = Boolean(isActive);
+    }
+
+    if (resetPassword === true) {
+      updateData.password = null;
+    } else if (newPassword !== undefined && String(newPassword).trim() !== "") {
+      const cleanNewPass = String(newPassword).trim();
+      if (cleanNewPass.length < 4) {
+        return res.status(400).json({
+          success: false,
+          message: "รหัสผ่านใหม่ต้องมีอย่างน้อย 4 ตัวอักษร",
+        });
+      }
+      updateData.password = await bcrypt.hash(cleanNewPass, 10);
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: target.id },
+      data: updateData,
+    });
+
+    res.json({ success: true, teacher: serializeTeacherSafe(updated) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.delete("/api/teachers/:id", requireMainTeacher, async (req, res) => {
+  try {
+    const target = await findUserByIdOrStudentId(req.params.id);
+    if (!target || target.role !== "subject_teacher") {
+      return res.status(404).json({
+        success: false,
+        message: "ไม่พบบัญชีครูประจำวิชาที่ต้องการลบ",
+      });
+    }
+
+    await prisma.user.delete({ where: { id: target.id } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -1183,7 +1528,7 @@ const DEFAULT_ASSIGNMENTS = [
   { courseId: "31901-2012", assignmentId: "asm-1", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 1: การสำรวจบทบาท Data Analyst และการขับเคลื่อนธุรกิจด้วยข้อมูล (Data-Driven Decision Making)" },
   { courseId: "31901-2012", assignmentId: "asm-2", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 2: การวิเคราะห์และวางแผนเก็บรวบรวมข้อมูลเพื่อพัฒนาองค์กร (Data Collection for Organizational Development)" },
   { courseId: "31901-2012", assignmentId: "asm-3", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 3: ปฏิบัติการตรวจสอบคุณภาพข้อมูลและช่วยกัน Clean ชุดข้อมูลองค์กร 500 แถว (Data Quality & Data Wrangling Workshop)" },
-  { courseId: "31901-2012", assignmentId: "asm-4", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 4: เวิร์กช็อปทำความสะอาดข้อมูล (Data Cleaning)" },
+  { courseId: "31901-2012", assignmentId: "asm-4", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 4: ปฏิบัติการวิเคราะห์เชิงสถิติและสรุปข้อมูลแบบมีเงื่อนไข (Summary Statistics & Conditional Aggregations)" },
   { courseId: "31901-2012", assignmentId: "asm-5", workType: "individual", maxScore: 10, customDescription: "ใบงานที่ 5: ออกแบบ Sales Performance Dashboard" },
 
   // วิชา 21901-2007: เทคโนโลยีระบบสมองกลฝังตัวและไอโอที

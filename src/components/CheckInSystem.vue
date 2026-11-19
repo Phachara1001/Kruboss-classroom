@@ -14,7 +14,8 @@ import {
   CalendarOff
 } from '@lucide/vue'
 import { addCoins } from '@/data/shopStore'
-import { studentsList, isTeacherUser } from '@/data/studentsStore'
+import { studentsList, isTeacherUser, isSubjectTeacher, canManageCourse } from '@/data/studentsStore'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 
 const props = defineProps({
   courseId: {
@@ -29,6 +30,8 @@ const props = defineProps({
 
 // State
 const isTeacher = computed(() => isTeacherUser(authUser.value))
+const isSubjectTeacherUser = computed(() => isSubjectTeacher(authUser.value))
+const canControlCheckIn = computed(() => canManageCourse(authUser.value, props.courseId))
 
 const checkInMessage = ref('')
 const currentTime = ref(new Date())
@@ -98,9 +101,48 @@ const activeWeekHoliday = computed(() => {
   return getWeekHoliday(props.courseId, activeWeek.value)
 })
 
-const handleRemoveHoliday = async () => {
-  if (!confirm(`ต้องการยกเลิกวันหยุดราชการของสัปดาห์ที่ ${activeWeek.value} และเปิดให้เช็คชื่อตามปกติใช่หรือไม่?`)) return
-  await setWeekHoliday(props.courseId, activeWeek.value, false)
+const confirmModalState = ref({
+  isOpen: false,
+  title: '',
+  message: '',
+  type: 'confirm',
+  confirmText: 'ยืนยัน',
+  cancelText: 'ยกเลิก',
+  onConfirm: null
+})
+
+const openConfirmDialog = ({ title, message, type = 'confirm', confirmText = 'ยืนยัน', cancelText = 'ยกเลิก', onConfirm }) => {
+  confirmModalState.value = {
+    isOpen: true,
+    title,
+    message,
+    type,
+    confirmText,
+    cancelText,
+    onConfirm
+  }
+}
+
+const handleConfirmDialogAction = async () => {
+  if (typeof confirmModalState.value.onConfirm === 'function') {
+    await confirmModalState.value.onConfirm()
+  }
+}
+
+const handleRemoveHoliday = () => {
+  if (!canControlCheckIn.value) return
+  const targetW = activeWeek.value
+  const holidayName = activeWeekHoliday.value?.name || 'วันหยุดราชการ'
+  openConfirmDialog({
+    title: `ยกเลิกวันหยุดราชการ (สัปดาห์ที่ ${targetW})`,
+    message: `ต้องการยกเลิก "${holidayName}" ของสัปดาห์ที่ ${targetW} และเปิดให้เช็คชื่อเข้าเรียนตามปกติใช่หรือไม่?`,
+    type: 'confirm',
+    confirmText: 'ยืนยันยกเลิกวันหยุด',
+    cancelText: 'ปิด',
+    onConfirm: async () => {
+      await setWeekHoliday(props.courseId, targetW, false)
+    }
+  })
 }
 
 // Student Attendance State for active week
@@ -113,6 +155,7 @@ const studentAttendance = computed(() => {
 // --- Teacher Actions ---
 // 1. Normal toggle (Open or Close & Save absent)
 const handleToggleSession = async () => {
+  if (!canControlCheckIn.value) return
   if (isSessionOpen.value) {
     await closeCheckInSession(props.courseId, activeWeek.value)
   } else {
@@ -121,11 +164,19 @@ const handleToggleSession = async () => {
 }
 
 // 2. Close without saving (Cancel & Reset attendance, students keep coins)
-const handleCancelWithoutSaving = async () => {
-  if (!confirm(`ยืนยัน "ปิดแบบไม่บันทึก" ของสัปดาห์ที่ ${activeWeek.value} ใช่หรือไม่?\n\nระบบจะรีเซ็ตสถานะการเช็คชื่อของรอบนี้ แต่นักเรียนที่ได้เหรียญไปแล้วจะไม่ถูกดึงเหรียญคืน`)) {
-    return
-  }
-  await cancelCheckInSession(props.courseId, activeWeek.value)
+const handleCancelWithoutSaving = () => {
+  if (!canControlCheckIn.value) return
+  const targetW = activeWeek.value
+  openConfirmDialog({
+    title: `ยืนยัน "ปิดแบบไม่บันทึก" (สัปดาห์ที่ ${targetW})`,
+    message: `ระบบจะรีเซ็ตสถานะการเช็คชื่อของสัปดาห์ที่ ${targetW} รอบนี้ แต่นักเรียนที่ได้เหรียญไปแล้วจะไม่ถูกดึงเหรียญคืน ต้องการดำเนินการต่อหรือไม่?`,
+    type: 'danger',
+    confirmText: 'ยืนยันปิดแบบไม่บันทึก',
+    cancelText: 'ยกเลิก',
+    onConfirm: async () => {
+      await cancelCheckInSession(props.courseId, targetW)
+    }
+  })
 }
 
 // 3. Export Attendance to Excel (Teacher Only)
@@ -215,7 +266,7 @@ onUnmounted(() => {
 <template>
   <div>
     <!-- ================= TEACHER VIEW ================= -->
-    <div v-if="isTeacher" class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 md:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+    <div v-if="canControlCheckIn" class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 md:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
       
       <!-- Background Graphic -->
       <div class="absolute -right-10 -top-10 opacity-10 pointer-events-none">
@@ -334,6 +385,40 @@ onUnmounted(() => {
       </div>
     </div>
 
+    <!-- ================= SUBJECT TEACHER VIEW (READ-ONLY) ================= -->
+    <div
+      v-else-if="isSubjectTeacherUser"
+      class="bg-gradient-to-r from-slate-800 via-sky-900 to-slate-800 rounded-3xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-sky-700/60"
+    >
+      <div class="space-y-1.5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="px-2.5 py-0.5 rounded-full bg-sky-500/20 border border-sky-400/40 text-sky-200 text-[11px] font-bold">
+            สถานะการเช็คชื่อประจำสัปดาห์ (โหมดครูประจำวิชา - ดูอย่างเดียว)
+          </span>
+          <span class="px-2.5 py-0.5 rounded-full bg-white/10 text-white text-xs font-bold">
+            สัปดาห์ที่ {{ activeWeek }}
+          </span>
+        </div>
+        <p class="text-sm font-bold text-slate-100">
+          สถานะปัจจุบัน:
+          <span v-if="isHolidayWeek" class="text-rose-300">วันหยุดราชการ ({{ activeWeekHoliday?.name || 'งดเรียน' }})</span>
+          <span v-else-if="isSessionOpen" class="text-emerald-300">กำลังเปิดรับเช็คชื่อ ({{ getDuration(currentSession?.startTime) }})</span>
+          <span v-else-if="currentSession?.endTime" class="text-red-300">ปิดระบบแล้ว</span>
+          <span v-else class="text-amber-300">ยังไม่ได้เปิดเช็คชื่อ</span>
+        </p>
+      </div>
+
+      <button
+        type="button"
+        @click="handleExportExcel"
+        :disabled="isExporting"
+        class="px-4 py-2.5 bg-emerald-600/30 hover:bg-emerald-600/40 text-emerald-200 border border-emerald-400/40 font-bold rounded-2xl transition-all flex items-center justify-center gap-2 text-xs cursor-pointer disabled:opacity-50 shrink-0"
+      >
+        <FileSpreadsheet class="w-4 h-4 text-emerald-300" />
+        <span>{{ isExporting ? 'กำลังสร้างไฟล์...' : 'พิมพ์ตารางเข้าเรียน (Excel)' }}</span>
+      </button>
+    </div>
+
     <!-- ================= STUDENT VIEW: HOLIDAY ================= -->
     <div v-else-if="isHolidayWeek" class="bg-gradient-to-r from-rose-600 via-rose-700 to-orange-600 rounded-3xl p-6 md:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
       <!-- Background Graphic -->
@@ -421,6 +506,17 @@ onUnmounted(() => {
         <p v-if="checkInMessage" class="mt-3 text-sm font-bold text-emerald-200 animate-pulse">{{ checkInMessage }}</p>
       </div>
     </div>
+
+    <!-- Custom Confirm Modal -->
+    <ConfirmModal
+      v-model="confirmModalState.isOpen"
+      :title="confirmModalState.title"
+      :message="confirmModalState.message"
+      :type="confirmModalState.type"
+      :confirmText="confirmModalState.confirmText"
+      :cancelText="confirmModalState.cancelText"
+      @confirm="handleConfirmDialogAction"
+    />
   </div>
 </template>
 
