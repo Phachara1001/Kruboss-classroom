@@ -31,6 +31,7 @@ const route = useRoute()
 const router = useRouter()
 const showTeacherModal = ref(false)
 const showPreTestModal = ref(false)
+const showReportExampleModal = ref(false)
 
 // Copy snippet feedback state
 const copiedSnippet = ref('')
@@ -2443,36 +2444,45 @@ const quizQuestions = [
     <AssignmentSection
       :course-id="currentCourseId"
       assignment-id="asm-5"
-      assignment-title="ใบงานที่ 5: ออกแบบและสร้างฐานข้อมูลระบบออกออเดอร์ร้านกาแฟ พร้อมใช้คำสั่ง INNER JOIN ดูรายละเอียดออเดอร์"
+      assignment-title="ใบงานที่ 5: สร้างโปรเจกต์ Job_Join ออกแบบฐานข้อมูลระบบออกออเดอร์ร้านกาแฟ (10 ออเดอร์ขึ้นไป) และใช้คำสั่ง INNER JOIN ดูรายละเอียดออเดอร์"
       :max-score="10"
     >
       <template #number>5</template>
       <template #description>
         <p class="leading-relaxed">
-          ให้นักศึกษาออกแบบและสร้างฐานข้อมูลสำหรับ <strong>ระบบออกออเดอร์ร้านกาแฟ (Coffee Shop Order System)</strong> บน <strong>Supabase PostgreSQL</strong> ด้วยตนเอง 
-          และใช้คำสั่ง <strong><code>INNER JOIN</code></strong> ในการเรียกดูรายละเอียดออเดอร์ 
-          โดยรวบรวมรายงานเป็น <strong>คำสั่ง SQL ที่ใช้ทั้งหมด</strong> ลงในเอกสารเพื่อส่งงาน
+          ให้นักศึกษาสร้างโปรเจกต์ใหม่บน <strong>Supabase</strong> ชื่อว่า <strong class="text-emerald-700 font-mono">Job_Join</strong> 
+          เพื่อออกแบบและสร้างฐานข้อมูลสำหรับ <strong>ระบบออกออเดอร์ร้านกาแฟ</strong> (โครงสร้างตารางออกแบบเองได้ตามความเหมาะสม) 
+          โดยต้องมีข้อมูลออเดอร์ <strong>อย่างน้อย 10 ออเดอร์ขึ้นไป</strong> และใช้คำสั่ง <strong><code>INNER JOIN</code></strong> ในการเรียกดูรายละเอียดออเดอร์ 
+          จากนั้นรวบรวมรายงานเป็น <strong>คำสั่ง SQL ที่ใช้ทั้งหมด</strong> ส่งลิงก์ในระบบ
         </p>
       </template>
 
       <template #tasks>
-        <div class="space-y-5">
+        <div class="space-y-6">
           <!-- โจทย์หลัก -->
           <div class="p-6 rounded-2xl bg-white border border-stone-200 space-y-4 shadow-sm">
             <div class="flex items-center justify-between border-b border-stone-100 pb-3 flex-wrap gap-2">
-              <span class="text-xs font-black text-amber-700 uppercase tracking-wider">โจทย์ใบงานที่ 5 • Coffee Shop Order System</span>
-              <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">
-                นักศึกษาออกแบบตารางและฟิลด์ข้อมูลด้วยตนเอง
-              </span>
+              <div>
+                <span class="text-xs font-black text-amber-700 uppercase tracking-wider">โจทย์ใบงานที่ 5 • Project: Job_Join (Coffee Shop Order System)</span>
+                <div class="text-[11px] text-stone-500 mt-0.5">ตารางแล้วแต่ออกแบบ • ออเดอร์ 10 รายการขึ้นไป</div>
+              </div>
+              <button
+                type="button"
+                @click="showReportExampleModal = true"
+                class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black flex items-center gap-2 cursor-pointer transition-all shadow-sm active:scale-95"
+              >
+                <Eye class="w-4 h-4 text-emerald-400" />
+                <span>เปิดดูตัวอย่างรายงาน (Modal)</span>
+              </button>
             </div>
 
             <div class="space-y-3 text-sm text-stone-800 leading-relaxed">
               <div class="flex items-start gap-3 p-4 rounded-xl bg-amber-50/60 border border-amber-200">
                 <Database class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <div class="font-black text-stone-900">1. สร้างฐานข้อมูลระบบออกออเดอร์ร้านกาแฟ</div>
+                  <div class="font-black text-stone-900">1. สร้างโปรเจกต์ใหม่ชื่อ <code>Job_Join</code> และออกแบบฐานข้อมูลระบบออกออเดอร์ร้านกาแฟ</div>
                   <p class="text-xs sm:text-sm text-stone-700 mt-0.5">
-                    ออกแบบโครงสร้างตาราง กำหนดฟิลด์ ชนิดข้อมูล (Data Types) ผูกความสัมพันธ์ (Foreign Key) และเพิ่มข้อมูลตัวอย่างสำหรับระบบออกออเดอร์ร้านกาแฟใน Supabase
+                    สร้างโปรเจกต์บน Supabase ชื่อ <code class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-mono font-bold">Job_Join</code> ส่วนโครงสร้างตารางและฟิลด์ข้อมูลให้นักศึกษาออกแบบเองตามความเหมาะสม พร้อมผูกความสัมพันธ์ (Foreign Key) และเพิ่มข้อมูลออเดอร์ <strong>ตั้งแต่ 10 ออเดอร์ขึ้นไป</strong>
                   </p>
                 </div>
               </div>
@@ -2482,18 +2492,28 @@ const quizQuestions = [
                 <div>
                   <div class="font-black text-stone-900">2. ใช้คำสั่ง <code>INNER JOIN</code> ในการดูรายละเอียดออเดอร์</div>
                   <p class="text-xs sm:text-sm text-stone-700 mt-0.5">
-                    เขียนคำสั่ง SQL <code>INNER JOIN</code> เพื่อดึงข้อมูลเชื่อมโยงกันสำหรับแสดงรายละเอียดออเดอร์ของร้านกาแฟ
+                    เขียนคำสั่ง SQL <code>INNER JOIN</code> เพื่อดึงข้อมูลจากตารางที่เชื่อมโยงกัน มาแสดงเป็นตารางรายละเอียดออเดอร์ของร้านกาแฟ (ตั้งแต่ 10 ออเดอร์ขึ้นไป)
                   </p>
                 </div>
               </div>
 
               <div class="flex items-start gap-3 p-4 rounded-xl bg-sky-50/60 border border-sky-200">
                 <FileText class="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
-                <div>
-                  <div class="font-black text-stone-900">3. รวบรวมรายงานเป็นคำสั่ง SQL ที่ใช้ทั้งหมด</div>
-                  <p class="text-xs sm:text-sm text-stone-700 mt-0.5">
-                    รวบรวมคำสั่ง SQL ที่ใช้ทั้งหมดตั้งแต่ต้นจนจบ (ตั้งแต่การสร้างตาราง การเพิ่มข้อมูล ไปจนถึงคำสั่ง <code>INNER JOIN</code> ดูรายละเอียดออเดอร์ และภาพผลลัพธ์) จัดทำเป็นรายงานใน Google Docs แล้วแนบลิงก์ส่งงาน
-                  </p>
+                <div class="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div class="font-black text-stone-900">3. รวบรวมรายงานเป็นคำสั่ง SQL ที่ใช้ทั้งหมด</div>
+                    <p class="text-xs sm:text-sm text-stone-700 mt-0.5">
+                      จัดทำรายงานใน Google Docs โดยรวบรวม <strong>คำสั่ง SQL ที่ใช้ทั้งหมด</strong> (ตั้งแต่คำสั่งสร้างตาราง, คำสั่งเพิ่มข้อมูล และคำสั่ง <code>INNER JOIN</code> ดูรายละเอียดออเดอร์ พร้อมภาพแคปเจอร์ผลลัพธ์) แล้วแนบลิงก์ส่งงาน
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    @click="showReportExampleModal = true"
+                    class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 cursor-pointer transition-colors"
+                  >
+                    <Eye class="w-3.5 h-3.5" />
+                    <span>ดูตัวอย่างรายงาน</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -2501,6 +2521,208 @@ const quizQuestions = [
         </div>
       </template>
     </AssignmentSection>
+
+    <!-- ============================================================== -->
+    <!-- MODAL: ตัวอย่างรายงาน (ยกตัวอย่างระบบร้านหนังสือ Book Store)     -->
+    <!-- ============================================================== -->
+    <Teleport to="body">
+      <div
+        v-if="showReportExampleModal"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-sm overflow-y-auto"
+        @click.self="showReportExampleModal = false"
+      >
+        <div class="bg-slate-900 text-white w-full max-w-4xl max-h-[90vh] rounded-3xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden my-auto">
+          <!-- Modal Header -->
+          <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                <FileText class="w-5 h-5" />
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="text-base sm:text-lg font-black text-white">ตัวอย่างรายงานที่ต้องส่ง (Report Example)</h3>
+                  <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold">
+                    ตัวอย่างสมมติ: ระบบสั่งซื้อร้านหนังสือ (Book Store)
+                  </span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">
+                  หมายเหตุ: ตัวอย่างนี้ใช้เรื่อง "ร้านหนังสือ" เพื่อให้เห็นโครงสร้างรายงาน (งานจริงของนักศึกษาให้ทำเป็น <strong>ระบบออกออเดอร์ร้านกาแฟ</strong>)
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              @click="showReportExampleModal = false"
+              class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <XCircle class="w-6 h-6" />
+            </button>
+          </div>
+
+          <!-- Modal Body (Scrollable Document Preview) -->
+          <div class="p-5 sm:p-7 overflow-y-auto space-y-5 bg-slate-900">
+            <div class="rounded-2xl bg-white text-stone-800 p-5 sm:p-7 border border-stone-200 shadow-inner space-y-6 font-sans">
+              <!-- หัวกระดาษรายงาน -->
+              <div class="border-b-2 border-stone-200 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div class="text-xs font-bold text-emerald-700 uppercase tracking-wider">ตัวอย่างเอกสารรายงาน Google Docs</div>
+                  <h5 class="text-base sm:text-lg font-black text-stone-900 mt-0.5">
+                    รายงานใบงานที่ 5: ระบบออกออเดอร์ร้านหนังสือ (โปรเจกต์ Job_Join)
+                  </h5>
+                </div>
+                <div class="text-xs text-stone-600 bg-stone-100 px-3.5 py-2 rounded-xl border border-stone-200 shrink-0">
+                  <div><strong>ชื่อ-สกุล:</strong> นายสมชาย สายดาต้า</div>
+                  <div><strong>รหัสนักศึกษา:</strong> 693190100xx • <strong>กลุ่ม:</strong> ปวส.1/1</div>
+                </div>
+              </div>
+
+              <!-- ส่วนที่ 1 ของรายงาน: คำสั่งสร้างตาราง -->
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-black text-stone-900">
+                  <span class="w-6 h-6 rounded-lg bg-amber-600 text-white text-xs flex items-center justify-center">1</span>
+                  <span>ส่วนที่ 1: คำสั่ง SQL สร้างตารางและความสัมพันธ์ (CREATE TABLE)</span>
+                </div>
+                <pre class="p-3.5 rounded-xl bg-slate-950 text-emerald-300 font-mono text-[11px] overflow-x-auto leading-relaxed"><code>-- 1. ตารางรายการหนังสือ (books)
+CREATE TABLE books (
+  id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  book_title VARCHAR(150) NOT NULL,
+  genre VARCHAR(50) NOT NULL,
+  unit_price NUMERIC(10, 2) NOT NULL
+);
+
+-- 2. ตารางรายการใบสั่งซื้อหนังสือ (book_orders) เชื่อม Foreign Key ไปที่ books(id)
+CREATE TABLE book_orders (
+  id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  order_code VARCHAR(20) NOT NULL UNIQUE,
+  buyer_name VARCHAR(100) NOT NULL,
+  book_id BIGINT NOT NULL REFERENCES books(id),
+  quantity INT NOT NULL DEFAULT 1,
+  order_date TIMESTAMPTZ DEFAULT NOW()
+);</code></pre>
+              </div>
+
+              <!-- ส่วนที่ 2 ของรายงาน: คำสั่งเพิ่มข้อมูล (10 ออเดอร์ขึ้นไป) -->
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-black text-stone-900">
+                  <span class="w-6 h-6 rounded-lg bg-sky-600 text-white text-xs flex items-center justify-center">2</span>
+                  <span>ส่วนที่ 2: คำสั่ง SQL เพิ่มข้อมูลสินค้าและข้อมูลออเดอร์ (10 ออเดอร์ขึ้นไป)</span>
+                </div>
+                <pre class="p-3.5 rounded-xl bg-slate-950 text-sky-300 font-mono text-[11px] overflow-x-auto leading-relaxed"><code>-- เพิ่มข้อมูลหนังสือในร้าน
+INSERT INTO books (book_title, genre, unit_price) VALUES
+  ('คัมภีร์ออกแบบฐานข้อมูล SQL', 'Computer', 320.00),
+  ('เริ่มต้นเขียนโปรแกรม Python', 'Computer', 280.00),
+  ('จิตวิทยาการลงทุนยุคดิจิทัล', 'Business', 250.00),
+  ('นิยายสืบสวนคดีปริศนาหอนาฬิกา', 'Novel', 195.00),
+  ('สรุปสูตรคณิตศาสตร์วิศวกรรม', 'Education', 220.00);
+
+-- เพิ่มข้อมูลออเดอร์สั่งซื้อหนังสือ (10 ออเดอร์ขึ้นไป)
+INSERT INTO book_orders (order_code, buyer_name, book_id, quantity) VALUES
+  ('BK-001', 'คุณกิตติ', 1, 2),
+  ('BK-002', 'คุณพิมพ์', 2, 1),
+  ('BK-003', 'คุณธนวัฒน์', 4, 3),
+  ('BK-004', 'คุณนภา', 3, 1),
+  ('BK-005', 'คุณอานนท์', 5, 2),
+  ('BK-006', 'คุณมินตรา', 1, 1),
+  ('BK-007', 'คุณภาคิน', 2, 2),
+  ('BK-008', 'คุณรินรดา', 3, 1),
+  ('BK-009', 'คุณชานนท์', 4, 1),
+  ('BK-010', 'คุณแพรวา', 5, 3);</code></pre>
+              </div>
+
+              <!-- ส่วนที่ 3 ของรายงาน: คำสั่ง INNER JOIN ดูรายละเอียดออเดอร์ + ผลลัพธ์ -->
+              <div class="space-y-2.5">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-black text-stone-900">
+                  <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white text-xs flex items-center justify-center">3</span>
+                  <span>ส่วนที่ 3: คำสั่ง SQL INNER JOIN สำหรับดูรายละเอียดออเดอร์ และภาพผลลัพธ์</span>
+                </div>
+                <pre class="p-3.5 rounded-xl bg-slate-950 text-amber-300 font-mono text-[11px] overflow-x-auto leading-relaxed"><code>-- คำสั่ง INNER JOIN ดูรายละเอียดออเดอร์ทั้งหมด
+SELECT
+  bo.order_code,
+  bo.buyer_name,
+  b.book_title,
+  b.genre,
+  b.unit_price,
+  bo.quantity,
+  (b.unit_price * bo.quantity) AS total_amount
+FROM book_orders bo
+INNER JOIN books b ON bo.book_id = b.id
+ORDER BY bo.id ASC;</code></pre>
+
+                <!-- ตารางจำลองผลลัพธ์ (เหมือนที่แคปจาก Supabase) -->
+                <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200 space-y-2">
+                  <div class="flex items-center justify-between text-[11px] font-bold text-stone-600 flex-wrap gap-2">
+                    <span>ภาพแคปเจอร์ผลลัพธ์การรัน INNER JOIN (10 rows) และหน้า Schema Visualizer จาก Supabase:</span>
+                    <span class="font-mono text-emerald-700">Results: 10 rows</span>
+                  </div>
+                  <div class="overflow-x-auto rounded-lg border border-stone-200 bg-white">
+                    <table class="w-full text-[11px] text-left font-mono">
+                      <thead class="bg-stone-100 text-stone-700 border-b border-stone-200 font-bold">
+                        <tr>
+                          <th class="p-2">order_code</th>
+                          <th class="p-2">buyer_name</th>
+                          <th class="p-2">book_title</th>
+                          <th class="p-2">genre</th>
+                          <th class="p-2 text-right">unit_price</th>
+                          <th class="p-2 text-center">quantity</th>
+                          <th class="p-2 text-right text-emerald-700">total_amount</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-stone-100 text-stone-700">
+                        <tr>
+                          <td class="p-2 font-bold text-stone-900">BK-001</td>
+                          <td class="p-2 font-sans">คุณกิตติ</td>
+                          <td class="p-2 font-sans">คัมภีร์ออกแบบฐานข้อมูล SQL</td>
+                          <td class="p-2">Computer</td>
+                          <td class="p-2 text-right">320.00</td>
+                          <td class="p-2 text-center">2</td>
+                          <td class="p-2 text-right font-bold text-emerald-700">640.00</td>
+                        </tr>
+                        <tr>
+                          <td class="p-2 font-bold text-stone-900">BK-002</td>
+                          <td class="p-2 font-sans">คุณพิมพ์</td>
+                          <td class="p-2 font-sans">เริ่มต้นเขียนโปรแกรม Python</td>
+                          <td class="p-2">Computer</td>
+                          <td class="p-2 text-right">280.00</td>
+                          <td class="p-2 text-center">1</td>
+                          <td class="p-2 text-right font-bold text-emerald-700">280.00</td>
+                        </tr>
+                        <tr>
+                          <td class="p-2 font-bold text-stone-900">BK-003</td>
+                          <td class="p-2 font-sans">คุณธนวัฒน์</td>
+                          <td class="p-2 font-sans">นิยายสืบสวนคดีปริศนาหอนาฬิกา</td>
+                          <td class="p-2">Novel</td>
+                          <td class="p-2 text-right">195.00</td>
+                          <td class="p-2 text-center">3</td>
+                          <td class="p-2 text-right font-bold text-emerald-700">585.00</td>
+                        </tr>
+                        <tr class="bg-stone-50/70 text-stone-400 italic font-sans">
+                          <td colspan="7" class="p-2 text-center">... (แสดงผลครบทั้ง 10 ออเดอร์ขึ้นไป) ...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="px-6 py-3.5 bg-slate-950 border-t border-slate-800 flex items-center justify-between gap-3 shrink-0">
+            <span class="text-xs text-amber-300 font-medium">
+              * สำหรับใบงานจริง ให้นักศึกษาเปลี่ยนเป็นฐานข้อมูล <strong>ระบบออกออเดอร์ร้านกาแฟ</strong> ในโปรเจกต์ <code>Job_Join</code>
+            </span>
+            <button
+              type="button"
+              @click="showReportExampleModal = false"
+              class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black cursor-pointer transition-colors"
+            >
+              เข้าใจแล้ว ปิดหน้าต่าง
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Teacher Scoreboard Modal -->
     <TeacherScoreboardModal
