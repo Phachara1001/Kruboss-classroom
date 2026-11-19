@@ -1658,6 +1658,87 @@ const quizQuestions = [
         </div>
 
         <!-- ============================================================ -->
+        <!-- PRE-LAB DATA PREPARATION FOR CLEAR JOIN COMPARISON           -->
+        <!-- ============================================================ -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-amber-950/35 border-2 border-amber-500/40 space-y-4">
+          <div class="flex items-start justify-between flex-wrap gap-3">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center shrink-0 mt-0.5">
+                <PlusCircle class="w-5 h-5" />
+              </div>
+              <div class="space-y-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[11px] font-black uppercase">
+                    สำคัญมากก่อนทดลองรัน JOIN
+                  </span>
+                  <h4 class="text-sm sm:text-base font-black text-amber-200">
+                    ทำไมรัน INNER / LEFT / RIGHT JOIN แล้วได้ 3 แถวเท่ากันหมด? (และวิธีเพิ่มข้อมูลให้เห็นความต่างชัดเจน)
+                  </h4>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  หากเราใช้ข้อมูลเริ่มต้นแค่ <strong>3 แถวแรก</strong> ที่ทุกหมวดหมู่ (<code class="text-emerald-300">id 1, 2, 3</code>) มีสินค้าจับคู่ครบ <strong class="text-amber-300">1:1 พอดีเป๊ะ</strong> ผลลัพธ์ของ <code>INNER JOIN</code>, <code>LEFT JOIN</code>, <code>RIGHT JOIN</code> และ <code>FULL JOIN</code> จะออกมาเป็น <strong>3 แถวหน้าตาเหมือนกันทั้งหมด</strong> จนมองไม่เห็นความต่าง!
+                  <br />
+                  ดังนั้น <strong>ให้คัดลอกคำสั่งด้านล่างไปรันเพิ่มใน SQL Editor ก่อน</strong> เพื่อจำลองสถานการณ์จริงที่มีทั้ง <em>"หมวดหมู่ที่ยังไม่มีสินค้า"</em> และ <em>"สินค้าที่ยังไม่ได้จัดหมวดหมู่ (NULL)"</em>:
+                </p>
+              </div>
+            </div>
+
+            <button
+              @click="copyText(`-- 1. ปลดล็อกให้คอลัมน์ category_id ในตาราง products รับค่าว่าง (NULL) ได้ (สำหรับจำลองสินค้าที่ยังไม่ระบุหมวดหมู่)\nALTER TABLE products ALTER COLUMN category_id DROP NOT NULL;\n\n-- 2. เพิ่มหมวดหมู่ใหม่ 2 หมวด (id 4 และ 5) ที่ยังไม่มีสินค้าใดๆ มาผูกเลย\nINSERT INTO categories (category_code, category_name, description) VALUES\n  ('CAT-RAM', 'หน่วยความจำ (Memory / RAM)', 'แรม DDR4 และ DDR5 สำหรับคอมพิวเตอร์'),\n  ('CAT-PSU', 'พาวเวอร์ซัพพลาย (Power Supply)', 'อุปกรณ์จ่ายไฟมาตรฐาน 80 Plus');\n\n-- 3. เพิ่มสินค้าเพิ่มอีก 3 ชิ้น (โดยมี 1 ชิ้นที่ category_id เป็น NULL คือยังไม่ระบุหมวดหมู่)\nINSERT INTO products (sku, product_name, price, stock, category_id) VALUES\n  ('CPU-R5', 'AMD Ryzen 5 7600X', 7800.00, 12, 1),\n  ('GPU-4070S', 'NVIDIA RTX 4070 Super 12GB', 23900.00, 5, 2),\n  ('ACC-PAST', 'ซิลิโคนระบายความร้อน Arctic MX-6 (ยังไม่จัดหมวด)', 350.00, 30, NULL);`, 'sql_prep_join')"
+              class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-md shrink-0"
+            >
+              <Copy class="w-4 h-4" />
+              <span>{{ copiedSnippet === 'sql_prep_join' ? 'คัดลอก SQL เตรียมข้อมูลแล้ว ✓' : 'คัดลอก SQL เพิ่มข้อมูลทดสอบ' }}</span>
+            </button>
+          </div>
+
+          <!-- SQL Script Box -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+            <div class="lg:col-span-7 p-4 rounded-2xl bg-black/75 border border-amber-500/30 font-mono text-[11px] text-amber-200 overflow-x-auto">
+              <pre class="leading-relaxed"><code><span class="text-slate-400">-- 1. ปลดล็อกให้ products.category_id เป็นค่าว่าง (NULL) ได้</span>
+<span class="text-purple-400">ALTER TABLE</span> products <span class="text-purple-400">ALTER COLUMN</span> category_id <span class="text-purple-400">DROP NOT NULL</span>;
+
+<span class="text-slate-400">-- 2. เพิ่มหมวดหมู่ใหม่ 2 หมวด (ที่ยังไม่มีสินค้าผูกเลย)</span>
+<span class="text-purple-400">INSERT INTO</span> categories (category_code, category_name, description) <span class="text-purple-400">VALUES</span>
+  (<span class="text-emerald-300">'CAT-RAM'</span>, <span class="text-emerald-300">'หน่วยความจำ (Memory / RAM)'</span>, <span class="text-emerald-300">'แรม DDR4 และ DDR5'</span>),
+  (<span class="text-emerald-300">'CAT-PSU'</span>, <span class="text-emerald-300">'พาวเวอร์ซัพพลาย (Power Supply)'</span>, <span class="text-emerald-300">'อุปกรณ์จ่ายไฟ 80 Plus'</span>);
+
+<span class="text-slate-400">-- 3. เพิ่มสินค้าอีก 3 ชิ้น (มี 1 ชิ้นที่ category_id เป็น NULL)</span>
+<span class="text-purple-400">INSERT INTO</span> products (sku, product_name, price, stock, category_id) <span class="text-purple-400">VALUES</span>
+  (<span class="text-sky-300">'CPU-R5'</span>, <span class="text-sky-300">'AMD Ryzen 5 7600X'</span>, 7800.00, 12, 1),
+  (<span class="text-sky-300">'GPU-4070S'</span>, <span class="text-sky-300">'NVIDIA RTX 4070 Super 12GB'</span>, 23900.00, 5, 2),
+  (<span class="text-rose-300">'ACC-PAST'</span>, <span class="text-rose-300">'ซิลิโคน Arctic MX-6 (ยังไม่จัดหมวด)'</span>, 350.00, 30, <span class="text-amber-400 font-bold">NULL</span>);</code></pre>
+            </div>
+
+            <!-- Summary of what happens after adding this data -->
+            <div class="lg:col-span-5 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between space-y-3 text-xs">
+              <div class="font-black text-amber-300 flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                <Sparkles class="w-4 h-4" />
+                <span>เมื่อรันเพิ่มข้อมูลชุดนี้แล้ว จะเกิดความต่างทันที:</span>
+              </div>
+              <ul class="space-y-2 text-[11px] text-slate-200 leading-relaxed">
+                <li class="flex items-start gap-2">
+                  <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold shrink-0">INNER JOIN</span>
+                  <span>จะได้ <strong>5 แถว</strong> (เฉพาะสินค้าที่มีหมวดหมู่ตรงกัน ตัดซิลิโคนที่เป็น NULL และตัดหมวด RAM/PSU ที่ไม่มีสินค้าทิ้ง)</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono font-bold shrink-0">LEFT JOIN</span>
+                  <span>เมื่อเอา <code>products</code> ตั้งซ้าย จะได้ <strong>6 แถว</strong> (เห็น <em>ซิลิโคน Arctic MX-6</em> โผล่มาพร้อมชื่อหมวดหมู่เป็น <code>NULL</code>)</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono font-bold shrink-0">RIGHT JOIN</span>
+                  <span>เมื่อเอา <code>categories</code> อยู่ขวา จะได้ <strong>7 แถว</strong> (เห็นหมวด <em>RAM</em> และ <em>Power Supply</em> โผล่มาพร้อมชื่อสินค้าเป็น <code>NULL</code>)</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono font-bold shrink-0">FULL JOIN</span>
+                  <span>จะได้ครบทั้งหมด <strong>8 แถว</strong> (เห็นทั้งสินค้าที่มีคู่ 5 แถว + ซิลิโคนไร้หมวด 1 แถว + หมวดว่าง 2 แถว)</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
         <!-- JOIN TYPE 1: INNER JOIN                                      -->
         <!-- ============================================================ -->
         <div v-if="activeJoinType === 'inner'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 rounded-3xl bg-slate-900/90 border border-emerald-500/40 shadow-xl animate-[fadeIn_0.2s_ease-out]">
@@ -1699,12 +1780,25 @@ const quizQuestions = [
 
             <div class="p-4 rounded-2xl bg-black/70 border border-slate-800 font-mono text-xs text-emerald-300 space-y-2">
               <div class="flex items-center justify-between text-slate-400 text-[11px] border-b border-slate-800 pb-1">
-                <span>SQL Example: ดึงสินค้าคู่กับชื่อหมวดหมู่</span>
-                <span class="text-emerald-400">INNER JOIN</span>
+                <span>SQL Example: ดึงสินค้าคู่กับชื่อหมวดหมู่ (ผลลัพธ์ 5 แถวที่มีคู่สมบูรณ์)</span>
+                <button
+                  @click="copyText(`SELECT p.id, p.product_name, p.price, c.category_name\nFROM products p\nINNER JOIN categories c ON p.category_id = c.id;`, 'sql_ex_inner')"
+                  class="text-emerald-400 hover:underline cursor-pointer"
+                >
+                  {{ copiedSnippet === 'sql_ex_inner' ? 'คัดลอกแล้ว ✓' : 'Copy SQL' }}
+                </button>
               </div>
               <pre class="overflow-x-auto leading-relaxed"><code><span class="text-purple-400">SELECT</span> p.id, p.product_name, p.price, c.category_name
 <span class="text-purple-400">FROM</span> products p
 <span class="text-emerald-400 font-bold">INNER JOIN</span> categories c <span class="text-purple-400">ON</span> p.category_id = c.id;</code></pre>
+            </div>
+
+            <div class="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-xs text-slate-200 space-y-1">
+              <div class="font-bold text-emerald-300">🔍 สังเกตผลลัพธ์หลังเพิ่มข้อมูลทดสอบ (ได้ 5 แถว):</div>
+              <p class="text-[11px] text-slate-300">
+                • แสดงเฉพาะสินค้า 5 ชิ้นที่มีรหัสหมวดหมู่ตรงกับตาราง <code>categories</code> เท่านั้น<br />
+                • <strong class="text-rose-300">สิ่งที่ถูกตัดทิ้ง:</strong> สินค้า <em>"ซิลิโคน Arctic MX-6"</em> (เพราะ <code>category_id</code> เป็น NULL) และหมวดหมู่ <em>"RAM / Power Supply"</em> (เพราะยังไม่มีสินค้า) จะไม่ปรากฏในตารางผลลัพธ์เลย
+              </p>
             </div>
 
             <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-slate-300 flex items-start gap-2.5">
@@ -1748,17 +1842,30 @@ const quizQuestions = [
 
             <div class="p-4 rounded-2xl bg-black/70 border border-slate-800 font-mono text-xs text-sky-300 space-y-2">
               <div class="flex items-center justify-between text-slate-400 text-[11px] border-b border-slate-800 pb-1">
-                <span>SQL Example: ดึงหมวดหมู่ทั้งหมด แม้หมวดนั้นยังไม่มีสินค้าชิ้นใดลงขายเลย</span>
-                <span class="text-sky-400">LEFT JOIN</span>
+                <span>SQL Example 1: ยึดตารางสินค้า (products) เป็นตารางซ้าย (ได้ 6 แถว)</span>
+                <button
+                  @click="copyText(`SELECT p.id, p.product_name, p.price, c.category_name\nFROM products p\nLEFT JOIN categories c ON p.category_id = c.id;`, 'sql_ex_left')"
+                  class="text-sky-400 hover:underline cursor-pointer"
+                >
+                  {{ copiedSnippet === 'sql_ex_left' ? 'คัดลอกแล้ว ✓' : 'Copy SQL' }}
+                </button>
               </div>
-              <pre class="overflow-x-auto leading-relaxed"><code><span class="text-purple-400">SELECT</span> c.category_name, p.product_name, p.price
-<span class="text-purple-400">FROM</span> categories c
-<span class="text-sky-400 font-bold">LEFT JOIN</span> products p <span class="text-purple-400">ON</span> c.id = p.category_id;</code></pre>
+              <pre class="overflow-x-auto leading-relaxed"><code><span class="text-purple-400">SELECT</span> p.id, p.product_name, p.price, c.category_name
+<span class="text-purple-400">FROM</span> products p
+<span class="text-sky-400 font-bold">LEFT JOIN</span> categories c <span class="text-purple-400">ON</span> p.category_id = c.id;</code></pre>
+            </div>
+
+            <div class="p-3 rounded-xl bg-sky-950/30 border border-sky-500/30 text-xs text-slate-200 space-y-1">
+              <div class="font-bold text-sky-300">🔍 สังเกตผลลัพธ์หลังเพิ่มข้อมูลทดสอบ (ได้ 6 แถว):</div>
+              <p class="text-[11px] text-slate-300">
+                • สินค้าทั้ง 6 ชิ้นในตาราง <code>products</code> (ตารางซ้าย) จะถูกดึงออกมาครบทุกชิ้น!<br />
+                • <strong class="text-amber-300">จุดที่แตกต่างจาก INNER JOIN:</strong> จะเห็นแถวที่ 6 คือ <em>"ซิลิโคน Arctic MX-6"</em> ปรากฏขึ้นมาด้วย โดยช่อง <code>category_name</code> จะแสดงเป็นค่า <code class="text-amber-300 font-bold">null</code>
+              </p>
             </div>
 
             <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-slate-300 flex items-start gap-2.5">
               <Lightbulb class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <span><strong>เทคนิคระดับเซียน:</strong> หากต้องการค้นหาว่า <em>"หมวดหมู่ไหนที่ยังไม่มีสินค้าลงขายเลย?"</em> ให้ใช้ <code>LEFT JOIN</code> แล้วตามด้วย <code>WHERE p.id IS NULL</code> จะได้คำตอบทันที!</span>
+              <span><strong>เทคนิคระดับเซียน:</strong> หากต้องการหาเฉพาะสินค้าที่ยังไม่ได้จัดหมวดหมู่ ให้เติม <code>WHERE c.id IS NULL</code> ต่อท้าย หรือถ้าสลับเอา <code>FROM categories c LEFT JOIN products p</code> ก็จะเห็นหมวด RAM และ Power Supply ที่มีค่าสินค้าเป็น <code>null</code>!</span>
             </div>
           </div>
         </div>
@@ -1793,9 +1900,26 @@ const quizQuestions = [
             </div>
 
             <div class="p-4 rounded-2xl bg-black/70 border border-slate-800 font-mono text-xs text-indigo-300 space-y-2">
-              <pre class="overflow-x-auto leading-relaxed"><code><span class="text-purple-400">SELECT</span> p.product_name, c.category_name
+              <div class="flex items-center justify-between text-slate-400 text-[11px] border-b border-slate-800 pb-1">
+                <span>SQL Example: ยึดตารางหมวดหมู่ (categories) ที่อยู่ฝั่งขวาเป็นหลัก (ได้ 7 แถว)</span>
+                <button
+                  @click="copyText(`SELECT p.id, p.product_name, p.price, c.category_name\nFROM products p\nRIGHT JOIN categories c ON p.category_id = c.id;`, 'sql_ex_right')"
+                  class="text-indigo-400 hover:underline cursor-pointer"
+                >
+                  {{ copiedSnippet === 'sql_ex_right' ? 'คัดลอกแล้ว ✓' : 'Copy SQL' }}
+                </button>
+              </div>
+              <pre class="overflow-x-auto leading-relaxed"><code><span class="text-purple-400">SELECT</span> p.id, p.product_name, p.price, c.category_name
 <span class="text-purple-400">FROM</span> products p
 <span class="text-indigo-400 font-bold">RIGHT JOIN</span> categories c <span class="text-purple-400">ON</span> p.category_id = c.id;</code></pre>
+            </div>
+
+            <div class="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/30 text-xs text-slate-200 space-y-1">
+              <div class="font-bold text-indigo-300">🔍 สังเกตผลลัพธ์หลังเพิ่มข้อมูลทดสอบ (ได้ 7 แถว):</div>
+              <p class="text-[11px] text-slate-300">
+                • ดึงหมวดหมู่ทุกหมวดจากตารางขวา (<code>categories</code>) ออกมาทั้งหมดรวมถึงหมวด <strong>"หน่วยความจำ (Memory / RAM)"</strong> และ <strong>"พาวเวอร์ซัพพลาย (Power Supply)"</strong><br />
+                • <strong class="text-amber-300">จุดที่แตกต่าง:</strong> ในแถวของหมวด RAM และ Power Supply ช่อง <code>product_name</code> และ <code>price</code> จะแสดงเป็นค่า <code class="text-amber-300 font-bold">null</code> ส่วนซิลิโคนไร้หมวดหมู่ในตารางซ้ายจะถูกตัดออก
+              </p>
             </div>
 
             <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-slate-300 flex items-start gap-2.5">
@@ -1835,14 +1959,32 @@ const quizQuestions = [
             </div>
 
             <div class="p-4 rounded-2xl bg-black/70 border border-slate-800 font-mono text-xs text-purple-300 space-y-2">
-              <pre class="overflow-x-auto leading-relaxed"><code><span class="text-purple-400">SELECT</span> c.category_name, p.product_name
-<span class="text-purple-400">FROM</span> categories c
-<span class="text-purple-400 font-bold">FULL OUTER JOIN</span> products p <span class="text-purple-400">ON</span> c.id = p.category_id;</code></pre>
+              <div class="flex items-center justify-between text-slate-400 text-[11px] border-b border-slate-800 pb-1">
+                <span>SQL Example: ดึงทั้งสินค้าทุกชิ้นและหมวดหมู่ทุกหมวดมารวมกันทั้งหมด (ได้ 8 แถว)</span>
+                <button
+                  @click="copyText(`SELECT p.id, p.product_name, p.price, c.category_name\nFROM products p\nFULL OUTER JOIN categories c ON p.category_id = c.id;`, 'sql_ex_full')"
+                  class="text-purple-400 hover:underline cursor-pointer"
+                >
+                  {{ copiedSnippet === 'sql_ex_full' ? 'คัดลอกแล้ว ✓' : 'Copy SQL' }}
+                </button>
+              </div>
+              <pre class="overflow-x-auto leading-relaxed"><code><span class="text-purple-400">SELECT</span> p.id, p.product_name, p.price, c.category_name
+<span class="text-purple-400">FROM</span> products p
+<span class="text-purple-400 font-bold">FULL OUTER JOIN</span> categories c <span class="text-purple-400">ON</span> p.category_id = c.id;</code></pre>
+            </div>
+
+            <div class="p-3 rounded-xl bg-purple-950/30 border border-purple-500/30 text-xs text-slate-200 space-y-1">
+              <div class="font-bold text-purple-300">🔍 สังเกตผลลัพธ์หลังเพิ่มข้อมูลทดสอบ (ได้ครบ 8 แถว):</div>
+              <p class="text-[11px] text-slate-300">
+                • แถวที่ 1–5: สินค้าที่มีหมวดหมู่ตรงกัน 5 ชิ้น<br />
+                • แถวที่ 6: สินค้า <em>"ซิลิโคน Arctic MX-6"</em> ที่ช่อง <code>category_name</code> เป็น <code class="text-amber-300 font-bold">null</code><br />
+                • แถวที่ 7–8: หมวดหมู่ <em>"RAM"</em> และ <em>"Power Supply"</em> ที่ช่อง <code>product_name</code> เป็น <code class="text-amber-300 font-bold">null</code>
+              </p>
             </div>
 
             <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-slate-300 flex items-start gap-2.5">
               <ShieldCheck class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-              <span><strong>การใช้งานจริง:</strong> นิยมใช้ในงาน <em>Data Audit &amp; Reconciliation</em> หรือการตรวจสอบความสมบูรณ์ของข้อมูลสองระบบว่ามีข้อมูลฝั่งใดที่ไม่มีคู่ตรงกันบ้าง</span>
+              <span><strong>การใช้งานจริง:</strong> นิยมใช้ในงาน <em>Data Audit &amp; Reconciliation</em> หรือการตรวจสอบความสมบูรณ์ของข้อมูลสองระบบว่ามีข้อมูลฝั่งใดที่ตกหล่นหรือไม่มีคู่ตรงกันบ้าง</span>
             </div>
           </div>
         </div>
@@ -1854,8 +1996,8 @@ const quizQuestions = [
           <div class="lg:col-span-4 flex flex-col items-center justify-center p-6 rounded-2xl bg-black/40 border border-amber-500/30 text-center space-y-3">
             <div class="text-xs font-mono font-bold text-amber-300 uppercase">Cartesian Product (M × N)</div>
             <div class="p-4 rounded-xl bg-slate-800/80 border border-amber-500/30 font-mono text-xs text-amber-300">
-              <span class="text-slate-400 block mb-1">ตาราง A (3 แถว) × ตาราง B (4 แถว)</span>
-              <span class="text-lg font-black text-amber-400">= 12 แถวผลลัพธ์</span>
+              <span class="text-slate-400 block mb-1">products (6 แถว) × categories (5 แถว)</span>
+              <span class="text-lg font-black text-amber-400">= 30 แถวผลลัพธ์</span>
             </div>
             <div class="text-[11px] text-amber-300/90 font-medium">
               จับคู่ไขว้กันทุกแถวแบบครบทุกกรณี <strong>(ไม่ต้องมีคำสั่ง ON)</strong>
@@ -1875,9 +2017,18 @@ const quizQuestions = [
             </div>
 
             <div class="p-4 rounded-2xl bg-black/70 border border-slate-800 font-mono text-xs text-amber-300 space-y-2">
-              <pre class="overflow-x-auto leading-relaxed"><code><span class="text-purple-400">SELECT</span> size.name, color.name
-<span class="text-purple-400">FROM</span> sizes size
-<span class="text-amber-400 font-bold">CROSS JOIN</span> colors color;</code></pre>
+              <div class="flex items-center justify-between text-slate-400 text-[11px] border-b border-slate-800 pb-1">
+                <span>SQL Example: จับคู่ไขว้ทุกสินค้ากับทุกหมวดหมู่ (6 × 5 = 30 แถว)</span>
+                <button
+                  @click="copyText(`SELECT p.product_name, c.category_name\nFROM products p\nCROSS JOIN categories c;`, 'sql_ex_cross')"
+                  class="text-amber-400 hover:underline cursor-pointer"
+                >
+                  {{ copiedSnippet === 'sql_ex_cross' ? 'คัดลอกแล้ว ✓' : 'Copy SQL' }}
+                </button>
+              </div>
+              <pre class="overflow-x-auto leading-relaxed"><code><span class="text-purple-400">SELECT</span> p.product_name, c.category_name
+<span class="text-purple-400">FROM</span> products p
+<span class="text-amber-400 font-bold">CROSS JOIN</span> categories c;</code></pre>
             </div>
 
             <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-slate-300 flex items-start gap-2.5">
@@ -2292,218 +2443,59 @@ const quizQuestions = [
     <AssignmentSection
       :course-id="currentCourseId"
       assignment-id="asm-5"
-      assignment-title="ใบงานที่ 5: การออกแบบและสร้างฐานข้อมูลเชิงสัมพันธ์ร้านกาแฟ (Coffee Shop) 3 ตาราง และการเขียนคำสั่ง SQL JOIN ตามสถานการณ์"
+      assignment-title="ใบงานที่ 5: ออกแบบและสร้างฐานข้อมูลระบบออกออเดอร์ร้านกาแฟ พร้อมใช้คำสั่ง INNER JOIN ดูรายละเอียดออเดอร์"
       :max-score="10"
     >
       <template #number>5</template>
       <template #description>
         <p class="leading-relaxed">
-          ให้นักศึกษาลงมือสร้างฐานข้อมูลเชิงสัมพันธ์สำหรับระบบ <strong>ร้านกาแฟ (Coffee Shop) จำนวน 3 ตาราง</strong> 
-          บนคลาวด์ <strong>Supabase PostgreSQL</strong> โดยกำหนดชนิดข้อมูล (Data Types) ที่เหมาะสมด้วยตนเอง 
-          พร้อมผูกความสัมพันธ์ (Foreign Key) และเขียนคำสั่ง <strong>SQL JOIN</strong> เพื่อสืบค้นข้อมูลตามสถานการณ์ทางธุรกิจที่กำหนด 
-          จากนั้นบันทึกคำสั่ง SQL และแคปเจอร์ภาพหน้าจอผลลัพธ์ลงใน <strong>Google Docs</strong> เพื่อแนบลิงก์ส่งงานในระบบ
+          ให้นักศึกษาออกแบบและสร้างฐานข้อมูลสำหรับ <strong>ระบบออกออเดอร์ร้านกาแฟ (Coffee Shop Order System)</strong> บน <strong>Supabase PostgreSQL</strong> ด้วยตนเอง 
+          และใช้คำสั่ง <strong><code>INNER JOIN</code></strong> ในการเรียกดูรายละเอียดออเดอร์ 
+          โดยรวบรวมรายงานเป็น <strong>คำสั่ง SQL ที่ใช้ทั้งหมด</strong> ลงในเอกสารเพื่อส่งงาน
         </p>
       </template>
 
       <template #tasks>
-        <div class="space-y-6">
-          <!-- ข้อที่ 1: ตารางฐานข้อมูลร้านกาแฟ 3 ตาราง -->
+        <div class="space-y-5">
+          <!-- โจทย์หลัก -->
           <div class="p-6 rounded-2xl bg-white border border-stone-200 space-y-4 shadow-sm">
-            <div class="flex items-center justify-between border-b border-stone-100 pb-3">
-              <span class="text-xs font-black text-amber-700 uppercase tracking-wider">โจทย์ข้อที่ 1 • Database Schema Specification</span>
+            <div class="flex items-center justify-between border-b border-stone-100 pb-3 flex-wrap gap-2">
+              <span class="text-xs font-black text-amber-700 uppercase tracking-wider">โจทย์ใบงานที่ 5 • Coffee Shop Order System</span>
               <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">
-                บอกเฉพาะชื่อตารางและชื่อฟิลด์ (นักศึกษากำหนด Data Type เอง)
+                นักศึกษาออกแบบตารางและฟิลด์ข้อมูลด้วยตนเอง
               </span>
             </div>
 
-            <h4 class="text-base font-black text-stone-900 flex items-center gap-2">
-              <Database class="w-5 h-5 text-amber-600" />
-              1. จำลองฐานข้อมูลร้านกาแฟ (Coffee Shop) จำนวน 3 ตารางที่มีความสัมพันธ์กัน
-            </h4>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-              <!-- ตารางที่ 1: categories -->
-              <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200 space-y-2">
-                <div class="flex items-center justify-between">
-                  <span class="px-2 py-0.5 rounded bg-amber-600 text-white font-mono font-bold text-xs">ตารางที่ 1</span>
-                  <span class="text-[11px] text-amber-800 font-bold">ตารางแม่</span>
-                </div>
-                <div class="font-mono font-black text-base text-stone-900">categories</div>
-                <div class="text-xs text-stone-600">เก็บข้อมูลหมวดหมู่สินค้า</div>
-                <div class="pt-2 border-t border-amber-200/60 space-y-1 text-xs">
-                  <div class="font-bold text-stone-700">รายชื่อฟิลด์ (Fields):</div>
-                  <ul class="list-disc pl-4 font-mono text-stone-800 space-y-0.5">
-                    <li><strong class="text-amber-800">id</strong> (Primary Key)</li>
-                    <li><strong>category_name</strong> (ชื่อหมวดหมู่ เช่น Coffee, Non-Coffee, Bakery)</li>
-                  </ul>
-                </div>
-              </div>
-
-              <!-- ตารางที่ 2: menus -->
-              <div class="p-4 rounded-xl bg-sky-50/60 border border-sky-200 space-y-2">
-                <div class="flex items-center justify-between">
-                  <span class="px-2 py-0.5 rounded bg-sky-600 text-white font-mono font-bold text-xs">ตารางที่ 2</span>
-                  <span class="text-[11px] text-sky-800 font-bold">ตารางลูก (FK ➔ categories)</span>
-                </div>
-                <div class="font-mono font-black text-base text-stone-900">menus</div>
-                <div class="text-xs text-stone-600">เก็บข้อมูลเมนูเครื่องดื่มและของว่าง</div>
-                <div class="pt-2 border-t border-sky-200/60 space-y-1 text-xs">
-                  <div class="font-bold text-stone-700">รายชื่อฟิลด์ (Fields):</div>
-                  <ul class="list-disc pl-4 font-mono text-stone-800 space-y-0.5">
-                    <li><strong class="text-sky-800">id</strong> (Primary Key)</li>
-                    <li><strong>menu_name</strong> (ชื่อเมนู เช่น Espresso, Green Tea, Croissant)</li>
-                    <li><strong>price</strong> (ราคาต่อหน่วย)</li>
-                    <li><strong class="text-amber-700">category_id</strong> (Foreign Key ชี้ไป categories.id)</li>
-                  </ul>
-                </div>
-              </div>
-
-              <!-- ตารางที่ 3: orders -->
-              <div class="p-4 rounded-xl bg-purple-50/60 border border-purple-200 space-y-2">
-                <div class="flex items-center justify-between">
-                  <span class="px-2 py-0.5 rounded bg-purple-600 text-white font-mono font-bold text-xs">ตารางที่ 3</span>
-                  <span class="text-[11px] text-purple-800 font-bold">ตารางลูก (FK ➔ menus)</span>
-                </div>
-                <div class="font-mono font-black text-base text-stone-900">orders</div>
-                <div class="text-xs text-stone-600">เก็บรายการสั่งซื้อของลูกค้า</div>
-                <div class="pt-2 border-t border-purple-200/60 space-y-1 text-xs">
-                  <div class="font-bold text-stone-700">รายชื่อฟิลด์ (Fields):</div>
-                  <ul class="list-disc pl-4 font-mono text-stone-800 space-y-0.5">
-                    <li><strong class="text-purple-800">id</strong> (Primary Key)</li>
-                    <li><strong>order_date</strong> (วันและเวลาที่สั่งซื้อ)</li>
-                    <li><strong>quantity</strong> (จำนวนที่สั่ง)</li>
-                    <li><strong>total_price</strong> (ราคารวม)</li>
-                    <li><strong class="text-sky-700">menu_id</strong> (Foreign Key ชี้ไป menus.id)</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div class="p-3 rounded-xl bg-stone-100 text-xs text-stone-700 leading-relaxed">
-              💡 <strong>คำแนะนำ:</strong> ให้นักศึกษาเลือกชนิดข้อมูล (Data Type) ที่เหมาะสมใน Supabase เอง เช่น Primary Key ใช้ <code>int8 (BIGINT)</code> หรือ <code>UUID</code>, ราคาใช้ <code>numeric</code>, จำนวนใช้ <code>int4</code>, วันที่ใช้ <code>timestamptz</code> เป็นต้น พร้อมเพิ่มข้อมูลตัวอย่างอย่างน้อยตารางละ 3–5 รายการ
-            </div>
-          </div>
-
-          <!-- ข้อที่ 2: สร้างความสัมพันธ์ และเขียนคำสั่ง JOIN ตามสถานการณ์ -->
-          <div class="p-6 rounded-2xl bg-white border border-stone-200 space-y-5 shadow-sm">
-            <div class="flex items-center justify-between border-b border-stone-100 pb-3">
-              <span class="text-xs font-black text-emerald-700 uppercase tracking-wider">โจทย์ข้อที่ 2 • Relationships & SQL JOIN Scenarios</span>
-              <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
-                แคปผลลัพธ์ลง Google Doc พร้อมคำสั่ง
-              </span>
-            </div>
-
-            <h4 class="text-base font-black text-stone-900 flex items-center gap-2">
-              <Network class="w-5 h-5 text-emerald-600" />
-              2. สร้างความสัมพันธ์ (Foreign Key) และเขียนคำสั่ง SQL JOIN ตาม 4 สถานการณ์ที่กำหนด
-            </h4>
-
-            <div class="p-4 rounded-xl bg-slate-900 text-white space-y-2 text-xs">
-              <div class="font-bold text-amber-300">🔗 เส้นความสัมพันธ์ Foreign Key ที่ต้องเชื่อมโยง:</div>
-              <ul class="list-disc pl-5 space-y-1 font-mono text-slate-300">
-                <li>เส้นที่ 1: ฟิลด์ <code class="text-sky-300">menus.category_id</code> เชื่อมไปยัง Primary Key <code class="text-amber-300">categories.id</code> (1:N)</li>
-                <li>เส้นที่ 2: ฟิลด์ <code class="text-purple-300">orders.menu_id</code> เชื่อมไปยัง Primary Key <code class="text-sky-300">menus.id</code> (1:N)</li>
-              </ul>
-            </div>
-
-            <!-- 4 สถานการณ์ -->
-            <div class="space-y-3 pt-2">
-              <div class="text-xs font-bold text-stone-800 uppercase tracking-wider">
-                สถานการณ์ที่ต้องเขียนคำสั่ง SQL JOIN (นำคำสั่งและภาพผลลัพธ์ใส่ลง Google Doc):
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- สถานการณ์ที่ 1 -->
-                <div class="p-4 rounded-xl border border-stone-200 bg-stone-50 space-y-2">
-                  <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
-                    สถานการณ์ที่ 1 • INNER JOIN (2 ตาราง)
-                  </span>
-                  <p class="text-xs text-stone-700 leading-relaxed">
-                    <strong>โจทย์:</strong> เจ้าของร้านต้องการดูรายชื่อเมนูทั้งหมด พร้อมแสดงชื่อหมวดหมู่และราคาของแต่ละเมนู เพื่อนำไปจัดทำแผ่นป้ายเมนูหน้าร้าน
+            <div class="space-y-3 text-sm text-stone-800 leading-relaxed">
+              <div class="flex items-start gap-3 p-4 rounded-xl bg-amber-50/60 border border-amber-200">
+                <Database class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <div class="font-black text-stone-900">1. สร้างฐานข้อมูลระบบออกออเดอร์ร้านกาแฟ</div>
+                  <p class="text-xs sm:text-sm text-stone-700 mt-0.5">
+                    ออกแบบโครงสร้างตาราง กำหนดฟิลด์ ชนิดข้อมูล (Data Types) ผูกความสัมพันธ์ (Foreign Key) และเพิ่มข้อมูลตัวอย่างสำหรับระบบออกออเดอร์ร้านกาแฟใน Supabase
                   </p>
-                  <div class="text-[11px] font-mono text-stone-600 bg-white p-2 rounded border border-stone-200">
-                    แสดงคอลัมน์: menus.menu_name, categories.category_name, menus.price
-                  </div>
-                </div>
-
-                <!-- สถานการณ์ที่ 2 -->
-                <div class="p-4 rounded-xl border border-stone-200 bg-stone-50 space-y-2">
-                  <span class="px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 text-xs font-bold">
-                    สถานการณ์ที่ 2 • LEFT JOIN (ตรวจสอบข้อมูลที่ยังไม่ผูก)
-                  </span>
-                  <p class="text-xs text-stone-700 leading-relaxed">
-                    <strong>โจทย์:</strong> ผู้จัดการร้านต้องการตรวจสอบหมวดหมู่สินค้าทั้งหมด ว่ามีหมวดหมู่ใดบ้างที่ยังไม่ได้เพิ่มรายการเมนูลงไป เพื่อเตรียมคิดสูตรเครื่องดื่มใหม่
-                  </p>
-                  <div class="text-[11px] font-mono text-stone-600 bg-white p-2 rounded border border-stone-200">
-                    แสดงคอลัมน์: categories.category_name, menus.menu_name (หมวดหมู่ที่ยังไม่มีเมนู ค่า menu_name จะแสดงเป็น NULL)
-                  </div>
-                </div>
-
-                <!-- สถานการณ์ที่ 3 -->
-                <div class="p-4 rounded-xl border border-stone-200 bg-stone-50 space-y-2">
-                  <span class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs font-bold">
-                    สถานการณ์ที่ 3 • Multi-table JOIN (เชื่อมโยงครบ 3 ตาราง)
-                  </span>
-                  <p class="text-xs text-stone-700 leading-relaxed">
-                    <strong>โจทย์:</strong> แคชเชียร์ต้องการพิมพ์ใบสรุปประวัติการสั่งซื้อของลูกค้า โดยให้แสดง รหัสออเดอร์, วันที่สั่งซื้อ, ชื่อเมนู, ชื่อหมวดหมู่, จำนวนแก้ว และราคารวม
-                  </p>
-                  <div class="text-[11px] font-mono text-stone-600 bg-white p-2 rounded border border-stone-200">
-                    JOIN จาก orders ➔ menus ➔ categories แสดงครบทุกมิติ
-                  </div>
-                </div>
-
-                <!-- สถานการณ์ที่ 4 -->
-                <div class="p-4 rounded-xl border border-stone-200 bg-stone-50 space-y-2">
-                  <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">
-                    สถานการณ์ที่ 4 • JOIN ร่วมกับ GROUP BY / SUM (รายงานสรุปยอดขาย)
-                  </span>
-                  <p class="text-xs text-stone-700 leading-relaxed">
-                    <strong>โจทย์:</strong> เจ้าของร้านต้องการดูรายงานสรุปยอดขายรวม (Total Revenue) และจำนวนแก้วที่ขายได้ทั้งหมด แยกตามแต่ละเมนู โดยเรียงลำดับจากเมนูที่ขายดีที่สุด
-                  </p>
-                  <div class="text-[11px] font-mono text-stone-600 bg-white p-2 rounded border border-stone-200">
-                    ใช้ SUM(orders.quantity), SUM(orders.total_price) ร่วมกับ GROUP BY menus.menu_name
-                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- คำชี้แจงการจัดทำเอกสารและส่งงาน Google Docs -->
-          <div class="p-6 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 border border-emerald-200 space-y-4">
-            <h4 class="font-black text-sm sm:text-base text-emerald-950 flex items-center gap-2">
-              <FileText class="w-5 h-5 text-emerald-600" />
-              ข้อกำหนดการจัดทำรายงานและการส่งงาน (Google Docs Link)
-            </h4>
-            <div class="space-y-2 text-xs sm:text-sm text-stone-700 leading-relaxed">
-              <p>ให้นักศึกษาเปิดโปรแกรม <strong>Google Docs</strong> แล้วจัดทำเอกสารส่งตามขั้นตอนดังต่อไปนี้:</p>
-              <ol class="list-decimal pl-5 space-y-2">
-                <li>
-                  <strong>ส่วนหัวเอกสาร:</strong> ระบุชื่อ-นามสกุล, รหัสนักศึกษา, กลุ่มเรียน และชื่อใบงานที่ 5
-                </li>
-                <li>
-                  <strong>ภาพรวมฐานข้อมูล (Schema Visualizer):</strong> แคปเจอร์ภาพหน้าจอจากเมนู <strong>Database ➔ Schema Visualizer</strong> บน Supabase ที่จัดเรียงทั้ง 3 ตารางและเห็นเส้นเชื่อมโยง Foreign Key ชัดเจน
-                </li>
-                <li>
-                  <strong>การตอบโจทย์สถานการณ์ที่ 1 ถึง 4:</strong> 
-                  ในแต่ละข้อ ให้ระบุหัวข้อสถานการณ์ ➔ <strong>พิมพ์คำสั่ง SQL ที่ใช้เขียนจริง</strong> ➔ <strong>แคปเจอร์ภาพผลลัพธ์ตารางข้อมูล (Query Results) จากหน้าจอ Supabase</strong> มาวางประกอบใต้คำสั่งให้ชัดเจน
-                </li>
-                <li>
-                  <strong>การแชร์ลิงก์ส่งงาน:</strong> กดปุ่ม <em>"แชร์ (Share)"</em> ใน Google Docs แล้วตั้งค่าสิทธิ์การเข้าถึงเป็น <strong>"ทุกคนที่มีลิงก์มีสิทธิ์ดู (Anyone with the link can view)"</strong> จากนั้นคัดลอกลิงก์มาวางส่งในระบบที่ช่องส่งงานด้านล่างนี้
-                </li>
-              </ol>
-            </div>
-
-            <!-- เกณฑ์การให้คะแนน 10 คะแนน -->
-            <div class="pt-3 border-t border-emerald-200/70">
-              <div class="text-xs font-bold text-emerald-900 mb-1.5 flex items-center gap-1.5">
-                <Trophy class="w-4 h-4 text-emerald-600" />
-                เกณฑ์การให้คะแนน (10 คะแนนเต็ม):
+              <div class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50/60 border border-emerald-200">
+                <Network class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <div class="font-black text-stone-900">2. ใช้คำสั่ง <code>INNER JOIN</code> ในการดูรายละเอียดออเดอร์</div>
+                  <p class="text-xs sm:text-sm text-stone-700 mt-0.5">
+                    เขียนคำสั่ง SQL <code>INNER JOIN</code> เพื่อดึงข้อมูลเชื่อมโยงกันสำหรับแสดงรายละเอียดออเดอร์ของร้านกาแฟ
+                  </p>
+                </div>
               </div>
-              <ul class="text-xs text-stone-600 list-disc pl-5 space-y-1">
-                <li>การสร้าง 3 ตารางถูกต้องตามโครงสร้างและผูก Foreign Key สมบูรณ์ (3 คะแนน)</li>
-                <li>ความถูกต้องของคำสั่ง SQL และผลลัพธ์ในสถานการณ์ที่ 1–4 (4 คะแนน - ข้อละ 1 คะแนน)</li>
-                <li>ความเรียบร้อยของรายงาน Google Docs และภาพแคปเจอร์ผลลัพธ์ที่ชัดเจน (3 คะแนน)</li>
-              </ul>
+
+              <div class="flex items-start gap-3 p-4 rounded-xl bg-sky-50/60 border border-sky-200">
+                <FileText class="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
+                <div>
+                  <div class="font-black text-stone-900">3. รวบรวมรายงานเป็นคำสั่ง SQL ที่ใช้ทั้งหมด</div>
+                  <p class="text-xs sm:text-sm text-stone-700 mt-0.5">
+                    รวบรวมคำสั่ง SQL ที่ใช้ทั้งหมดตั้งแต่ต้นจนจบ (ตั้งแต่การสร้างตาราง การเพิ่มข้อมูล ไปจนถึงคำสั่ง <code>INNER JOIN</code> ดูรายละเอียดออเดอร์ และภาพผลลัพธ์) จัดทำเป็นรายงานใน Google Docs แล้วแนบลิงก์ส่งงาน
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
