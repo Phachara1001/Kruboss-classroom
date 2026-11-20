@@ -585,11 +585,11 @@ const projectTopics = [
     name: 'ระบบเช็กชื่อเข้าเรียน',
     tasks: [
       { tag: 'COUNTA / SUM / AVERAGE', text: 'หาจำนวนรายการเช็กชื่อทั้งหมด (COUNTA), รวมชั่วโมงเข้าเรียนทั้งหมด (SUM) และค่าเฉลี่ย % การเข้าเรียนภาพรวม (AVERAGE)' },
-      { tag: 'MEDIAN / MIN-MAX / STDEV.S', text: 'หาค่ามัธยฐาน (MEDIAN), ต่ำสุด-สูงสุด (MIN/MAX) เพื่อสแกนค่าหลุดกรอบ และวัดความสม่ำเสมอการเข้าเรียนด้วย STDEV.S' },
-      { tag: 'COUNTIF + % Share', text: 'นับจำนวนครั้งที่มาเรียน / มาสาย / ขาดเรียน แยกตามสถานะหรือรายวิชา พร้อมคำนวณสัดส่วน % Share (รวมได้ 100%)' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมชั่วโมงเข้าเรียนและหาค่าเฉลี่ย % การเข้าเรียนแยกตามแต่ละรายวิชาหรือห้องเรียน (ล็อกช่วงข้อมูลด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมชั่วโมงเข้าเรียนหรือนับครั้งที่มาสาย/ขาดเรียนเฉพาะห้องที่กำหนดในสัปดาห์ >= 3 (หรือทำตาราง Matrix รายวิชา × สถานะ)' },
-      { tag: 'AVERAGEIFS + Insight', text: 'หาค่าเฉลี่ย % การเข้าเรียนแยกตามระดับชั้นและสถานะ แล้วสรุป Mini-Insights 3 ข้อพร้อมเทียบ AVERAGE vs MEDIAN' }
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐาน (MEDIAN), ค่าต่ำสุด (MIN) และค่าสูงสุด (MAX) ของ % การเข้าเรียนทั้งหมด' },
+      { tag: 'COUNTIF', text: 'นับจำนวนครั้งที่มาเรียน / มาสาย / ขาดเรียน แยกตามแต่ละรายวิชา' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมชั่วโมงเข้าเรียนและหาค่าเฉลี่ย % การเข้าเรียนแยกตามแต่ละรายวิชา (ล็อกช่วงข้อมูลด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'รวมชั่วโมงเข้าเรียนเฉพาะห้องที่กำหนดในสัปดาห์ >= 3' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ย % การเข้าเรียนแยกตามระดับชั้นและสถานะ แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
@@ -597,12 +597,12 @@ const projectTopics = [
     icon: Trophy,
     name: 'ประวัติการแข่งขัน E-Sport',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนแมตช์ทั้งหมด (COUNTA), รวม Kill หรือเงินรางวัลทั้งหมด (SUM) และหาค่าเฉลี่ยคะแนน/KDA ภาพรวม (AVERAGE)' },
-      { tag: 'MEDIAN / MIN-MAX / STDEV.S', text: 'หาค่ามัธยฐาน KDA (MEDIAN), ต่ำสุด-สูงสุด (MIN/MAX) และวัดความนิ่งของฟอร์มการเล่นด้วย STDEV.S' },
-      { tag: 'COUNTIF + % Share', text: 'นับจำนวนแมตช์ที่ชนะ (Win) และแพ้ (Lose) แยกตามชื่อทีมหรือเกม พร้อมคำนวณสัดส่วน Win Rate (% Share)' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมคะแนน Kill / เงินรางวัล และหาค่าเฉลี่ย KDA แยกตามแต่ละทีมหรือแต่ละโหมดการเล่น (ล็อกช่วงด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมคะแนน Kill หรือเงินรางวัลเฉพาะโหมด Ranked ที่ชนะ (Win) หรือสร้างตาราง Matrix ทีม × โหมดการแข่งขัน' },
-      { tag: 'AVERAGEIFS + Insight', text: 'หาค่าเฉลี่ย KDA ของผู้เล่นตำแหน่ง Carry ในแมตช์ระดับทัวร์นาเมนต์ แล้วสรุป Mini-Insights 3 ข้อพร้อมตัวเลขจริง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนแมตช์ทั้งหมด (COUNTA), รวมจำนวน Kill ทั้งหมด (SUM) และหาค่าเฉลี่ย KDA ภาพรวม (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐาน KDA (MEDIAN), ค่าต่ำสุด (MIN) และค่าสูงสุด (MAX) ของจำนวน Kill' },
+      { tag: 'COUNTIF', text: 'นับจำนวนแมตช์ที่ชนะ (Win) และแพ้ (Lose) แยกตามชื่อทีม' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมจำนวน Kill และหาค่าเฉลี่ย KDA แยกตามแต่ละทีม (ล็อกช่วงด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'รวมจำนวน Kill เฉพาะโหมด Ranked ที่ผลการแข่งขันเป็นชนะ (Win)' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ย KDA ของผู้เล่นตำแหน่ง Carry ในทัวร์นาเมนต์ แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
@@ -611,11 +611,11 @@ const projectTopics = [
     name: 'สต็อกอุปกรณ์คอมพิวเตอร์ / IoT',
     tasks: [
       { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรายการอุปกรณ์ทั้งหมด (COUNTA), รวมมูลค่าสต็อกทั้งหมด (SUM) และหาค่าเฉลี่ยราคาต่อชิ้น (AVERAGE)' },
-      { tag: 'MEDIAN / MIN-MAX / STDEV.S', text: 'หาค่ามัธยฐานราคาอุปกรณ์ (MEDIAN), ต่ำสุด-สูงสุด (MIN/MAX) เพื่อตรวจสต็อกติดลบ และดูการกระจายราคาด้วย STDEV.S' },
-      { tag: 'COUNTIF + % Share', text: 'นับจำนวนรายการอุปกรณ์แยกตามหมวดหมู่และนับรายการที่คงเหลือ < 5 ชิ้น พร้อมคิดสัดส่วน % Share ของแต่ละหมวด' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมมูลค่าสต็อกและหาค่าเฉลี่ยราคาต่อหน่วยแยกตามหมวดหมู่อุปกรณ์ (เช่น Sensor, Microcontroller, สายสัญญาณ)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมมูลค่าสต็อกเฉพาะหมวด Sensor ในคลัง A หรือสร้างตาราง Matrix คลังเก็บ × หมวดหมู่อุปกรณ์' },
-      { tag: 'AVERAGEIFS + Insight', text: 'หาค่าเฉลี่ยราคาต่อหน่วยของ Microcontroller ที่มีสถานะ "พร้อมใช้งาน" แล้วสรุป Mini-Insights 3 ข้อเพื่อวางแผนสั่งซื้อ' }
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานราคาอุปกรณ์ (MEDIAN), ราคาต่ำสุด (MIN) และราคาสูงสุด (MAX) ในคลังอุปกรณ์' },
+      { tag: 'COUNTIF', text: 'นับจำนวนรายการอุปกรณ์แยกตามหมวดหมู่อุปกรณ์' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมมูลค่าสต็อกและหาค่าเฉลี่ยราคาต่อหน่วยแยกตามหมวดหมู่อุปกรณ์ (ล็อกช่วงด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'รวมมูลค่าสต็อกเฉพาะอุปกรณ์หมวด Sensor ที่จัดเก็บอยู่ในคลัง A' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยราคาต่อหน่วยของ Microcontroller ที่มีสถานะพร้อมใช้งาน แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
@@ -624,11 +624,11 @@ const projectTopics = [
     name: 'ระบบยืม-คืนหนังสือ',
     tasks: [
       { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรายการยืมทั้งหมด (COUNTA), รวมค่าปรับทั้งหมด (SUM) และหาค่าเฉลี่ยจำนวนวันที่ยืมต่อครั้ง (AVERAGE)' },
-      { tag: 'MEDIAN / MIN-MAX / STDEV.S', text: 'หาค่ามัธยฐานจำนวนวันยืม (MEDIAN), ค่าปรับต่ำสุด-สูงสุด (MIN/MAX) และความแตกต่างระยะเวลายืมด้วย STDEV.S' },
-      { tag: 'COUNTIF + % Share', text: 'นับจำนวนรายการที่คืนตรงเวลาและคืนเกินกำหนด (Overdue) แยกตามหมวดหนังสือ พร้อมคำนวณสัดส่วน % Share' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมยอดค่าปรับและหาค่าเฉลี่ยจำนวนวันยืมแยกตามหมวดหมู่หนังสือหรือคณะ/สาขา (ล็อกช่วงเซลล์ด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมค่าปรับทั้งหมดของหมวดหนังสือเทคโนโลยีในภาคเรียนที่ 2 หรือสร้างตาราง Matrix คณะ/สาขา × หมวดหนังสือ' },
-      { tag: 'AVERAGEIFS + Insight', text: 'หาค่าเฉลี่ยจำนวนวันยืมแยกตามคณะและสถานะการคืน แล้วสรุป Mini-Insights 3 ข้อพร้อมเทียบ AVERAGE vs MEDIAN' }
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานจำนวนวันยืม (MEDIAN), ค่าปรับต่ำสุด (MIN) และค่าปรับสูงสุด (MAX)' },
+      { tag: 'COUNTIF', text: 'นับจำนวนรายการที่คืนตรงเวลาและคืนเกินกำหนด (Overdue) แยกตามหมวดหมู่หนังสือ' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมยอดค่าปรับและหาค่าเฉลี่ยจำนวนวันยืมแยกตามหมวดหมู่หนังสือ (ล็อกช่วงเซลล์ด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'รวมค่าปรับทั้งหมดของหมวดหนังสือเทคโนโลยีในภาคเรียนที่ 2' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยจำนวนวันยืมแยกตามคณะและสถานะการคืน แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
@@ -637,11 +637,11 @@ const projectTopics = [
     name: 'ออเดอร์ร้านคาเฟ่ / ชานม',
     tasks: [
       { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนบิลทั้งหมด (COUNTA), รวมยอดขายสุทธิทั้งหมด (SUM) และหายอดขายเฉลี่ยต่อบิล (AVERAGE)' },
-      { tag: 'MEDIAN / MIN-MAX / STDEV.S', text: 'หาค่ามัธยฐานยอดต่อบิล (MEDIAN), บิลต่ำสุด-สูงสุด (MIN/MAX) เพื่อเช็กบิล Outlier และวัดความแกว่งยอดขายด้วย STDEV.S' },
-      { tag: 'COUNTIF + % Share', text: 'นับจำนวนบิลแยกตามสาขาหรือหมวดเมนู (กาแฟ/ชา/เบเกอรี่) และช่องทางจ่าย QR PromptPay พร้อมคิดสัดส่วน % Share' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมยอดขายและหาค่าเฉลี่ยต่อบิลแยกตามสาขาหรือระดับสมาชิก (VIP vs ทั่วไป) โดยล็อกช่วงเซลล์ด้วย $' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมยอดขายสมาชิก VIP ในสาขาหลัก หรือสร้างตาราง Matrix 2 มิติ สาขา × หมวดสินค้าด้วย SUMIFS' },
-      { tag: 'AVERAGEIFS + Insight', text: 'หาค่าเฉลี่ยยอดต่อบิลของออเดอร์ที่สั่ง >= 2 แก้วแยกตามกลุ่มลูกค้า แล้วสรุป Mini-Insights 3 ข้อพร้อมตัวเลขจริง' }
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานยอดต่อบิล (MEDIAN), ยอดบิลต่ำสุด (MIN) และยอดบิลสูงสุด (MAX)' },
+      { tag: 'COUNTIF', text: 'นับจำนวนบิลแยกตามหมวดเมนู (กาแฟ / ชา / เบเกอรี่)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมยอดขายและหาค่าเฉลี่ยต่อบิลแยกตามสาขา (ล็อกช่วงเซลล์ด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'รวมยอดขายของลูกค้าระดับ VIP ในสาขาสยาม' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยยอดต่อบิลของออเดอร์ที่สั่ง >= 2 แก้วแยกตามกลุ่มลูกค้า แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
@@ -649,12 +649,12 @@ const projectTopics = [
     icon: Package,
     name: 'ข้อมูลลูกค้าและจัดส่งพัสดุ',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนพัสดุทั้งหมด (COUNTA), รวมค่าจัดส่งหรือยอด COD ทั้งหมด (SUM) และหาค่าเฉลี่ยวันจัดส่งภาพรวม (AVERAGE)' },
-      { tag: 'MEDIAN / MIN-MAX / STDEV.S', text: 'หาค่ามัธยฐานระยะเวลาส่ง (MEDIAN), ช้าสุด-เร็วสุด (MIN/MAX) และวัดความสม่ำเสมอการขนส่งด้วย STDEV.S' },
-      { tag: 'COUNTIF + % Share', text: 'นับจำนวนพัสดุที่จัดส่งสำเร็จ/กำลังส่งแยกตามบริษัทขนส่งหรือภาคปลายทาง พร้อมคำนวณสัดส่วน % Share' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมค่าจัดส่ง/ยอด COD และหาค่าเฉลี่ยวันจัดส่งแยกตามบริษัทขนส่งหรือประเภทบริการ (ล็อกช่วงด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมค่าจัดส่งหรือยอด COD ของพัสดุส่งด่วน Express ที่ส่งสำเร็จ หรือสร้างตาราง Matrix บริษัทขนส่ง × ภูมิภาค' },
-      { tag: 'AVERAGEIFS + Insight', text: 'หาค่าเฉลี่ยระยะเวลาจัดส่ง (วัน) ของภาคกลางที่เป็นสมาชิก VIP แล้วสรุป Mini-Insights 3 ข้อเปรียบเทียบขนส่ง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนพัสดุทั้งหมด (COUNTA), รวมค่าจัดส่งทั้งหมด (SUM) และหาค่าเฉลี่ยวันจัดส่งภาพรวม (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานระยะเวลาส่ง (MEDIAN), เวลาจัดส่งเร็วสุด (MIN) และช้าสุด (MAX)' },
+      { tag: 'COUNTIF', text: 'นับจำนวนพัสดุแยกตามบริษัทขนส่ง' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมค่าจัดส่งและหาค่าเฉลี่ยวันจัดส่งแยกตามบริษัทขนส่ง (ล็อกช่วงด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'รวมค่าจัดส่งของพัสดุแบบส่งด่วน Express ที่จัดส่งสำเร็จแล้ว' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยระยะเวลาจัดส่ง (วัน) ของภาคกลางที่เป็นสมาชิก VIP แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
@@ -663,11 +663,11 @@ const projectTopics = [
     name: 'ข้อมูลการเข้าศูนย์บริการรถ',
     tasks: [
       { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรถเข้าศูนย์ทั้งหมด (COUNTA), รวมรายได้ค่าซ่อมทั้งหมด (SUM) และหาค่าซ่อมเฉลี่ยต่อคัน (AVERAGE)' },
-      { tag: 'MEDIAN / MIN-MAX / STDEV.S', text: 'หาค่ามัธยฐานค่าซ่อม (MEDIAN) เพื่อลดผลจากเคสซ่อมใหญ่, ค่าซ่อมต่ำสุด-สูงสุด (MIN/MAX) และความแกว่งด้วย STDEV.S' },
-      { tag: 'COUNTIF + % Share', text: 'นับจำนวนรถที่เข้าศูนย์แยกตามประเภทงานซ่อม (เช็กระยะ/ซ่อมเครื่อง/ช่วงล่าง) พร้อมคำนวณสัดส่วน % Share' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมรายได้ค่าบริการและหาค่าซ่อมเฉลี่ยแยกตามประเภทรถ (Sedan/SUV/กระบะ) หรือประเภทงานซ่อม (ล็อกช่วงด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมรายได้ค่าบริการของรถ SUV ที่ชำระผ่านบัตรเครดิต หรือสร้างตาราง Matrix ประเภทรถ × ประเภทงานซ่อม' },
-      { tag: 'AVERAGEIFS + Insight', text: 'หาค่าเฉลี่ยค่าซ่อมต่อคันของลูกค้าประจำที่มีระยะทาง >= 50,000 กม. แล้วสรุป Mini-Insights 3 ข้อพร้อมตัวเลขจริง' }
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานค่าซ่อม (MEDIAN), ค่าซ่อมต่ำสุด (MIN) และค่าซ่อมสูงสุด (MAX)' },
+      { tag: 'COUNTIF', text: 'นับจำนวนรถที่เข้าศูนย์แยกตามประเภทงานซ่อม (เช็กระยะ / ซ่อมเครื่อง / ช่วงล่าง)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมรายได้ค่าบริการและหาค่าซ่อมเฉลี่ยแยกตามประเภทรถ (Sedan / SUV / กระบะ) โดยล็อกช่วงด้วย $' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'รวมรายได้ค่าบริการของรถประเภท SUV ที่ชำระผ่านบัตรเครดิต' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยค่าซ่อมต่อคันของลูกค้าประจำที่มีระยะทาง >= 50,000 กม. แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
@@ -675,12 +675,12 @@ const projectTopics = [
     icon: Dumbbell,
     name: 'บันทึกการออกกำลังกาย',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนครั้งที่ออกกำลังกายทั้งหมด (COUNTA), รวมแคลอรีและนาทีทั้งหมด (SUM) และหาแคลอรีเฉลี่ยต่อครั้ง (AVERAGE)' },
-      { tag: 'MEDIAN / MIN-MAX / STDEV.S', text: 'หาค่ามัธยฐานแคลอรี/เวลา (MEDIAN), ต่ำสุด-สูงสุด (MIN/MAX) และวัดความสม่ำเสมอการออกกำลังกายด้วย STDEV.S' },
-      { tag: 'COUNTIF + % Share', text: 'นับจำนวนครั้งแยกตามประเภทกิจกรรม (Cardio / Weight Training / Yoga) พร้อมคำนวณสัดส่วน % Share' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมแคลอรีที่เผาผลาญและหาค่าเฉลี่ยเวลา/อัตราหัวใจแยกตามประเภทกิจกรรมหรือช่วงเวลา (ล็อกช่วงด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมแคลอรีที่เผาผลาญในช่วงเย็นที่ใช้เวลา >= 45 นาที หรือสร้างตาราง Matrix ประเภทกิจกรรม × ช่วงเวลา' },
-      { tag: 'AVERAGEIFS + Insight', text: 'หาค่าเฉลี่ยอัตราการเต้นหัวใจ (BPM) แยกตามประเภทกิจกรรมและเพศ แล้วสรุป Mini-Insights 3 ข้อเทียบ Mean vs Median' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนครั้งที่ออกกำลังกายทั้งหมด (COUNTA), รวมแคลอรีที่เผาผลาญทั้งหมด (SUM) และหาแคลอรีเฉลี่ยต่อครั้ง (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานแคลอรี (MEDIAN), แคลอรีต่ำสุด (MIN) และแคลอรีสูงสุด (MAX)' },
+      { tag: 'COUNTIF', text: 'นับจำนวนครั้งที่ออกกำลังกายแยกตามประเภทกิจกรรม (Cardio / Weight Training / Yoga)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมแคลอรีที่เผาผลาญและหาค่าเฉลี่ยเวลาออกกำลังกายแยกตามประเภทกิจกรรม (ล็อกช่วงด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'รวมแคลอรีที่เผาผลาญของการออกกำลังกายในช่วงเย็นที่ใช้เวลา >= 45 นาที' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยอัตราการเต้นหัวใจ (BPM) แยกตามประเภทกิจกรรมและเพศ แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
@@ -688,12 +688,12 @@ const projectTopics = [
     icon: Tent,
     name: 'ระบบสมัครเข้าค่าย / อีเวนต์',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนผู้สมัครทั้งหมด (COUNTA), รวมรายได้ค่าลงทะเบียนทั้งหมด (SUM) และหาค่าลงทะเบียน/อายุเฉลี่ย (AVERAGE)' },
-      { tag: 'MEDIAN / MIN-MAX / STDEV.S', text: 'หาค่ามัธยฐานอายุผู้เข้าร่วม (MEDIAN), อายุน้อยสุด-มากสุด (MIN/MAX) และความหลากหลายช่วงอายุด้วย STDEV.S' },
-      { tag: 'COUNTIF + % Share', text: 'นับจำนวนผู้สมัครที่ชำระเงินแล้วแยกตามขนาดเสื้อ, จังหวัด หรือเวิร์กช็อป พร้อมคำนวณสัดส่วน % Share' },
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนผู้สมัครทั้งหมด (COUNTA), รวมรายได้ค่าลงทะเบียนทั้งหมด (SUM) และหาอายุเฉลี่ยของผู้สมัคร (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานอายุผู้เข้าร่วม (MEDIAN), อายุน้อยสุด (MIN) และอายุมากสุด (MAX)' },
+      { tag: 'COUNTIF', text: 'นับจำนวนผู้สมัครแยกตามหัวข้อเวิร์กช็อป' },
       { tag: 'SUMIF / AVERAGEIF', text: 'รวมรายได้ค่าลงทะเบียนและหาค่าเฉลี่ยต่อคนแยกตามประเภทบัตร (Early Bird / Regular / VIP) โดยล็อกช่วงด้วย $' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมรายได้ค่าลงทะเบียนของบัตร Early Bird ในเวิร์กช็อป AI หรือสร้างตาราง Matrix ประเภทบัตร × เวิร์กช็อป' },
-      { tag: 'AVERAGEIFS + Insight', text: 'หาค่าเฉลี่ยอายุของผู้เข้าร่วมกลุ่มนักศึกษา ปวส. ที่ยืนยันสิทธิ์แล้ว พร้อมสรุป Mini-Insights 3 ข้อสำหรับผู้จัดงาน' }
+      { tag: 'COUNTIFS / SUMIFS', text: 'รวมรายได้ค่าลงทะเบียนของบัตรประเภท Early Bird ในเวิร์กช็อป AI' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยอายุของผู้เข้าร่วมกลุ่มนักศึกษา ปวส. ที่ยืนยันสิทธิ์แล้ว แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
@@ -701,12 +701,12 @@ const projectTopics = [
     icon: Swords,
     name: 'สถิติการขายไอเทมเกม',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรายการขายไอเทมทั้งหมด (COUNTA), รวมรายได้ Gold/THB ทั้งหมด (SUM) และหาราคาขายเฉลี่ยต่อชิ้น (AVERAGE)' },
-      { tag: 'MEDIAN / MIN-MAX / STDEV.S', text: 'หาค่ามัธยฐานราคาไอเทม (MEDIAN) ป้องกันไอเทมแรร์ดึงค่าเฉลี่ย, ต่ำสุด-สูงสุด (MIN/MAX) และความผันผวนราคาด้วย STDEV.S' },
-      { tag: 'COUNTIF + % Share', text: 'นับจำนวนไอเทมที่ขายออกแยกตามระดับความหายาก (Common / Epic / Legendary) พร้อมคำนวณสัดส่วน % Share' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมรายได้และหาราคาขายเฉลี่ยแยกตามสายไอเทม (Weapon / Armor / Skin) หรือเซิร์ฟเวอร์ (ล็อกช่วงด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมยอดรายได้ของไอเทมสาย Weapon ในเซิร์ฟเวอร์ SEA หรือสร้างตาราง Matrix เซิร์ฟเวอร์ × ระดับความหายาก' },
-      { tag: 'AVERAGEIFS + Insight', text: 'หาค่าเฉลี่ยราคาขายไอเทมระดับ Legendary/Epic ที่ซื้อโดยผู้เล่นระดับ Pro แล้วสรุป Mini-Insights 3 ข้อพร้อมตัวเลขจริง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรายการขายไอเทมทั้งหมด (COUNTA), รวมรายได้ทั้งหมด (SUM) และหาราคาขายเฉลี่ยต่อชิ้น (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานราคาไอเทม (MEDIAN), ราคาต่ำสุด (MIN) และราคาสูงสุด (MAX)' },
+      { tag: 'COUNTIF', text: 'นับจำนวนไอเทมที่ขายออกแยกตามระดับความหายาก (Common / Epic / Legendary)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมรายได้และหาราคาขายเฉลี่ยแยกตามสายไอเทม (Weapon / Armor / Skin) โดยล็อกช่วงด้วย $' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'รวมยอดรายได้ของไอเทมสาย Weapon ในเซิร์ฟเวอร์ SEA' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยราคาขายไอเทมระดับ Legendary ที่ซื้อโดยผู้เล่นระดับ Pro แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
@@ -715,11 +715,11 @@ const projectTopics = [
     name: 'คะแนนสอบและส่งงานรายวิชา',
     tasks: [
       { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนนักศึกษาทั้งหมด (COUNTA), รวมคะแนนเก็บใบงาน (SUM) และหาค่าเฉลี่ยคะแนนสอบภาพรวม (AVERAGE)' },
-      { tag: 'MEDIAN / MIN-MAX / STDEV.S', text: 'หาค่ามัธยฐานคะแนน (MEDIAN), คะแนนต่ำสุด-สูงสุด (MIN/MAX) และวัดการกระจายตัวของคะแนนทั้งห้องด้วย STDEV.S' },
-      { tag: 'COUNTIF + % Share', text: 'นับจำนวนนักศึกษาที่สอบผ่านเกณฑ์ (>= 50 คะแนน) และไม่ผ่าน หรือส่งงานครบ พร้อมคำนวณสัดส่วน % Share' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมคะแนนใบงานและหาค่าเฉลี่ยคะแนนสอบแยกตามกลุ่มเรียน/ห้องเรียน (ล็อกช่วงเซลล์ด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมคะแนนเก็บของห้อง ปวส.1/1 ที่ส่งงานตรงเวลา หรือสร้างตาราง Matrix กลุ่มเรียน × สถานะการส่งงาน' },
-      { tag: 'AVERAGEIFS + Insight', text: 'หาค่าเฉลี่ยคะแนนสอบกลางภาคแยกตามกลุ่มเรียนและสถานะการเข้าเรียน แล้วสรุป Mini-Insights 3 ข้อเทียบ Mean vs Median' }
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานคะแนน (MEDIAN), คะแนนต่ำสุด (MIN) และคะแนนสูงสุด (MAX)' },
+      { tag: 'COUNTIF', text: 'นับจำนวนนักศึกษาแยกตามสถานะการส่งงาน' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมคะแนนใบงานและหาค่าเฉลี่ยคะแนนสอบแยกตามกลุ่มเรียน (ล็อกช่วงเซลล์ด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'รวมคะแนนเก็บของนักศึกษากลุ่มเรียน ปวส.1/1 ที่ส่งงานตรงเวลา' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยคะแนนสอบกลางภาคแยกตามกลุ่มเรียนและสถานะการเข้าเรียน แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   }
 ]
@@ -1509,18 +1509,70 @@ const quizQuestions = [
           </div>
         </div>
 
-        <!-- 2.2 Deep Dive: MEDIAN, STDEV.S, and MIN / MAX -->
+        <!-- 2.2 Deep Dive: AVERAGE, MEDIAN, STDEV.S, and MIN / MAX -->
         <div class="space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div class="flex items-center gap-2 text-sky-900 font-black text-base">
               <span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-xs font-mono">2.2</span>
-              <span>เจาะลึก 3 ค่าสถิติสำคัญ: คืออะไร? อ่านค่ายังไง? เอาไปใช้งานกรณีไหน?</span>
+              <span>เจาะลึก 4 ค่าสถิติสำคัญ: คืออะไร? ใช้เพื่ออะไร? ใช้ทำไม? และเอาไปใช้งานจริงในกรณีไหน?</span>
             </div>
             <span class="text-xs text-slate-500">เข้าใจง่าย ไม่ต้องจำสูตรคณิตศาสตร์ซับซ้อน</span>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <!-- Card 1: MEDIAN -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Card 1: AVERAGE -->
+            <div class="rounded-2xl border border-sky-200 bg-sky-50/50 p-5 flex flex-col justify-between space-y-4">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <div class="p-2 rounded-xl bg-sky-600 text-white">
+                      <TrendingUp class="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 class="font-black text-sky-950 text-base">ค่าเฉลี่ยเลขคณิต (AVERAGE)</h4>
+                      <p class="text-[11px] font-mono text-sky-700 font-bold">=AVERAGE(range)</p>
+                    </div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 text-[10px] font-bold">ค่ากลางมาตรฐาน</span>
+                </div>
+
+                <div class="p-3 rounded-xl bg-white border border-sky-100 space-y-1 text-xs">
+                  <div class="font-bold text-sky-900 flex items-center gap-1.5">
+                    <Info class="w-3.5 h-3.5 text-sky-600 shrink-0" /> คืออะไร?
+                  </div>
+                  <p class="text-slate-700 leading-relaxed">
+                    <strong>ค่าที่ได้จากการนำตัวเลขทุกตัวมารวมกัน แล้วหารด้วยจำนวนรายการทั้งหมด</strong> (เช่น 3 บิล: 60 + 80 + 100 = 240 หาร 3 ได้ค่าเฉลี่ย <strong>80 บาท/บิล</strong>) เป็นตัวแทนภาพรวมเมื่อนำทุกข้อมูลมาเฉลี่ยเท่าๆ กัน
+                  </p>
+                </div>
+
+                <div class="p-3 rounded-xl bg-white border border-sky-100 space-y-1 text-xs">
+                  <div class="font-bold text-sky-900 flex items-center gap-1.5">
+                    <HelpCircle class="w-3.5 h-3.5 text-sky-600 shrink-0" /> ใช้เพื่ออะไร &amp; ใช้ทำไม?
+                  </div>
+                  <p class="text-slate-700 leading-relaxed">
+                    <strong>ใช้เพื่อ</strong>ย่อข้อมูลหลายสิบหรือหลายพันแถวให้เหลือ "ตัวเลขมาตรฐานเพียง 1 ตัว" ที่เข้าใจง่ายทันที <strong>เพราะถ้าไม่ใช้ค่าเฉลี่ย</strong> เราจะเปรียบเทียบกลุ่มที่มีขนาดไม่เท่ากันไม่ได้เลย (เช่น สาขา A มี 50 บิล กับ สาขา B มี 20 บิล ดูแค่ยอดรวม <code>SUM</code> จะเทียบกันไม่แฟร์ ต้องดูว่าเฉลี่ยต่อบิลใครขายดีกว่า)
+                  </p>
+                </div>
+
+                <div class="p-3 rounded-xl bg-white border border-sky-100 space-y-1 text-xs">
+                  <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                    <Lightbulb class="w-3.5 h-3.5 text-amber-500 shrink-0" /> เอาไปใช้งานจริงในกรณีไหน?
+                  </div>
+                  <ul class="space-y-1.5 text-slate-700 leading-relaxed list-disc pl-4">
+                    <li><strong>วัดประสิทธิภาพต่อหน่วย (Basket Size):</strong> หายอดซื้อเฉลี่ยต่อบิล คะแนนสอบเฉลี่ยของห้อง หรือเวลาให้บริการเฉลี่ยต่อเคส</li>
+                    <li><strong>คาดการณ์และตั้งเป้างบประมาณ:</strong> ถ้ารู้ว่าลูกค้าจ่ายเฉลี่ยคนละ 90 บาท และพรุ่งนี้คาดว่าจะมีลูกค้า 100 คน จะประเมินยอดขายล่วงหน้าได้ทันที (~9,000 บาท)</li>
+                    <li><strong>ใช้เป็นเส้นเกณฑ์มาตรฐาน (Benchmark):</strong> ใช้ตัดสินว่าพนักงาน สาขา หรือสินค้าใดทำผลงานได้ "สูงกว่า" หรือ "ต่ำกว่า" ค่าเฉลี่ยของทั้งบริษัท</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="pt-2 border-t border-sky-200/70 text-[11px] text-sky-900 font-medium flex items-center gap-1.5">
+                <CheckCircle2 class="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                <span>จำง่าย: "AVERAGE คือตัวแทนภาพรวม ใช้เทียบเกณฑ์มาตรฐานและคูณคาดการณ์อนาคต"</span>
+              </div>
+            </div>
+
+            <!-- Card 2: MEDIAN -->
             <div class="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-5 flex flex-col justify-between space-y-4">
               <div class="space-y-3">
                 <div class="flex items-center justify-between gap-2">
@@ -1541,7 +1593,16 @@ const quizQuestions = [
                     <Info class="w-3.5 h-3.5 text-indigo-600 shrink-0" /> คืออะไร?
                   </div>
                   <p class="text-slate-700 leading-relaxed">
-                    <strong>ค่าที่อยู่ "ตรงกลางเป๊ะ"</strong> เมื่อนำข้อมูลทั้งหมดมาเรียงลำดับจากน้อยไปหามาก (เช่น เรียง 5 บิล: 60, 75, <strong>80</strong>, 90, 4,500 บาท ค่าตรงกลางคือ <strong>80 บาท</strong>) ข้อดีคือ<strong>ไม่โดนตัวเลขกระโดด (Outlier) ดึงค่าจนเพี้ยน</strong>
+                    <strong>ค่าที่อยู่ "ตรงกลางเป๊ะ" (ตำแหน่งที่ 50%)</strong> เมื่อนำข้อมูลทั้งหมดมาเรียงลำดับจากน้อยไปหามาก (เช่น เรียง 5 บิล: 60, 75, <strong>80</strong>, 90, 4,500 บาท ค่าตรงกลางคือ <strong>80 บาท</strong>)
+                  </p>
+                </div>
+
+                <div class="p-3 rounded-xl bg-white border border-indigo-100 space-y-1 text-xs">
+                  <div class="font-bold text-indigo-900 flex items-center gap-1.5">
+                    <HelpCircle class="w-3.5 h-3.5 text-indigo-600 shrink-0" /> ใช้เพื่ออะไร &amp; ใช้ทำไม?
+                  </div>
+                  <p class="text-slate-700 leading-relaxed">
+                    <strong>ใช้เพื่อ</strong>หาตัวแทนของ "คนส่วนใหญ่ที่แท้จริง" <strong>เพราะเวลาข้อมูลมีค่ากระโดดสุดโต่ง (Outlier)</strong> เพียง 1-2 ตัว ค่าเฉลี่ย (<code>AVERAGE</code>) จะถูกดึงให้สูงหรือต่ำเกินจริงทันที จึงต้องใช้ <code>MEDIAN</code> ที่ไม่โดนตัวเลขสุดโต่งหลอกมาช่วยยืนยันความจริง
                   </p>
                 </div>
 
@@ -1563,7 +1624,7 @@ const quizQuestions = [
               </div>
             </div>
 
-            <!-- Card 2: STDEV.S -->
+            <!-- Card 3: STDEV.S -->
             <div class="rounded-2xl border border-rose-200 bg-rose-50/40 p-5 flex flex-col justify-between space-y-4">
               <div class="space-y-3">
                 <div class="flex items-center justify-between gap-2">
@@ -1584,8 +1645,17 @@ const quizQuestions = [
                     <Info class="w-3.5 h-3.5 text-rose-600 shrink-0" /> คืออะไร?
                   </div>
                   <p class="text-slate-700 leading-relaxed">
-                    <strong>ตัวเลขวัด "ความแกว่ง" ของข้อมูลเทียบกับค่าเฉลี่ย</strong>
-                    ถ้าค่า <code>STDEV.S</code> <strong>ต่ำ</strong> = ข้อมูลเกาะกลุ่มนิ่งสม่ำเสมอ แต่ถ้า <strong>สูง</strong> = วันไหนขายดีก็พุ่งมาก วันไหนเงียบก็ร่วงหนัก (ยอดแกว่ง เดาใจยาก)
+                    <strong>ตัวเลขวัด "ความแกว่งหรือการกระจายตัว" ของข้อมูลเทียบกับค่าเฉลี่ย</strong>
+                    ถ้าค่า <code>STDEV.S</code> <strong>ต่ำ</strong> = ข้อมูลเกาะกลุ่มนิ่งสม่ำเสมอ แต่ถ้า <strong>สูง</strong> = ข้อมูลเหวี่ยงห่างจากค่าเฉลี่ยมาก
+                  </p>
+                </div>
+
+                <div class="p-3 rounded-xl bg-white border border-rose-100 space-y-1 text-xs">
+                  <div class="font-bold text-rose-900 flex items-center gap-1.5">
+                    <HelpCircle class="w-3.5 h-3.5 text-rose-600 shrink-0" /> ใช้เพื่ออะไร &amp; ใช้ทำไม?
+                  </div>
+                  <p class="text-slate-700 leading-relaxed">
+                    <strong>ใช้เพื่อ</strong>วัดความเสถียร ความสม่ำเสมอ หรือความเสี่ยงของข้อมูล <strong>เพราะการดูแค่ค่าเฉลี่ยอย่างเดียวอาจหลอกตาได้</strong> เช่น ร้าน A ขายได้วันละ 1,000 บาททุกวัน กับร้าน B ขายได้วันละ 0 บาทสลับกับ 2,000 บาท ทั้งคู่มีค่าเฉลี่ย 1,000 บาทเท่ากัน แต่ร้าน B มี <code>STDEV.S</code> สูงกว่ามากซึ่งบริหารยากกว่า
                   </p>
                 </div>
 
@@ -1594,8 +1664,8 @@ const quizQuestions = [
                     <Lightbulb class="w-3.5 h-3.5 text-amber-500 shrink-0" /> เอาไปใช้งานจริงในกรณีไหน?
                   </div>
                   <ul class="space-y-1.5 text-slate-700 leading-relaxed list-disc pl-4">
-                    <li><strong>เทียบความสม่ำเสมอของ 2 สาขา:</strong> สาขา A และ B เฉลี่ยวันละ 10,000 บาทเท่ากัน แต่สาขาที่ <code>STDEV.S</code> ต่ำกว่าบริหารสต๊อกและกะพนักงานง่ายกว่า</li>
-                    <li><strong>ควบคุมคุณภาพ/เวลาจัดส่ง:</strong> เช็กว่าเวลาส่งอาหารหรือคะแนนสอบนักเรียนเกาะกลุ่มใกล้เกณฑ์ หรือเหวี่ยงต่างกันสุดขั้ว</li>
+                    <li><strong>เทียบความสม่ำเสมอของ 2 สาขา:</strong> สาขาที่ <code>STDEV.S</code> ต่ำกว่า ยอดขายนิ่งกว่า วางแผนสต๊อกและจัดกะพนักงานง่ายกว่า</li>
+                    <li><strong>ควบคุมคุณภาพ/เวลาจัดส่ง:</strong> เช็กว่าเวลาส่งพัสดุหรือคะแนนสอบนักเรียนเกาะกลุ่มใกล้เกณฑ์มาตรฐาน หรือเหวี่ยงต่างกันสุดขั้ว</li>
                     <li><strong>ตรวจจับความเสี่ยง (Risk):</strong> <code>STDEV.S</code> พุ่งสูงผิดปกติเป็นสัญญาณเตือนว่ายอดขายไม่เสถียรหรือมีบิลแปลกปลอมเข้ามา</li>
                   </ul>
                 </div>
@@ -1607,7 +1677,7 @@ const quizQuestions = [
               </div>
             </div>
 
-            <!-- Card 3: MIN & MAX -->
+            <!-- Card 4: MIN & MAX -->
             <div class="rounded-2xl border border-amber-200 bg-amber-50/50 p-5 flex flex-col justify-between space-y-4">
               <div class="space-y-3">
                 <div class="flex items-center justify-between gap-2">
@@ -1628,7 +1698,16 @@ const quizQuestions = [
                     <Info class="w-3.5 h-3.5 text-amber-600 shrink-0" /> คืออะไร?
                   </div>
                   <p class="text-slate-700 leading-relaxed">
-                    <strong><code>MIN</code></strong> คือก้นเหว (ตัวเลขน้อยที่สุดในช่วง) และ <strong><code>MAX</code></strong> คือยอดเขา (ตัวเลขมากที่สุดในช่วง) ใช้ตีกรอบให้เห็นทันทีว่าชุดข้อมูลของเราวิ่งอยู่ตั้งแต่เลขไหนถึงเลขไหน
+                    <strong><code>MIN</code></strong> คือค่าต่ำที่สุดในช่วงข้อมูล และ <strong><code>MAX</code></strong> คือค่าสูงที่สุดในช่วงข้อมูล ใช้บอกเพดานบนและพื้นล่างของชุดข้อมูลทันที
+                  </p>
+                </div>
+
+                <div class="p-3 rounded-xl bg-white border border-amber-100 space-y-1 text-xs">
+                  <div class="font-bold text-amber-900 flex items-center gap-1.5">
+                    <HelpCircle class="w-3.5 h-3.5 text-amber-600 shrink-0" /> ใช้เพื่ออะไร &amp; ใช้ทำไม?
+                  </div>
+                  <p class="text-slate-700 leading-relaxed">
+                    <strong>ใช้เพื่อ</strong>รู้ขอบเขต (Scope) ของข้อมูลทั้งหมดและใช้ตรวจสอบความถูกต้องของข้อมูล (Data Sanity Check) <strong>เพราะถ้าไม่ดู MIN/MAX ก่อน</strong> เราจะไม่รู้เลยว่ามีข้อมูลที่พิมพ์ผิดหลุดกรอบ (เช่น ราคาติดลบ หรือคีย์ศูนย์เกินมา 2 ตัว) แอบปะปนอยู่ในตารางหรือไม่
                   </p>
                 </div>
 
@@ -3079,7 +3158,9 @@ const quizQuestions = [
           ต่อยอดจากชุดข้อมูลโปรเจกต์ <strong>{{ ROWS_PER_PROJECT }} แถว</strong> ที่นักศึกษาจัดทำและคลีนเรียบร้อยแล้ว
           โดยให้เก็บตารางต้นฉบับไว้ในชีต/Spreadsheet ชื่อ <strong><code>Master_data</code></strong> (ห้ามแก้ไขทับ)
           จากนั้น<strong>คัดลอกแยกออกมาเป็นอีกชีต</strong> ชื่อ <strong><code>Numeric_Dashboard</code></strong>
-          เพื่อสร้างแดชบอร์ดตัวเลข 4 โซนบนชีตเดียวกัน ตามแบบที่ฝึกปฏิบัติในหน่วยที่ 5 พร้อมสรุปข้อค้นพบจริง 3 ข้อ
+          เพื่อคำนวณค่าสถิติพื้นฐาน (<code>COUNT/COUNTA</code>, <code>SUM</code>, <code>AVERAGE</code>, <code>MEDIAN</code>, <code>MIN</code>, <code>MAX</code>)
+          และสรุปข้อมูลแบบมีเงื่อนไข (<code>COUNTIF/IFS</code>, <code>SUMIF/IFS</code>, <code>AVERAGEIF/IFS</code>) บนชีตเดียวกัน
+          <strong>แล้วจบด้วยการออกมานำเสนอหน้าห้องเรียนว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง</strong>
         </p>
 
         <!-- Shared Google Sheets Banner & Project Selector -->
@@ -3122,7 +3203,7 @@ const quizQuestions = [
                     เลือกโปรเจกต์เดิมจากสัปดาห์ที่ 3 เพื่อดูรายการสิ่งที่ต้องทำ (6 ข้อ)
                   </div>
                   <p class="text-[11px] text-slate-500">
-                    คลิกเลือกหัวข้อโปรเจกต์ของตนเอง เพื่อดูเช็กลิสต์ 6 ข้อที่ต้องวิเคราะห์จริง (ตั้งแต่สถิติภาพรวม, สูตร 1 เงื่อนไข + % Share, สูตรหลายเงื่อนไข ไปจนถึงสรุป Insights)
+                    คลิกเลือกหัวข้อโปรเจกต์ของตนเอง เพื่อดูเช็กลิสต์ 6 ข้อที่ต้องวิเคราะห์จริง (ตั้งแต่สถิติภาพรวม, สูตร 1 เงื่อนไข, สูตรหลายเงื่อนไข ไปจนถึงการนำเสนอหน้าห้อง)
                   </p>
                 </div>
               </div>
@@ -3219,8 +3300,8 @@ const quizQuestions = [
               <strong class="text-slate-900 text-sm">ขั้นตอนที่ 1: เก็บข้อมูลต้นฉบับไว้ใน <code>Master_data</code> และคัดลอกแยกชีต <code>Numeric_Dashboard</code></strong>
               <p class="text-xs text-gray-600 leading-relaxed">
                 เปิดไฟล์ Google Sheets โปรเจกต์ของตนเอง (40 แถว) ตรวจสอบให้แน่ใจว่ามีชีตต้นฉบับชื่อ <strong><code>Master_data</code></strong> (เก็บไว้เป็นข้อมูลเดิม <strong>ห้ามแก้ไขทับ</strong>)
-                จากนั้นคลิกขวาเลือก <em>Duplicate (ทำสำเนา)</em> แยกออกมาเป็นชีตใหม่ชื่อ <strong><code>Numeric_Dashboard</code></strong> (หรือสร้างแยกเป็นอีก Spreadsheet)
-                เพื่อวางตารางข้อมูลไว้ฝั่งซ้ายและสร้างแดชบอร์ดตัวเลข 4 โซนไว้ฝั่งขวาบนชีตเดียวกัน โดยไม่ต้องเชื่อมสูตรข้ามตาราง
+                จากนั้นคลิกขวาเลือก <em>Duplicate (ทำสำเนา)</em> แยกออกมาเป็นชีตใหม่ชื่อ <strong><code>Numeric_Dashboard</code></strong>
+                เพื่อวางตารางข้อมูลไว้ฝั่งซ้ายและสร้างตารางสรุปค่าสถิติไว้ฝั่งขวาบนชีตเดียวกัน โดยไม่ต้องเชื่อมสูตรข้ามตาราง
               </p>
             </div>
           </li>
@@ -3231,19 +3312,19 @@ const quizQuestions = [
               2
             </div>
             <div class="space-y-1.5 flex-1">
-              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 2: สร้างแดชบอร์ดตัวเลข 4 โซน ตามโครงสร้างหน่วยที่ 5 (KPI ภาพรวม + 1 เงื่อนไข + Matrix/หลายเงื่อนไข)</strong>
+              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 2: สร้างตารางสรุปค่าสถิติในชีต <code>Numeric_Dashboard</code> (สถิติภาพรวม + 1 เงื่อนไข + หลายเงื่อนไข)</strong>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs pt-1">
                 <div class="p-3 rounded-xl bg-sky-50 border border-sky-200">
-                  <strong>ส่วนที่ A • โซน 1 (สถิติภาพรวม 7 ค่า):</strong><br />
-                  คำนวณ <code>COUNT/COUNTA</code>, <code>SUM</code>, <code>AVERAGE</code>, <code>MEDIAN</code>, <code>MIN</code>, <code>MAX</code>, <code>STDEV.S</code> จากคอลัมน์ตัวเลขหลัก (ใส่ <code>MODE</code> เพิ่มเป็นคะแนนเสริมได้)
+                  <strong>ส่วนที่ A • สถิติภาพรวม 6 ค่า:</strong><br />
+                  คำนวณ <code>COUNTA</code>, <code>SUM</code>, <code>AVERAGE</code>, <code>MEDIAN</code>, <code>MIN</code> และ <code>MAX</code> จากคอลัมน์ตัวเลขหลักของโปรเจกต์
                 </div>
                 <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-                  <strong>ส่วนที่ B • โซน 2 (ตาราง 1 เงื่อนไข + % Share):</strong><br />
-                  สรุปตามหมวดหมู่หลักด้วย <code>COUNTIF</code>, <code>SUMIF</code>, <code>AVERAGEIF</code> พร้อมคอลัมน์ <strong>สัดส่วน %</strong> (รวมต้องได้ 100%)
+                  <strong>ส่วนที่ B • ตารางสรุปแบบ 1 เงื่อนไข:</strong><br />
+                  สรุปข้อมูลแยกตามหมวดหมู่หลักด้วย <code>COUNTIF</code>, <code>SUMIF</code> และ <code>AVERAGEIF</code> (ใช้ <code>$</code> ล็อกช่วงข้อมูล)
                 </div>
                 <div class="p-3 rounded-xl bg-purple-50 border border-purple-200">
-                  <strong>ส่วนที่ C • โซน 3–4 (Matrix / หลายเงื่อนไข 3+ ข้อ):</strong><br />
-                  สร้างตาราง Matrix 2 มิติหรือตั้งคำถามเจาะลึก 3 ข้อ แล้วตอบด้วย <code>COUNTIFS</code>, <code>SUMIFS</code>, <code>AVERAGEIFS</code> (ใช้ <code>$</code> ล็อกช่วงครบทุกสูตร)
+                  <strong>ส่วนที่ C • ตารางสรุปแบบหลายเงื่อนไข:</strong><br />
+                  สรุปข้อมูลเจาะลึกหลายเงื่อนไขตามโจทย์ของโปรเจกต์ด้วย <code>COUNTIFS</code>, <code>SUMIFS</code> และ <code>AVERAGEIFS</code>
                 </div>
               </div>
             </div>
@@ -3251,36 +3332,62 @@ const quizQuestions = [
 
           <!-- Step 3 -->
           <li class="flex items-start gap-3">
-            <div class="w-7 h-7 rounded-xl bg-amber-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
+            <div class="w-7 h-7 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
               3
             </div>
             <div class="space-y-1 flex-1">
-              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 3: เขียนสรุปข้อค้นพบ (Mini-Insights 3 ข้อ)</strong>
+              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 3: ตั้งค่าแชร์และส่งลิงก์ Google Sheets เข้าระบบ</strong>
               <p class="text-xs text-gray-600 leading-relaxed">
-                เขียนสรุปสิ่งที่ค้นพบจากการวิเคราะห์ไว้ด้านล่างของแท็บ <code>Numeric_Dashboard</code> จำนวน 3 ข้อ
-                โดยระบุ <strong>ตัวเลขจริงหรือเปอร์เซ็นต์</strong> ประกอบทุกข้อ และระบุด้วยว่า <code>AVERAGE</code> กับ <code>MEDIAN</code> ของโปรเจกต์คุณใกล้เคียงหรือต่างกันอย่างไร
+                ตั้งค่า Share เป็น <strong>"ทุกคนที่มีลิงก์มีสิทธิ์ดู (Anyone with the link can view)"</strong> แล้วกดปุ่ม "ส่งงานด้วยลิงก์" ด้านล่าง
+                พร้อมระบุ <strong>ชื่อโปรเจกต์ที่ทำ</strong> ในช่องหมายเหตุ
               </p>
             </div>
           </li>
 
-          <!-- Step 4 -->
+          <!-- Step 4: ออกมานำเสนอหน้าห้อง -->
           <li class="flex items-start gap-3">
-            <div class="w-7 h-7 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
+            <div class="w-7 h-7 rounded-xl bg-rose-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
               4
             </div>
             <div class="space-y-2 flex-1">
-              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 4: ตั้งค่าแชร์และส่งลิงก์ Google Sheets เข้าระบบ (10 คะแนนเต็ม)</strong>
+              <div class="flex flex-wrap items-center gap-2">
+                <strong class="text-slate-900 text-sm">ขั้นตอนที่ 4 (ขั้นตอนสุดท้าย): ออกมานำเสนอผลสถิติหน้าห้องเรียน (In-Class Presentation)</strong>
+                <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 text-[11px] font-black">
+                  จบงานด้วยการนำเสนอหน้าห้อง
+                </span>
+              </div>
               <p class="text-xs text-gray-600 leading-relaxed">
-                ตั้งค่า Share เป็น <strong>"ทุกคนที่มีลิงก์มีสิทธิ์ดู (Anyone with the link can view)"</strong> แล้วกดปุ่ม "ส่งงานด้วยลิงก์" ด้านล่าง
-                พร้อมระบุ <strong>ชื่อโปรเจกต์ที่ทำ</strong> และ <strong>สรุป Insight เด่นที่สุด 1 ข้อ</strong> ในช่องหมายเหตุ
+                เมื่อส่งลิงก์เรียบร้อยแล้ว ให้ออกมาเปิดหน้าชีต <strong><code>Numeric_Dashboard</code></strong> ของตนเองขึ้นจอหน้าห้องเรียน
+                เพื่อเล่าให้เพื่อนและอาจารย์ฟังว่า<strong>จากข้อมูล {{ ROWS_PER_PROJECT }} แถว ได้ค่าสถิติอะไรออกมาบ้าง</strong> โดยมีประเด็นที่ต้องพูดถึงดังนี้:
               </p>
-              <div class="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs space-y-1 max-w-2xl">
-                <div class="font-bold text-emerald-950">เกณฑ์การให้คะแนน (10 คะแนน):</div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div class="p-3 rounded-xl bg-rose-50/80 border border-rose-200 space-y-1">
+                  <div class="font-black text-rose-950">1. สถิติภาพรวม (Overall Statistics)</div>
+                  <p class="text-slate-700 leading-relaxed">
+                    รายงานจำนวนข้อมูล (<code>COUNTA</code>), ยอดรวม (<code>SUM</code>), ค่าเฉลี่ย (<code>AVERAGE</code>), ค่ามัธยฐาน (<code>MEDIAN</code>), ค่าต่ำสุด (<code>MIN</code>) และค่าสูงสุด (<code>MAX</code>) ที่คำนวณได้
+                  </p>
+                </div>
+                <div class="p-3 rounded-xl bg-amber-50/80 border border-amber-200 space-y-1">
+                  <div class="font-black text-amber-950">2. ผลลัพธ์สูตร 1 เงื่อนไข (IF)</div>
+                  <p class="text-slate-700 leading-relaxed">
+                    อธิบายผลลัพธ์จากการแยกนับ (<code>COUNTIF</code>), แยกรวมยอด (<code>SUMIF</code>) และแยกหาค่าเฉลี่ย (<code>AVERAGEIF</code>) ในแต่ละหมวดหมู่ของโปรเจกต์
+                  </p>
+                </div>
+                <div class="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 space-y-1">
+                  <div class="font-black text-emerald-950">3. ผลลัพธ์สูตรหลายเงื่อนไข (IFS)</div>
+                  <p class="text-slate-700 leading-relaxed">
+                    อธิบายผลลัพธ์จากการใช้ <code>COUNTIFS</code>, <code>SUMIFS</code> และ <code>AVERAGEIFS</code> ว่าเมื่อเจาะลึกหลายเงื่อนไขแล้วได้ตัวเลขสถิติออกมาเป็นอย่างไร
+                  </p>
+                </div>
+              </div>
+
+              <div class="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs space-y-1 max-w-2xl mt-2">
+                <div class="font-bold text-emerald-950">เกณฑ์การให้คะแนนใบงานและการนำเสนอ (10 คะแนน):</div>
                 <ul class="list-disc pl-5 text-slate-700 space-y-0.5">
-                  <li>ตารางสถิติภาพรวมครบ 7 ค่า KPI ภาพรวม (<code>COUNT/COUNTA</code>, <code>SUM</code>, <code>AVERAGE</code>, <code>MEDIAN</code>, <code>MIN</code>, <code>MAX</code>, <code>STDEV.S</code> และใส่ <code>MODE</code> เสริมได้) (2 คะแนน)</li>
-                  <li>ตาราง 1 เงื่อนไข (COUNTIF/SUMIF/AVERAGEIF) พร้อมสัดส่วน % Share และล็อกเซลล์ $ ถูกต้อง (3 คะแนน)</li>
-                  <li>ตารางหลายเงื่อนไข / Matrix (COUNTIFS/SUMIFS/AVERAGEIFS) ครบ 3 โจทย์ ไม่สลับตำแหน่ง sum_range (3 คะแนน)</li>
-                  <li>การเขียนสรุป Mini-Insights 3 ข้อ พร้อมอ้างอิงตัวเลขจริงและความเป็นระเบียบของแดชบอร์ด (2 คะแนน)</li>
+                  <li>ตารางสถิติภาพรวมครบ 6 ค่า (<code>COUNTA</code>, <code>SUM</code>, <code>AVERAGE</code>, <code>MEDIAN</code>, <code>MIN</code>, <code>MAX</code>) (2.5 คะแนน)</li>
+                  <li>ตารางสูตร 1 เงื่อนไข (<code>COUNTIF</code>, <code>SUMIF</code>, <code>AVERAGEIF</code>) และล็อกเซลล์ <code>$</code> ถูกต้อง (2.5 คะแนน)</li>
+                  <li>ตารางสูตรหลายเงื่อนไข (<code>COUNTIFS</code>, <code>SUMIFS</code>, <code>AVERAGEIFS</code>) ถูกต้อง ไม่สลับตำแหน่ง <code>sum_range</code> (2.5 คะแนน)</li>
+                  <li>การออกมานำเสนอผลสถิติหน้าห้องเรียนว่าได้สถิติอะไรออกมาบ้างอย่างชัดเจน (2.5 คะแนน)</li>
                 </ul>
               </div>
             </div>
