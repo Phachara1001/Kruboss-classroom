@@ -582,144 +582,166 @@ const projectTopics = [
   {
     no: 1,
     icon: CheckSquare,
+    sheet: '01_Attendance',
+    columns: 'Student_ID, Name, Date, Time_In, Status',
     name: 'ระบบเช็กชื่อเข้าเรียน',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'หาจำนวนรายการเช็กชื่อทั้งหมด (COUNTA), รวมชั่วโมงเข้าเรียนทั้งหมด (SUM) และค่าเฉลี่ย % การเข้าเรียนภาพรวม (AVERAGE)' },
-      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐาน (MEDIAN), ค่าต่ำสุด (MIN) และค่าสูงสุด (MAX) ของ % การเข้าเรียนทั้งหมด' },
-      { tag: 'COUNTIF', text: 'นับจำนวนครั้งที่มาเรียน / มาสาย / ขาดเรียน แยกตามแต่ละรายวิชา' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมชั่วโมงเข้าเรียนและหาค่าเฉลี่ย % การเข้าเรียนแยกตามแต่ละรายวิชา (ล็อกช่วงข้อมูลด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมชั่วโมงเข้าเรียนเฉพาะห้องที่กำหนดในสัปดาห์ >= 3' },
-      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ย % การเข้าเรียนแยกตามระดับชั้นและสถานะ แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรายการเช็กชื่อทั้งหมดจากคอลัมน์ Student_ID (COUNTA) พร้อมรวมและหาค่าเฉลี่ยจากคอลัมน์ Time_In (SUM / AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐาน (MEDIAN), ค่าต่ำสุด (MIN) และค่าสูงสุด (MAX) จากคอลัมน์ Time_In' },
+      { tag: 'COUNTIF (Status)', text: 'นับจำนวนรายการแยกตามสถานะในคอลัมน์ Status (Present, Late และ Absent)' },
+      { tag: 'COUNTIF (Date)', text: 'นับจำนวนรายการเช็กชื่อแยกตามแต่ละวันที่ในคอลัมน์ Date (13/11/2026, 14/11/2026 และ 15/11/2026)' },
+      { tag: 'COUNTIFS (Date + Status)', text: 'นับจำนวนนักศึกษาในแต่ละวันที่แยกตามสถานะ เช่น วันที่ 13/11/2026 ที่มี Status เป็น Present, Late และ Absent' },
+      { tag: 'SUMIFS / AVERAGEIFS & นำเสนอหน้าห้อง', text: 'สรุปผลคอลัมน์ Time_In ด้วย SUMIFS และ AVERAGEIFS แยกตาม Date และ Status แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
     no: 2,
     icon: Trophy,
+    sheet: '02_Esport',
+    columns: 'Match_ID, Player_Tag, Hero, K, D, A, Result',
     name: 'ประวัติการแข่งขัน E-Sport',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนแมตช์ทั้งหมด (COUNTA), รวมจำนวน Kill ทั้งหมด (SUM) และหาค่าเฉลี่ย KDA ภาพรวม (AVERAGE)' },
-      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐาน KDA (MEDIAN), ค่าต่ำสุด (MIN) และค่าสูงสุด (MAX) ของจำนวน Kill' },
-      { tag: 'COUNTIF', text: 'นับจำนวนแมตช์ที่ชนะ (Win) และแพ้ (Lose) แยกตามชื่อทีม' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมจำนวน Kill และหาค่าเฉลี่ย KDA แยกตามแต่ละทีม (ล็อกช่วงด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมจำนวน Kill เฉพาะโหมด Ranked ที่ผลการแข่งขันเป็นชนะ (Win)' },
-      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ย KDA ของผู้เล่นตำแหน่ง Carry ในทัวร์นาเมนต์ แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนแมตช์ทั้งหมดจากคอลัมน์ Match_ID (COUNTA), รวมจำนวน K, D, A ทั้งหมด (SUM) และหาค่าเฉลี่ย K, D, A ภาพรวม (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐาน (MEDIAN), ค่าต่ำสุด (MIN) และค่าสูงสุด (MAX) ของคอลัมน์ K' },
+      { tag: 'COUNTIF', text: 'นับจำนวนแมตช์แยกตามผลการแข่งขันในคอลัมน์ Result (Win และ Lose) และแยกตามชื่อผู้เล่นในคอลัมน์ Player_Tag (BossGG, NoobSlayer, ITMaster, ProPlayer, DarkX)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมจำนวน K และหาค่าเฉลี่ย K แยกตามชื่อผู้เล่นแต่ละคนในคอลัมน์ Player_Tag (ล็อกช่วงเซลล์ด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'นับจำนวนแมตช์และรวมจำนวน K เฉพาะแถวที่ Hero เป็น Tank และ Result เป็น Win' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยจำนวน K เฉพาะแถวที่ Hero เป็น Evita และ Result เป็น Win แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
     no: 3,
     icon: Cpu,
+    sheet: '03_Inventory',
+    columns: 'Asset_ID, Device_Name, Spec, Qty, Price',
     name: 'สต็อกอุปกรณ์คอมพิวเตอร์ / IoT',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรายการอุปกรณ์ทั้งหมด (COUNTA), รวมมูลค่าสต็อกทั้งหมด (SUM) และหาค่าเฉลี่ยราคาต่อชิ้น (AVERAGE)' },
-      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานราคาอุปกรณ์ (MEDIAN), ราคาต่ำสุด (MIN) และราคาสูงสุด (MAX) ในคลังอุปกรณ์' },
-      { tag: 'COUNTIF', text: 'นับจำนวนรายการอุปกรณ์แยกตามหมวดหมู่อุปกรณ์' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมมูลค่าสต็อกและหาค่าเฉลี่ยราคาต่อหน่วยแยกตามหมวดหมู่อุปกรณ์ (ล็อกช่วงด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมมูลค่าสต็อกเฉพาะอุปกรณ์หมวด Sensor ที่จัดเก็บอยู่ในคลัง A' },
-      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยราคาต่อหน่วยของ Microcontroller ที่มีสถานะพร้อมใช้งาน แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรายการอุปกรณ์ทั้งหมดจากคอลัมน์ Asset_ID (COUNTA), รวมจำนวน Qty และราคารวม Price ทั้งหมด (SUM) พร้อมหาค่าเฉลี่ย Price (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานราคา (MEDIAN), ราคาต่ำสุด (MIN) และราคาสูงสุด (MAX) จากคอลัมน์ Price' },
+      { tag: 'COUNTIF', text: 'นับจำนวนรายการอุปกรณ์แยกตามชื่ออุปกรณ์ในคอลัมน์ Device_Name (Raspberry Pi, Arduino UNO, RAM, Monitor, Keyboard, Mouse, SSD)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมจำนวน Qty และหาค่าเฉลี่ย Price แยกตามชื่ออุปกรณ์ในคอลัมน์ Device_Name (ล็อกช่วงเซลล์ด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'นับจำนวนรายการและรวมจำนวน Qty ของอุปกรณ์ Mouse ที่มี Qty >= 1' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยราคา (Price) ของอุปกรณ์ Raspberry Pi ที่มีจำนวนคงเหลือ Qty >= 2 แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
     no: 4,
     icon: BookOpen,
+    sheet: '04_Library',
+    columns: 'Borrow_ID, Member_Name, Book_Title, Borrow_Date, Fine',
     name: 'ระบบยืม-คืนหนังสือ',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรายการยืมทั้งหมด (COUNTA), รวมค่าปรับทั้งหมด (SUM) และหาค่าเฉลี่ยจำนวนวันที่ยืมต่อครั้ง (AVERAGE)' },
-      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานจำนวนวันยืม (MEDIAN), ค่าปรับต่ำสุด (MIN) และค่าปรับสูงสุด (MAX)' },
-      { tag: 'COUNTIF', text: 'นับจำนวนรายการที่คืนตรงเวลาและคืนเกินกำหนด (Overdue) แยกตามหมวดหมู่หนังสือ' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมยอดค่าปรับและหาค่าเฉลี่ยจำนวนวันยืมแยกตามหมวดหมู่หนังสือ (ล็อกช่วงเซลล์ด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมค่าปรับทั้งหมดของหมวดหนังสือเทคโนโลยีในภาคเรียนที่ 2' },
-      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยจำนวนวันยืมแยกตามคณะและสถานะการคืน แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรายการยืมทั้งหมดจากคอลัมน์ Borrow_ID (COUNTA), รวมยอดค่าปรับทั้งหมดจากคอลัมน์ Fine (SUM) และหาค่าปรับเฉลี่ยภาพรวม (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานค่าปรับ (MEDIAN), ค่าปรับต่ำสุด (MIN) และค่าปรับสูงสุด (MAX) จากคอลัมน์ Fine' },
+      { tag: 'COUNTIF', text: 'นับจำนวนครั้งที่ถูกยืมแยกตามชื่อหนังสือในคอลัมน์ Book_Title (การเขียนโปรแกรม Java, การพัฒนาเว็บไซต์, ฐานข้อมูล SQL, HTML & CSS, Data Science, Python เบื้องต้น)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมยอดค่าปรับ (Fine) และหาค่าปรับเฉลี่ยแยกตามชื่อหนังสือในคอลัมน์ Book_Title (ล็อกช่วงเซลล์ด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'นับจำนวนรายการและรวมยอดค่าปรับ (Fine) ของหนังสือ การเขียนโปรแกรม Java ที่มีค่าปรับ Fine > 0' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยค่าปรับ (Fine) ของหนังสือ การพัฒนาเว็บไซต์ ที่มีค่าปรับ Fine > 0 แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
     no: 5,
     icon: Coffee,
+    sheet: '05_Cafe',
+    columns: 'Order_ID, Menu, Sweetness, Topping, Total',
     name: 'ออเดอร์ร้านคาเฟ่ / ชานม',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนบิลทั้งหมด (COUNTA), รวมยอดขายสุทธิทั้งหมด (SUM) และหายอดขายเฉลี่ยต่อบิล (AVERAGE)' },
-      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานยอดต่อบิล (MEDIAN), ยอดบิลต่ำสุด (MIN) และยอดบิลสูงสุด (MAX)' },
-      { tag: 'COUNTIF', text: 'นับจำนวนบิลแยกตามหมวดเมนู (กาแฟ / ชา / เบเกอรี่)' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมยอดขายและหาค่าเฉลี่ยต่อบิลแยกตามสาขา (ล็อกช่วงเซลล์ด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมยอดขายของลูกค้าระดับ VIP ในสาขาสยาม' },
-      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยยอดต่อบิลของออเดอร์ที่สั่ง >= 2 แก้วแยกตามกลุ่มลูกค้า แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนออเดอร์ทั้งหมดจากคอลัมน์ Order_ID (COUNTA), รวมยอดขายทั้งหมดจากคอลัมน์ Total (SUM) และหายอดขายเฉลี่ยต่อออเดอร์ (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐาน (MEDIAN), ยอดต่ำสุด (MIN) และยอดสูงสุด (MAX) จากคอลัมน์ Total' },
+      { tag: 'COUNTIF', text: 'นับจำนวนออเดอร์แยกตามชื่อเมนูในคอลัมน์ Menu (กาแฟลาเต้, โกโก้, ชาเขียว, นมสด, ชานมไข่มุก, ชาไทย) และแยกตามระดับความหวานในคอลัมน์ Sweetness (0%, 25%, 50%, 100%)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมยอดขาย (Total) และหาค่าเฉลี่ยยอดขายต่อออเดอร์แยกตามชื่อเมนูในคอลัมน์ Menu (ล็อกช่วงเซลล์ด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'นับจำนวนออเดอร์และรวมยอดขาย (Total) ของรายการที่สั่งความหวาน (Sweetness) 50% และเพิ่มท็อปปิ้ง (Topping) เป็น ไข่มุก' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยยอดขาย (Total) ของเมนู กาแฟลาเต้ ที่สั่งความหวาน (Sweetness) 50% แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
     no: 6,
     icon: Package,
+    sheet: '06_Delivery',
+    columns: 'Tracking_ID, Customer, Phone, Province, COD_Amount',
     name: 'ข้อมูลลูกค้าและจัดส่งพัสดุ',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนพัสดุทั้งหมด (COUNTA), รวมค่าจัดส่งทั้งหมด (SUM) และหาค่าเฉลี่ยวันจัดส่งภาพรวม (AVERAGE)' },
-      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานระยะเวลาส่ง (MEDIAN), เวลาจัดส่งเร็วสุด (MIN) และช้าสุด (MAX)' },
-      { tag: 'COUNTIF', text: 'นับจำนวนพัสดุแยกตามบริษัทขนส่ง' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมค่าจัดส่งและหาค่าเฉลี่ยวันจัดส่งแยกตามบริษัทขนส่ง (ล็อกช่วงด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมค่าจัดส่งของพัสดุแบบส่งด่วน Express ที่จัดส่งสำเร็จแล้ว' },
-      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยระยะเวลาจัดส่ง (วัน) ของภาคกลางที่เป็นสมาชิก VIP แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนพัสดุทั้งหมดจากคอลัมน์ Tracking_ID (COUNTA), รวมยอดเก็บเงินปลายทางทั้งหมดจากคอลัมน์ COD_Amount (SUM) และหายอด COD_Amount เฉลี่ยต่อชิ้น (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐาน (MEDIAN), ยอดต่ำสุด (MIN) และยอดสูงสุด (MAX) ของคอลัมน์ COD_Amount' },
+      { tag: 'COUNTIF', text: 'นับจำนวนพัสดุแยกตามจังหวัดปลายทางในคอลัมน์ Province (กรุงเทพมหานคร, นครราชสีมา, ขอนแก่น, เลย, เชียงใหม่, เชียงราย)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมยอด COD_Amount และหายอด COD_Amount เฉลี่ยแยกตามจังหวัดในคอลัมน์ Province (ล็อกช่วงเซลล์ด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'นับจำนวนพัสดุและรวมยอด COD_Amount เฉพาะจังหวัด กรุงเทพมหานคร ที่มียอด COD_Amount >= 250' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยยอด COD_Amount ของพัสดุจังหวัด นครราชสีมา ที่มียอด COD_Amount >= 250 แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
     no: 7,
     icon: Car,
+    sheet: '07_CarService',
+    columns: 'Job_ID, Car_Model, Mileage, Service_List, Cost',
     name: 'ข้อมูลการเข้าศูนย์บริการรถ',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรถเข้าศูนย์ทั้งหมด (COUNTA), รวมรายได้ค่าซ่อมทั้งหมด (SUM) และหาค่าซ่อมเฉลี่ยต่อคัน (AVERAGE)' },
-      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานค่าซ่อม (MEDIAN), ค่าซ่อมต่ำสุด (MIN) และค่าซ่อมสูงสุด (MAX)' },
-      { tag: 'COUNTIF', text: 'นับจำนวนรถที่เข้าศูนย์แยกตามประเภทงานซ่อม (เช็กระยะ / ซ่อมเครื่อง / ช่วงล่าง)' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมรายได้ค่าบริการและหาค่าซ่อมเฉลี่ยแยกตามประเภทรถ (Sedan / SUV / กระบะ) โดยล็อกช่วงด้วย $' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมรายได้ค่าบริการของรถประเภท SUV ที่ชำระผ่านบัตรเครดิต' },
-      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยค่าซ่อมต่อคันของลูกค้าประจำที่มีระยะทาง >= 50,000 กม. แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรถเข้าศูนย์ทั้งหมดจากคอลัมน์ Job_ID (COUNTA), รวมรายได้ค่าซ่อมทั้งหมดจากคอลัมน์ Cost (SUM) และหาค่าซ่อมเฉลี่ยต่อคัน (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานค่าซ่อม (MEDIAN), ค่าซ่อมต่ำสุด (MIN) และค่าซ่อมสูงสุด (MAX) จากคอลัมน์ Cost' },
+      { tag: 'COUNTIF', text: 'นับจำนวนรถที่เข้าศูนย์แยกตามรุ่นรถในคอลัมน์ Car_Model (Honda City, Toyota Yaris, Isuzu D-Max, Honda Civic, Toyota Vios)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมรายได้ค่าซ่อม (Cost) และหาค่าซ่อมเฉลี่ยต่อคันแยกตามรุ่นรถในคอลัมน์ Car_Model (ล็อกช่วงเซลล์ด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'นับจำนวนคันและรวมรายได้ค่าซ่อม (Cost) ของรถรุ่น Honda City ที่มีเลขไมล์ Mileage >= 65000' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยค่าซ่อม (Cost) ของรถรุ่น Toyota Yaris ที่เข้ารับบริการ ล้างแอร์ (จากคอลัมน์ Service_1 หลังแยกข้อมูล) แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
     no: 8,
     icon: Dumbbell,
+    sheet: '08_Fitness',
+    columns: 'Log_ID, Date, Activity, Duration (mins), Calories',
     name: 'บันทึกการออกกำลังกาย',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนครั้งที่ออกกำลังกายทั้งหมด (COUNTA), รวมแคลอรีที่เผาผลาญทั้งหมด (SUM) และหาแคลอรีเฉลี่ยต่อครั้ง (AVERAGE)' },
-      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานแคลอรี (MEDIAN), แคลอรีต่ำสุด (MIN) และแคลอรีสูงสุด (MAX)' },
-      { tag: 'COUNTIF', text: 'นับจำนวนครั้งที่ออกกำลังกายแยกตามประเภทกิจกรรม (Cardio / Weight Training / Yoga)' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมแคลอรีที่เผาผลาญและหาค่าเฉลี่ยเวลาออกกำลังกายแยกตามประเภทกิจกรรม (ล็อกช่วงด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมแคลอรีที่เผาผลาญของการออกกำลังกายในช่วงเย็นที่ใช้เวลา >= 45 นาที' },
-      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยอัตราการเต้นหัวใจ (BPM) แยกตามประเภทกิจกรรมและเพศ แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนครั้งที่ออกกำลังกายทั้งหมดจากคอลัมน์ Log_ID (COUNTA), รวมแคลอรีทั้งหมดจากคอลัมน์ Calories (SUM) และหาแคลอรีเฉลี่ยต่อครั้ง (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐาน (MEDIAN), ค่าต่ำสุด (MIN) และค่าสูงสุด (MAX) ของคอลัมน์ Calories และ Duration (mins)' },
+      { tag: 'COUNTIF', text: 'นับจำนวนครั้งที่ออกกำลังกายแยกตามกิจกรรมในคอลัมน์ Activity (Workout, Swimming, Cycling, Walking, Running)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมแคลอรี (Calories) และหาค่าเฉลี่ยเวลา (Duration (mins)) แยกตามกิจกรรมในคอลัมน์ Activity (ล็อกช่วงเซลล์ด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'นับจำนวนครั้งและรวมแคลอรี (Calories) ของกิจกรรม Workout ที่ใช้เวลา Duration (mins) >= 60' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยแคลอรี (Calories) ของกิจกรรม Swimming ที่ใช้เวลา Duration (mins) >= 60 แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
     no: 9,
     icon: Tent,
+    sheet: '09_Registration',
+    columns: 'Reg_ID, Full_Name, Email, Shirt_Size, Payment',
     name: 'ระบบสมัครเข้าค่าย / อีเวนต์',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนผู้สมัครทั้งหมด (COUNTA), รวมรายได้ค่าลงทะเบียนทั้งหมด (SUM) และหาอายุเฉลี่ยของผู้สมัคร (AVERAGE)' },
-      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานอายุผู้เข้าร่วม (MEDIAN), อายุน้อยสุด (MIN) และอายุมากสุด (MAX)' },
-      { tag: 'COUNTIF', text: 'นับจำนวนผู้สมัครแยกตามหัวข้อเวิร์กช็อป' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมรายได้ค่าลงทะเบียนและหาค่าเฉลี่ยต่อคนแยกตามประเภทบัตร (Early Bird / Regular / VIP) โดยล็อกช่วงด้วย $' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมรายได้ค่าลงทะเบียนของบัตรประเภท Early Bird ในเวิร์กช็อป AI' },
-      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยอายุของผู้เข้าร่วมกลุ่มนักศึกษา ปวส. ที่ยืนยันสิทธิ์แล้ว แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
+      { tag: 'COUNTA', text: 'นับจำนวนผู้สมัครทั้งหมดจากคอลัมน์ Reg_ID (COUNTA) และตรวจจำนวนอีเมลที่กรอกครบในคอลัมน์ Email' },
+      { tag: 'COUNTIF (Shirt_Size)', text: 'นับจำนวนผู้สมัครแยกตามขนาดเสื้อในคอลัมน์ Shirt_Size (S, M, L และ XL)' },
+      { tag: 'COUNTIF (Payment)', text: 'นับจำนวนผู้สมัครแยกตามสถานะการชำระเงินในคอลัมน์ Payment (ชำระแล้ว และ รอชำระ)' },
+      { tag: 'COUNTIF (คำนำหน้าชื่อ)', text: 'นับจำนวนผู้สมัครแยกตามคำนำหน้าชื่อในคอลัมน์ Full_Name โดยใช้ Wildcard นาย* และ นางสาว*' },
+      { tag: 'COUNTIFS (ชำระแล้ว)', text: 'นับจำนวนผู้สมัครแยกตามขนาดเสื้อ Shirt_Size เฉพาะผู้ที่ Payment เป็น ชำระแล้ว (เช่น ไซส์ XL ที่ชำระเงินแล้ว)' },
+      { tag: 'COUNTIFS (รอชำระ) & นำเสนอหน้าห้อง', text: 'นับจำนวนผู้สมัครแยกตามขนาดเสื้อ Shirt_Size เฉพาะผู้ที่ Payment เป็น รอชำระ (เช่น ไซส์ L ที่รอชำระ) แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
     no: 10,
     icon: Swords,
+    sheet: '10_GameSales',
+    columns: 'Tx_ID, Username, Item_Pack, Server, Amount_THB',
     name: 'สถิติการขายไอเทมเกม',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรายการขายไอเทมทั้งหมด (COUNTA), รวมรายได้ทั้งหมด (SUM) และหาราคาขายเฉลี่ยต่อชิ้น (AVERAGE)' },
-      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานราคาไอเทม (MEDIAN), ราคาต่ำสุด (MIN) และราคาสูงสุด (MAX)' },
-      { tag: 'COUNTIF', text: 'นับจำนวนไอเทมที่ขายออกแยกตามระดับความหายาก (Common / Epic / Legendary)' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมรายได้และหาราคาขายเฉลี่ยแยกตามสายไอเทม (Weapon / Armor / Skin) โดยล็อกช่วงด้วย $' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมยอดรายได้ของไอเทมสาย Weapon ในเซิร์ฟเวอร์ SEA' },
-      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยราคาขายไอเทมระดับ Legendary ที่ซื้อโดยผู้เล่นระดับ Pro แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนรายการซื้อทั้งหมดจากคอลัมน์ Tx_ID (COUNTA), รวมรายได้ทั้งหมดจากคอลัมน์ Amount_THB (SUM) และหายอดซื้อเฉลี่ยต่อรายการ (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐาน (MEDIAN), ยอดต่ำสุด (MIN) และยอดสูงสุด (MAX) ของคอลัมน์ Amount_THB' },
+      { tag: 'COUNTIF', text: 'นับจำนวนรายการที่ขายได้แยกตามแพ็กเกจในคอลัมน์ Item_Pack (Gold Pack, VIP Pack, Starter Pack, Diamond Pack)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมยอดขาย (Amount_THB) และหายอดขายเฉลี่ยแยกตามเซิร์ฟเวอร์ในคอลัมน์ Server (TH, SEA, Asia) โดยล็อกช่วงเซลล์ด้วย $' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'นับจำนวนรายการและรวมยอดขาย (Amount_THB) ของแพ็กเกจ Gold Pack ในเซิร์ฟเวอร์ TH' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยยอดซื้อ (Amount_THB) ของผู้เล่น ProX ที่ซื้อ Gold Pack แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   },
   {
     no: 11,
     icon: GraduationCap,
+    sheet: '11_ExamScores',
+    columns: 'ID, Student_Name, Quiz1, Quiz2, Midterm, Grade',
     name: 'คะแนนสอบและส่งงานรายวิชา',
     tasks: [
-      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนนักศึกษาทั้งหมด (COUNTA), รวมคะแนนเก็บใบงาน (SUM) และหาค่าเฉลี่ยคะแนนสอบภาพรวม (AVERAGE)' },
-      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐานคะแนน (MEDIAN), คะแนนต่ำสุด (MIN) และคะแนนสูงสุด (MAX)' },
-      { tag: 'COUNTIF', text: 'นับจำนวนนักศึกษาแยกตามสถานะการส่งงาน' },
-      { tag: 'SUMIF / AVERAGEIF', text: 'รวมคะแนนใบงานและหาค่าเฉลี่ยคะแนนสอบแยกตามกลุ่มเรียน (ล็อกช่วงเซลล์ด้วย $)' },
-      { tag: 'COUNTIFS / SUMIFS', text: 'รวมคะแนนเก็บของนักศึกษากลุ่มเรียน ปวส.1/1 ที่ส่งงานตรงเวลา' },
-      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยคะแนนสอบกลางภาคแยกตามกลุ่มเรียนและสถานะการเข้าเรียน แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
+      { tag: 'COUNTA / SUM / AVERAGE', text: 'นับจำนวนนักศึกษาทั้งหมดจากคอลัมน์ ID (COUNTA), รวมคะแนนสอบกลางภาคจากคอลัมน์ Midterm (SUM) และหาค่าเฉลี่ยของ Quiz1, Quiz2 และ Midterm (AVERAGE)' },
+      { tag: 'MEDIAN / MIN / MAX', text: 'หาค่ามัธยฐาน (MEDIAN), คะแนนต่ำสุด (MIN) และคะแนนสูงสุด (MAX) ของคอลัมน์ Midterm' },
+      { tag: 'COUNTIF', text: 'นับจำนวนนักศึกษาแยกตามระดับเกรดในคอลัมน์ Grade (A, B+, B, C+, C, D, F)' },
+      { tag: 'SUMIF / AVERAGEIF', text: 'รวมคะแนน Midterm และหาค่าเฉลี่ยคะแนน Midterm แยกตามระดับเกรดในคอลัมน์ Grade (ล็อกช่วงเซลล์ด้วย $)' },
+      { tag: 'COUNTIFS / SUMIFS', text: 'นับจำนวนนักศึกษาและรวมคะแนน Midterm ของกลุ่มที่ได้เกรด A และมีคะแนน Midterm >= 35' },
+      { tag: 'AVERAGEIFS & นำเสนอหน้าห้อง', text: 'หาค่าเฉลี่ยคะแนน Quiz1 ของนักศึกษาที่ได้เกรด B และมีคะแนน Midterm >= 30 แล้วออกมานำเสนอหน้าห้องว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง' }
     ]
   }
 ]
@@ -951,9 +973,11 @@ const quizQuestions = [
         </h1>
 
         <p class="text-xs sm:text-sm text-sky-100/95 font-medium leading-relaxed">
-          เมื่อข้อมูลจากสัปดาห์ที่ 3 สะอาด 100% แล้ว สัปดาห์นี้เราจะปูพื้นฐาน <strong>สูตรคำนวณ Excel/Sheets (+ &minus; &times; &divide;, SUM, COUNT)</strong>
+          เมื่อข้อมูลจากสัปดาห์ที่ 3 สะอาด 100% แล้ว สัปดาห์นี้เราจะปูพื้นฐาน <strong>สูตรคำนวณ Excel/Sheets (+ &minus;
+            &times; &divide;, SUM, COUNT)</strong>
           ต่อยอดสู่ <strong>สถิติภาพรวม (<code>Mean vs Median</code>)</strong>, การเขียนสูตรเงื่อนไข 1 มิติและหลายมิติ
-          (<code>COUNTIF/S</code>, <code>SUMIF/S</code>, <code>AVERAGEIF/S</code>) และ <strong>ลงมือภาคปฏิบัติสร้างแดชบอร์ดตัวเลข 4 โซน (Numeric KPI Dashboard)</strong>!
+          (<code>COUNTIF/S</code>, <code>SUMIF/S</code>, <code>AVERAGEIF/S</code>) และ
+          <strong>ลงมือภาคปฏิบัติสร้างแดชบอร์ดตัวเลข 4 โซน (Numeric KPI Dashboard)</strong>!
         </p>
 
         <div class="pt-2 flex flex-wrap gap-2 text-xs font-bold">
@@ -1010,16 +1034,20 @@ const quizQuestions = [
       <div class="relative z-10 max-w-4xl space-y-3">
         <div
           class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-wider border border-emerald-400/30">
-          <Zap class="w-3.5 h-3.5 text-emerald-400" /> จากข้อมูลตั้งต้น Master_data สู่ชีตวิเคราะห์แยกเฉพาะ Numeric_Dashboard
+          <Zap class="w-3.5 h-3.5 text-emerald-400" /> จากข้อมูลตั้งต้น Master_data สู่ชีตวิเคราะห์แยกเฉพาะ
+          Numeric_Dashboard
         </div>
         <h3 class="text-xl sm:text-2xl font-bold leading-tight">
           คลีนข้อมูลเสร็จแล้ว... แยกชีต <code>Master_data</code> เก็บไว้เป็นต้นฉบับ แล้วคัดลอกไปทำแดชบอร์ดในชีตใหม่!
         </h3>
         <p class="text-xs sm:text-sm text-sky-100 leading-relaxed">
-          หลักการทำงานที่ดีของ Data Analyst คือ<strong>เก็บข้อมูลที่คลีนเรียบร้อยแล้วไว้ในชีต <code>Master_data</code> ห้ามแก้ไขทับโดยตรง</strong>
-          เมื่อต้องการวิเคราะห์หรือสร้างรายงานเรื่องใด ให้<strong>คัดลอกแยกออกมาเป็นอีกชีต (หรืออีกไฟล์ Spreadsheet)</strong>
+          หลักการทำงานที่ดีของ Data Analyst คือ<strong>เก็บข้อมูลที่คลีนเรียบร้อยแล้วไว้ในชีต <code>Master_data</code>
+            ห้ามแก้ไขทับโดยตรง</strong>
+          เมื่อต้องการวิเคราะห์หรือสร้างรายงานเรื่องใด ให้<strong>คัดลอกแยกออกมาเป็นอีกชีต (หรืออีกไฟล์
+            Spreadsheet)</strong>
           เช่น ชีต <strong><code>Numeric_Dashboard</code></strong> แล้วเขียนสูตร
-          <code>=SUM()</code>, <code>=MEDIAN()</code>, <code>=STDEV.S()</code>, <code>=COUNTIFS()</code>, <code>=SUMIFS()</code>
+          <code>=SUM()</code>, <code>=MEDIAN()</code>, <code>=STDEV.S()</code>, <code>=COUNTIFS()</code>,
+          <code>=SUMIFS()</code>
           อ้างอิงข้อมูลในชีตเดียวกันเลย โดยไม่ต้องเชื่อมสูตรข้ามตารางให้สับสน!
         </p>
       </div>
@@ -1050,7 +1078,8 @@ const quizQuestions = [
               <span>1. ผลลัพธ์การเรียนรู้ระดับหน่วย</span>
             </div>
             <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
-              ผู้เรียนสามารถเขียนสูตรคำนวณพื้นฐาน (+, -, *, /, ()), ฟังก์ชัน <code>SUM</code>, ตระกูล <code>COUNT</code>, เลือกใช้ค่ากลางทางสถิติ (Mean vs Median)
+              ผู้เรียนสามารถเขียนสูตรคำนวณพื้นฐาน (+, -, *, /, ()), ฟังก์ชัน <code>SUM</code>, ตระกูล
+              <code>COUNT</code>, เลือกใช้ค่ากลางทางสถิติ (Mean vs Median)
               และเขียนสูตรสรุปข้อมูลแบบมีเงื่อนไข 1 มิติและหลายมิติบน Google Sheets / Excel ได้อย่างถูกต้อง
             </p>
           </div>
@@ -1062,8 +1091,10 @@ const quizQuestions = [
               <span>2. สมรรถนะประจำหน่วย</span>
             </div>
             <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
-              จัดการข้อมูลแบบมืออาชีพด้วยชีตต้นฉบับ <code>Master_data</code> แล้วแยกคัดลอกเป็นชีต <code>Numeric_Dashboard</code>
-              เพื่อสร้างแดชบอร์ดตัวเลข 4 โซน: คำนวณ KPI ภาพรวม (รวม <code>MEDIAN</code>, <code>STDEV.S</code>, <code>MIN/MAX</code>),
+              จัดการข้อมูลแบบมืออาชีพด้วยชีตต้นฉบับ <code>Master_data</code> แล้วแยกคัดลอกเป็นชีต
+              <code>Numeric_Dashboard</code>
+              เพื่อสร้างแดชบอร์ดตัวเลข 4 โซน: คำนวณ KPI ภาพรวม (รวม <code>MEDIAN</code>, <code>STDEV.S</code>,
+              <code>MIN/MAX</code>),
               สรุป 1 เงื่อนไข + % Share, ตาราง Matrix 2 มิติ และสรุป Mini-Insights 3 ข้อสนับสนุนการตัดสินใจได้จริง
             </p>
           </div>
@@ -1075,10 +1106,17 @@ const quizQuestions = [
               <span>3. วัตถุประสงค์เชิงพฤติกรรม</span>
             </div>
             <ul class="text-xs sm:text-sm text-slate-600 space-y-1.5 list-disc pl-4 leading-relaxed">
-              <li>เขียนสูตร <code>+ - * / ()</code>, <code>SUM</code> และแยกใช้ <code>COUNT/COUNTA/COUNTBLANK</code> ได้</li>
-              <li>คำนวณ <code>AVERAGE</code>, <code>MEDIAN</code>, <code>MIN</code>, <code>MAX</code>, <code>STDEV.S</code> และอธิบายกับดัก Outlier ได้</li>
-              <li>เข้าใจพารามิเตอร์ <code>criteria_range</code>, <code>criteria</code>, <code>sum_range</code>, <code>average_range</code></li>
-              <li>ประยุกต์ใช้ <code>IF/IFS</code> พร้อมล็อกเซลล์ (<code>$A$1</code>, <code>$K20</code>, <code>L$19</code>) และแก้ไข Error ยอดฮิตได้</li>
+              <li>เขียนสูตร <code>+ - * / ()</code>, <code>SUM</code> และแยกใช้ <code>COUNT/COUNTA/COUNTBLANK</code> ได้
+              </li>
+              <li>คำนวณ <code>AVERAGE</code>, <code>MEDIAN</code>, <code>MIN</code>, <code>MAX</code>,
+                <code>STDEV.S</code> และอธิบายกับดัก Outlier ได้
+              </li>
+              <li>เข้าใจพารามิเตอร์ <code>criteria_range</code>, <code>criteria</code>, <code>sum_range</code>,
+                <code>average_range</code>
+              </li>
+              <li>ประยุกต์ใช้ <code>IF/IFS</code> พร้อมล็อกเซลล์ (<code>$A$1</code>, <code>$K20</code>,
+                <code>L$19</code>) และแก้ไข Error ยอดฮิตได้
+              </li>
               <li>สร้างแดชบอร์ดตัวเลข 4 โซนและคำนวณสัดส่วนร้อยละ (% Share) ได้</li>
             </ul>
           </div>
@@ -1118,7 +1156,8 @@ const quizQuestions = [
       <div class="bg-white rounded-2xl p-6 sm:p-8 border-2 border-emerald-200 shadow-2xs space-y-6">
         <div class="border-b border-emerald-100 pb-4">
           <div class="flex flex-wrap items-center gap-2">
-            <span class="px-3 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full uppercase tracking-wider">
+            <span
+              class="px-3 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full uppercase tracking-wider">
               หน่วยการเรียนรู้ที่ 1 • ปูพื้นฐานก่อนเริ่ม
             </span>
             <span class="px-2.5 py-0.5 bg-sky-100 text-sky-800 font-bold text-xs rounded-full">
@@ -1130,7 +1169,8 @@ const quizQuestions = [
             พื้นฐานการเขียนสูตรคำนวณ Excel / Google Sheets (บวก ลบ คูณ หาร, SUM และ COUNT)
           </h3>
           <p class="text-gray-500 text-sm mt-1">
-            ก่อนจะไปเขียนสูตรขั้นสูง ต้องเข้าใจวิธีพิมพ์สูตรเริ่มต้น การอ้างอิงเซลล์ และความแตกต่างระหว่างฟังก์ชัน <code>SUM</code> กับตระกูล <code>COUNT</code> ให้แม่นยำก่อน
+            ก่อนจะไปเขียนสูตรขั้นสูง ต้องเข้าใจวิธีพิมพ์สูตรเริ่มต้น การอ้างอิงเซลล์ และความแตกต่างระหว่างฟังก์ชัน
+            <code>SUM</code> กับตระกูล <code>COUNT</code> ให้แม่นยำก่อน
           </p>
         </div>
 
@@ -1147,7 +1187,8 @@ const quizQuestions = [
           <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-1.5">
             <div class="font-black text-emerald-900 text-sm">กฎข้อที่ 2: อ้างอิง "ชื่อเซลล์" แทนพิมพ์ตัวเลข</div>
             <p class="text-slate-600 leading-relaxed">
-              ให้พิมพ์ <code>=B2*C2</code> แทน <code>=2*65</code> เพราะเมื่อแก้ไขราคาหรือจำนวนในตาราง ผลลัพธ์จะอัปเดตตามทันทีอัตโนมัติ (Dynamic)
+              ให้พิมพ์ <code>=B2*C2</code> แทน <code>=2*65</code> เพราะเมื่อแก้ไขราคาหรือจำนวนในตาราง
+              ผลลัพธ์จะอัปเดตตามทันทีอัตโนมัติ (Dynamic)
             </p>
           </div>
 
@@ -1186,14 +1227,16 @@ const quizQuestions = [
                   <td class="p-3 font-bold text-rose-900">ลบ (Subtraction)</td>
                   <td class="p-3 text-center font-mono text-lg font-black text-rose-600">-</td>
                   <td class="p-3 font-mono text-xs text-rose-700 font-bold">=E2-D2</td>
-                  <td class="p-3 text-xs">นำราคารวมหักลบส่วนลด (<code>E2 - D2</code>) หรือคำนวณกำไร = รายรับ - ต้นทุน</td>
+                  <td class="p-3 text-xs">นำราคารวมหักลบส่วนลด (<code>E2 - D2</code>) หรือคำนวณกำไร = รายรับ - ต้นทุน
+                  </td>
                 </tr>
                 <tr>
                   <td class="p-3 font-bold text-emerald-900">คูณ (Multiplication)</td>
                   <td class="p-3 text-center font-mono text-lg font-black text-emerald-600">*</td>
                   <td class="p-3 font-mono text-xs text-emerald-700 font-bold">=B2*C2</td>
                   <td class="p-3 text-xs text-rose-700 font-medium">
-                    ต้องใช้เครื่องหมายดอกจัน <code>*</code> เสมอ <strong>ห้ามพิมพ์ตัวอักษร x</strong> (สูตรจะ Error <code>#NAME?</code>)
+                    ต้องใช้เครื่องหมายดอกจัน <code>*</code> เสมอ <strong>ห้ามพิมพ์ตัวอักษร x</strong> (สูตรจะ Error
+                    <code>#NAME?</code>)
                   </td>
                 </tr>
                 <tr>
@@ -1201,7 +1244,8 @@ const quizQuestions = [
                   <td class="p-3 text-center font-mono text-lg font-black text-purple-600">/</td>
                   <td class="p-3 font-mono text-xs text-purple-700 font-bold">=F2/B2</td>
                   <td class="p-3 text-xs text-rose-700 font-medium">
-                    ใช้เครื่องหมายทับ <code>/</code> (ระวังอย่าหารด้วย <code>0</code> เพราะจะขึ้น Error <code>#DIV/0!</code>)
+                    ใช้เครื่องหมายทับ <code>/</code> (ระวังอย่าหารด้วย <code>0</code> เพราะจะขึ้น Error
+                    <code>#DIV/0!</code>)
                   </td>
                 </tr>
                 <tr class="bg-amber-50/50">
@@ -1209,7 +1253,8 @@ const quizQuestions = [
                   <td class="p-3 text-center font-mono text-lg font-black text-amber-600">( )</td>
                   <td class="p-3 font-mono text-xs text-amber-800 font-bold">=(B2*C2)-D2</td>
                   <td class="p-3 text-xs">
-                    Excel คิด <strong>คูณ/หาร ก่อน บวก/ลบ</strong> เสมอ เช่น <code>=100-20*2</code> ได้ <strong>60</strong>
+                    Excel คิด <strong>คูณ/หาร ก่อน บวก/ลบ</strong> เสมอ เช่น <code>=100-20*2</code> ได้
+                    <strong>60</strong>
                     แต่ถ้าอยากลบก่อนต้องใส่วงเล็บ <code>=(100-20)*2</code> จะได้ <strong>160</strong>
                   </td>
                 </tr>
@@ -1222,7 +1267,8 @@ const quizQuestions = [
         <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-4 border border-slate-800">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
             <div>
-              <span class="px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-bold">
+              <span
+                class="px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-bold">
                 Interactive Mini-Lab • ลองแก้ตัวเลขแล้วดูผลจากสูตร + - * / และ SUM สดๆ
               </span>
               <h4 class="font-black text-base text-white mt-1.5">
@@ -1272,7 +1318,8 @@ const quizQuestions = [
                   </td>
                   <td class="p-2.5 text-right">
                     <div class="font-black text-emerald-300 text-sm">{{ item.netTotal.toLocaleString() }}</div>
-                    <div class="text-[10px] text-emerald-500/80">=(B{{ item.rowNum }}*C{{ item.rowNum }})-D{{ item.rowNum }}</div>
+                    <div class="text-[10px] text-emerald-500/80">=(B{{ item.rowNum }}*C{{ item.rowNum }})-D{{
+                      item.rowNum }}</div>
                   </td>
                   <td class="p-2.5 text-right">
                     <div class="font-bold text-purple-300">{{ item.avgPerUnit.toFixed(2) }}</div>
@@ -1284,7 +1331,8 @@ const quizQuestions = [
                   <td class="p-2.5 text-emerald-400">5</td>
                   <td class="p-2.5 font-sans text-emerald-300">
                     รวมทั้งหมด (<code>=SUM(...)</code>)<br />
-                    <span class="text-[10px] font-mono text-sky-300">นับจำนวนแถว: =COUNT(F2:F4) &rarr; {{ basicCalcTotals.countItems }} แถว</span>
+                    <span class="text-[10px] font-mono text-sky-300">นับจำนวนแถว: =COUNT(F2:F4) &rarr; {{
+                      basicCalcTotals.countItems }} แถว</span>
                   </td>
                   <td class="p-2.5 text-center text-sky-300">
                     {{ basicCalcTotals.totalQty }}<br />
@@ -1315,7 +1363,8 @@ const quizQuestions = [
           <div class="lg:col-span-5 p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-3">
             <div class="flex items-center justify-between">
               <span class="font-black text-emerald-950 text-base">ทำไมต้องใช้ SUM แทน + ทีละช่อง?</span>
-              <span class="px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 text-[11px] font-bold">ฟังก์ชันผลรวม</span>
+              <span
+                class="px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 text-[11px] font-bold">ฟังก์ชันผลรวม</span>
             </div>
             <div class="p-3 rounded-xl bg-white border border-emerald-200 font-mono text-xs space-y-1.5">
               <div class="flex items-center gap-1.5 text-rose-600">
@@ -1328,13 +1377,15 @@ const quizQuestions = [
               </div>
             </div>
             <p class="text-xs text-slate-600 leading-relaxed">
-              <code>=SUM(ช่วงข้อมูล)</code> ช่วยรวมตัวเลขทีละร้อยหรือพันแถวได้ในคลิกเดียว และข้ามช่องที่เป็นข้อความให้โดยไม่เกิด Error
+              <code>=SUM(ช่วงข้อมูล)</code> ช่วยรวมตัวเลขทีละร้อยหรือพันแถวได้ในคลิกเดียว
+              และข้ามช่องที่เป็นข้อความให้โดยไม่เกิด Error
             </p>
           </div>
 
           <div class="lg:col-span-7 p-5 rounded-2xl bg-sky-50/60 border border-sky-200 space-y-3">
             <div class="flex items-center justify-between flex-wrap gap-2">
-              <span class="font-black text-sky-950 text-base">รู้จัก 3 พี่น้องตระกูลนับ: COUNT vs COUNTA vs COUNTBLANK</span>
+              <span class="font-black text-sky-950 text-base">รู้จัก 3 พี่น้องตระกูลนับ: COUNT vs COUNTA vs
+                COUNTBLANK</span>
               <span class="px-2 py-0.5 rounded bg-sky-200 text-sky-900 text-[11px] font-bold">ตัวอย่างช่วง A2:A7</span>
             </div>
 
@@ -1343,12 +1394,18 @@ const quizQuestions = [
               <div class="sm:col-span-4 rounded-xl bg-white border border-sky-200 overflow-hidden text-xs font-mono">
                 <div class="bg-slate-800 text-white px-3 py-1.5 font-bold text-center">ตัวอย่าง A2:A7</div>
                 <div class="divide-y divide-slate-100">
-                  <div class="px-3 py-1 flex justify-between"><span class="text-slate-400">A2</span><span class="font-bold text-slate-800">65</span></div>
-                  <div class="px-3 py-1 flex justify-between"><span class="text-slate-400">A3</span><span class="font-bold text-slate-800">75</span></div>
-                  <div class="px-3 py-1 flex justify-between bg-amber-50"><span class="text-slate-400">A4</span><span class="font-sans text-amber-800">"ยกเลิก"</span></div>
-                  <div class="px-3 py-1 flex justify-between bg-rose-50"><span class="text-slate-400">A5</span><span class="font-sans text-rose-500 italic">(ช่องว่าง)</span></div>
-                  <div class="px-3 py-1 flex justify-between"><span class="text-slate-400">A6</span><span class="font-bold text-slate-800">120</span></div>
-                  <div class="px-3 py-1 flex justify-between"><span class="text-slate-400">A7</span><span class="font-bold text-slate-800">80</span></div>
+                  <div class="px-3 py-1 flex justify-between"><span class="text-slate-400">A2</span><span
+                      class="font-bold text-slate-800">65</span></div>
+                  <div class="px-3 py-1 flex justify-between"><span class="text-slate-400">A3</span><span
+                      class="font-bold text-slate-800">75</span></div>
+                  <div class="px-3 py-1 flex justify-between bg-amber-50"><span class="text-slate-400">A4</span><span
+                      class="font-sans text-amber-800">"ยกเลิก"</span></div>
+                  <div class="px-3 py-1 flex justify-between bg-rose-50"><span class="text-slate-400">A5</span><span
+                      class="font-sans text-rose-500 italic">(ช่องว่าง)</span></div>
+                  <div class="px-3 py-1 flex justify-between"><span class="text-slate-400">A6</span><span
+                      class="font-bold text-slate-800">120</span></div>
+                  <div class="px-3 py-1 flex justify-between"><span class="text-slate-400">A7</span><span
+                      class="font-bold text-slate-800">80</span></div>
                 </div>
               </div>
 
@@ -1357,25 +1414,31 @@ const quizQuestions = [
                 <div class="p-2.5 rounded-xl bg-white border border-sky-200 flex items-center justify-between gap-2">
                   <div>
                     <code class="font-bold text-sky-700">=COUNT(A2:A7)</code>
-                    <p class="text-slate-600 text-[11px]">นับเฉพาะช่องที่เป็น <strong>"ตัวเลข/วันที่"</strong> (ข้าม "ยกเลิก" และช่องว่าง)</p>
+                    <p class="text-slate-600 text-[11px]">นับเฉพาะช่องที่เป็น <strong>"ตัวเลข/วันที่"</strong> (ข้าม
+                      "ยกเลิก" และช่องว่าง)</p>
                   </div>
-                  <span class="px-3 py-1 rounded-lg bg-sky-600 text-white font-mono font-black text-sm shrink-0">4</span>
+                  <span
+                    class="px-3 py-1 rounded-lg bg-sky-600 text-white font-mono font-black text-sm shrink-0">4</span>
                 </div>
 
                 <div class="p-2.5 rounded-xl bg-white border border-indigo-200 flex items-center justify-between gap-2">
                   <div>
                     <code class="font-bold text-indigo-700">=COUNTA(A2:A7)</code>
-                    <p class="text-slate-600 text-[11px]">Count All: นับทุกช่องที่ <strong>"ไม่ว่างเปล่า"</strong> (นับทั้งตัวเลข + คำว่า "ยกเลิก")</p>
+                    <p class="text-slate-600 text-[11px]">Count All: นับทุกช่องที่ <strong>"ไม่ว่างเปล่า"</strong>
+                      (นับทั้งตัวเลข + คำว่า "ยกเลิก")</p>
                   </div>
-                  <span class="px-3 py-1 rounded-lg bg-indigo-600 text-white font-mono font-black text-sm shrink-0">5</span>
+                  <span
+                    class="px-3 py-1 rounded-lg bg-indigo-600 text-white font-mono font-black text-sm shrink-0">5</span>
                 </div>
 
                 <div class="p-2.5 rounded-xl bg-white border border-rose-200 flex items-center justify-between gap-2">
                   <div>
                     <code class="font-bold text-rose-700">=COUNTBLANK(A2:A7)</code>
-                    <p class="text-slate-600 text-[11px]">นับเฉพาะ <strong>"ช่องว่างเปล่า"</strong> (ใช้ตรวจหา Missing Values จากสัปดาห์ที่ 3)</p>
+                    <p class="text-slate-600 text-[11px]">นับเฉพาะ <strong>"ช่องว่างเปล่า"</strong> (ใช้ตรวจหา Missing
+                      Values จากสัปดาห์ที่ 3)</p>
                   </div>
-                  <span class="px-3 py-1 rounded-lg bg-rose-600 text-white font-mono font-black text-sm shrink-0">1</span>
+                  <span
+                    class="px-3 py-1 rounded-lg bg-rose-600 text-white font-mono font-black text-sm shrink-0">1</span>
                 </div>
               </div>
             </div>
@@ -1416,7 +1479,8 @@ const quizQuestions = [
               <div class="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
                 <div class="font-bold text-sky-800 font-mono">1. range (ช่วงเซลล์ข้อมูล)</div>
                 <p class="text-slate-600 leading-relaxed">
-                  กลุ่มเซลล์ที่ลากคลุมต่อเนื่องกัน เช่น <code>I2:I41</code> หมายถึงช่วงข้อมูลตั้งแต่แถวที่ 2 ถึง 41 ในคอลัมน์ <code>I</code>
+                  กลุ่มเซลล์ที่ลากคลุมต่อเนื่องกัน เช่น <code>I2:I41</code> หมายถึงช่วงข้อมูลตั้งแต่แถวที่ 2 ถึง 41
+                  ในคอลัมน์ <code>I</code>
                 </p>
               </div>
               <div class="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
@@ -1434,7 +1498,8 @@ const quizQuestions = [
               <div class="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
                 <div class="font-bold text-purple-800 font-mono">4. Percentile &amp; % Share</div>
                 <p class="text-slate-600 leading-relaxed">
-                  <code>Percentile</code> คือเส้นแบ่งอันดับ (เช่น <code>0.9</code> = ท็อป 10%) ส่วน <code>% Share</code> คือสัดส่วนร้อยละเทียบยอดรวม
+                  <code>Percentile</code> คือเส้นแบ่งอันดับ (เช่น <code>0.9</code> = ท็อป 10%) ส่วน <code>% Share</code>
+                  คือสัดส่วนร้อยละเทียบยอดรวม
                 </p>
               </div>
             </div>
@@ -1475,7 +1540,8 @@ const quizQuestions = [
                     • <code>MODE</code> ฐานนิยม (ค่าหรือราคาที่พบบ่อยที่สุด)
                   </td>
                   <td class="p-3.5 text-xs text-rose-700 font-medium">
-                    ถ้าข้อมูลเบ้หรือมีบิลใหญ่โดด (Outlier) ต้องรายงาน <code>MEDIAN</code> คู่กับ <code>AVERAGE</code> เสมอ
+                    ถ้าข้อมูลเบ้หรือมีบิลใหญ่โดด (Outlier) ต้องรายงาน <code>MEDIAN</code> คู่กับ <code>AVERAGE</code>
+                    เสมอ
                   </td>
                 </tr>
                 <tr class="hover:bg-sky-50/40">
@@ -1498,7 +1564,8 @@ const quizQuestions = [
                     =C2 / $C$10
                   </td>
                   <td class="p-3.5">
-                    คำนวณว่ายอดขายของกลุ่มหนึ่งคิดเป็นกี่เปอร์เซ็นต์ของยอดรวมทั้งหมด (นำยอดกลุ่มหารด้วยยอดรวมทั้งหมด แล้วตั้ง Format เป็น %)
+                    คำนวณว่ายอดขายของกลุ่มหนึ่งคิดเป็นกี่เปอร์เซ็นต์ของยอดรวมทั้งหมด (นำยอดกลุ่มหารด้วยยอดรวมทั้งหมด
+                    แล้วตั้ง Format เป็น %)
                   </td>
                   <td class="p-3.5 text-xs text-slate-500">
                     ตัวหารที่เป็นยอดรวมทั้งหมดต้องล็อกเซลล์ด้วย <code>$</code> เสมอ (เช่น <code>$C$10</code>)
@@ -1533,7 +1600,8 @@ const quizQuestions = [
                       <p class="text-[11px] font-mono text-sky-700 font-bold">=AVERAGE(range)</p>
                     </div>
                   </div>
-                  <span class="px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 text-[10px] font-bold">ค่ากลางมาตรฐาน</span>
+                  <span
+                    class="px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 text-[10px] font-bold">ค่ากลางมาตรฐาน</span>
                 </div>
 
                 <div class="p-3 rounded-xl bg-white border border-sky-100 space-y-1 text-xs">
@@ -1541,7 +1609,9 @@ const quizQuestions = [
                     <Info class="w-3.5 h-3.5 text-sky-600 shrink-0" /> คืออะไร?
                   </div>
                   <p class="text-slate-700 leading-relaxed">
-                    <strong>ค่าที่ได้จากการนำตัวเลขทุกตัวมารวมกัน แล้วหารด้วยจำนวนรายการทั้งหมด</strong> (เช่น 3 บิล: 60 + 80 + 100 = 240 หาร 3 ได้ค่าเฉลี่ย <strong>80 บาท/บิล</strong>) เป็นตัวแทนภาพรวมเมื่อนำทุกข้อมูลมาเฉลี่ยเท่าๆ กัน
+                    <strong>ค่าที่ได้จากการนำตัวเลขทุกตัวมารวมกัน แล้วหารด้วยจำนวนรายการทั้งหมด</strong> (เช่น 3 บิล: 60
+                    + 80 + 100 = 240 หาร 3 ได้ค่าเฉลี่ย <strong>80 บาท/บิล</strong>)
+                    เป็นตัวแทนภาพรวมเมื่อนำทุกข้อมูลมาเฉลี่ยเท่าๆ กัน
                   </p>
                 </div>
 
@@ -1550,7 +1620,10 @@ const quizQuestions = [
                     <HelpCircle class="w-3.5 h-3.5 text-sky-600 shrink-0" /> ใช้เพื่ออะไร &amp; ใช้ทำไม?
                   </div>
                   <p class="text-slate-700 leading-relaxed">
-                    <strong>ใช้เพื่อ</strong>ย่อข้อมูลหลายสิบหรือหลายพันแถวให้เหลือ "ตัวเลขมาตรฐานเพียง 1 ตัว" ที่เข้าใจง่ายทันที <strong>เพราะถ้าไม่ใช้ค่าเฉลี่ย</strong> เราจะเปรียบเทียบกลุ่มที่มีขนาดไม่เท่ากันไม่ได้เลย (เช่น สาขา A มี 50 บิล กับ สาขา B มี 20 บิล ดูแค่ยอดรวม <code>SUM</code> จะเทียบกันไม่แฟร์ ต้องดูว่าเฉลี่ยต่อบิลใครขายดีกว่า)
+                    <strong>ใช้เพื่อ</strong>ย่อข้อมูลหลายสิบหรือหลายพันแถวให้เหลือ "ตัวเลขมาตรฐานเพียง 1 ตัว"
+                    ที่เข้าใจง่ายทันที <strong>เพราะถ้าไม่ใช้ค่าเฉลี่ย</strong>
+                    เราจะเปรียบเทียบกลุ่มที่มีขนาดไม่เท่ากันไม่ได้เลย (เช่น สาขา A มี 50 บิล กับ สาขา B มี 20 บิล
+                    ดูแค่ยอดรวม <code>SUM</code> จะเทียบกันไม่แฟร์ ต้องดูว่าเฉลี่ยต่อบิลใครขายดีกว่า)
                   </p>
                 </div>
 
@@ -1559,21 +1632,26 @@ const quizQuestions = [
                     <Lightbulb class="w-3.5 h-3.5 text-amber-500 shrink-0" /> เอาไปใช้งานจริงในกรณีไหน?
                   </div>
                   <ul class="space-y-1.5 text-slate-700 leading-relaxed list-disc pl-4">
-                    <li><strong>วัดประสิทธิภาพต่อหน่วย (Basket Size):</strong> หายอดซื้อเฉลี่ยต่อบิล คะแนนสอบเฉลี่ยของห้อง หรือเวลาให้บริการเฉลี่ยต่อเคส</li>
-                    <li><strong>คาดการณ์และตั้งเป้างบประมาณ:</strong> ถ้ารู้ว่าลูกค้าจ่ายเฉลี่ยคนละ 90 บาท และพรุ่งนี้คาดว่าจะมีลูกค้า 100 คน จะประเมินยอดขายล่วงหน้าได้ทันที (~9,000 บาท)</li>
-                    <li><strong>ใช้เป็นเส้นเกณฑ์มาตรฐาน (Benchmark):</strong> ใช้ตัดสินว่าพนักงาน สาขา หรือสินค้าใดทำผลงานได้ "สูงกว่า" หรือ "ต่ำกว่า" ค่าเฉลี่ยของทั้งบริษัท</li>
+                    <li><strong>วัดประสิทธิภาพต่อหน่วย (Basket Size):</strong> หายอดซื้อเฉลี่ยต่อบิล
+                      คะแนนสอบเฉลี่ยของห้อง หรือเวลาให้บริการเฉลี่ยต่อเคส</li>
+                    <li><strong>คาดการณ์และตั้งเป้างบประมาณ:</strong> ถ้ารู้ว่าลูกค้าจ่ายเฉลี่ยคนละ 90 บาท
+                      และพรุ่งนี้คาดว่าจะมีลูกค้า 100 คน จะประเมินยอดขายล่วงหน้าได้ทันที (~9,000 บาท)</li>
+                    <li><strong>ใช้เป็นเส้นเกณฑ์มาตรฐาน (Benchmark):</strong> ใช้ตัดสินว่าพนักงาน สาขา
+                      หรือสินค้าใดทำผลงานได้ "สูงกว่า" หรือ "ต่ำกว่า" ค่าเฉลี่ยของทั้งบริษัท</li>
                   </ul>
                 </div>
               </div>
 
-              <div class="pt-2 border-t border-sky-200/70 text-[11px] text-sky-900 font-medium flex items-center gap-1.5">
+              <div
+                class="pt-2 border-t border-sky-200/70 text-[11px] text-sky-900 font-medium flex items-center gap-1.5">
                 <CheckCircle2 class="w-3.5 h-3.5 text-sky-600 shrink-0" />
                 <span>จำง่าย: "AVERAGE คือตัวแทนภาพรวม ใช้เทียบเกณฑ์มาตรฐานและคูณคาดการณ์อนาคต"</span>
               </div>
             </div>
 
             <!-- Card 2: MEDIAN -->
-            <div class="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-5 flex flex-col justify-between space-y-4">
+            <div
+              class="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-5 flex flex-col justify-between space-y-4">
               <div class="space-y-3">
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-center gap-2">
@@ -1585,7 +1663,8 @@ const quizQuestions = [
                       <p class="text-[11px] font-mono text-indigo-700 font-bold">=MEDIAN(range)</p>
                     </div>
                   </div>
-                  <span class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-bold">ค่ากลางแท้จริง</span>
+                  <span
+                    class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-bold">ค่ากลางแท้จริง</span>
                 </div>
 
                 <div class="p-3 rounded-xl bg-white border border-indigo-100 space-y-1 text-xs">
@@ -1593,7 +1672,9 @@ const quizQuestions = [
                     <Info class="w-3.5 h-3.5 text-indigo-600 shrink-0" /> คืออะไร?
                   </div>
                   <p class="text-slate-700 leading-relaxed">
-                    <strong>ค่าที่อยู่ "ตรงกลางเป๊ะ" (ตำแหน่งที่ 50%)</strong> เมื่อนำข้อมูลทั้งหมดมาเรียงลำดับจากน้อยไปหามาก (เช่น เรียง 5 บิล: 60, 75, <strong>80</strong>, 90, 4,500 บาท ค่าตรงกลางคือ <strong>80 บาท</strong>)
+                    <strong>ค่าที่อยู่ "ตรงกลางเป๊ะ" (ตำแหน่งที่ 50%)</strong>
+                    เมื่อนำข้อมูลทั้งหมดมาเรียงลำดับจากน้อยไปหามาก (เช่น เรียง 5 บิล: 60, 75, <strong>80</strong>, 90,
+                    4,500 บาท ค่าตรงกลางคือ <strong>80 บาท</strong>)
                   </p>
                 </div>
 
@@ -1602,7 +1683,10 @@ const quizQuestions = [
                     <HelpCircle class="w-3.5 h-3.5 text-indigo-600 shrink-0" /> ใช้เพื่ออะไร &amp; ใช้ทำไม?
                   </div>
                   <p class="text-slate-700 leading-relaxed">
-                    <strong>ใช้เพื่อ</strong>หาตัวแทนของ "คนส่วนใหญ่ที่แท้จริง" <strong>เพราะเวลาข้อมูลมีค่ากระโดดสุดโต่ง (Outlier)</strong> เพียง 1-2 ตัว ค่าเฉลี่ย (<code>AVERAGE</code>) จะถูกดึงให้สูงหรือต่ำเกินจริงทันที จึงต้องใช้ <code>MEDIAN</code> ที่ไม่โดนตัวเลขสุดโต่งหลอกมาช่วยยืนยันความจริง
+                    <strong>ใช้เพื่อ</strong>หาตัวแทนของ "คนส่วนใหญ่ที่แท้จริง"
+                    <strong>เพราะเวลาข้อมูลมีค่ากระโดดสุดโต่ง (Outlier)</strong> เพียง 1-2 ตัว ค่าเฉลี่ย
+                    (<code>AVERAGE</code>) จะถูกดึงให้สูงหรือต่ำเกินจริงทันที จึงต้องใช้ <code>MEDIAN</code>
+                    ที่ไม่โดนตัวเลขสุดโต่งหลอกมาช่วยยืนยันความจริง
                   </p>
                 </div>
 
@@ -1611,14 +1695,18 @@ const quizQuestions = [
                     <Lightbulb class="w-3.5 h-3.5 text-amber-500 shrink-0" /> เอาไปใช้งานจริงในกรณีไหน?
                   </div>
                   <ul class="space-y-1.5 text-slate-700 leading-relaxed list-disc pl-4">
-                    <li><strong>ยอดใช้จ่ายลูกค้าทั่วไป / เงินเดือน / ราคาบ้าน:</strong> ป้องกันคนรวย 1 คนหรือบิลจัดเลี้ยง 1 ใบมาหลอกว่าลูกค้าทั่วไปจ่ายแพง</li>
-                    <li><strong>ตั้งราคาโปรโมชันกลางร้าน:</strong> ใช้ <code>MEDIAN</code> ดูว่า "ลูกค้าส่วนใหญ่ครึ่งร้าน" จ่ายกี่บาท เพื่อตั้งเป้า Upsell ที่เอื้อมถึงจริง</li>
-                    <li><strong>เช็กความเบ้ของข้อมูล:</strong> ถ้า <code>AVERAGE &gt; MEDIAN</code> มาก แปลว่ามีบิลใหญ่พิเศษไม่กี่ใบดึงยอดเฉลี่ยให้ดูสูงเกินจริง</li>
+                    <li><strong>ยอดใช้จ่ายลูกค้าทั่วไป / เงินเดือน / ราคาบ้าน:</strong> ป้องกันคนรวย 1
+                      คนหรือบิลจัดเลี้ยง 1 ใบมาหลอกว่าลูกค้าทั่วไปจ่ายแพง</li>
+                    <li><strong>ตั้งราคาโปรโมชันกลางร้าน:</strong> ใช้ <code>MEDIAN</code> ดูว่า
+                      "ลูกค้าส่วนใหญ่ครึ่งร้าน" จ่ายกี่บาท เพื่อตั้งเป้า Upsell ที่เอื้อมถึงจริง</li>
+                    <li><strong>เช็กความเบ้ของข้อมูล:</strong> ถ้า <code>AVERAGE &gt; MEDIAN</code> มาก
+                      แปลว่ามีบิลใหญ่พิเศษไม่กี่ใบดึงยอดเฉลี่ยให้ดูสูงเกินจริง</li>
                   </ul>
                 </div>
               </div>
 
-              <div class="pt-2 border-t border-indigo-200/70 text-[11px] text-indigo-900 font-medium flex items-center gap-1.5">
+              <div
+                class="pt-2 border-t border-indigo-200/70 text-[11px] text-indigo-900 font-medium flex items-center gap-1.5">
                 <CheckCircle2 class="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                 <span>จำง่าย: "AVERAGE โดนตัวโดดหลอกง่าย แต่ MEDIAN ซื่อตรงกับคนส่วนใหญ่"</span>
               </div>
@@ -1637,7 +1725,8 @@ const quizQuestions = [
                       <p class="text-[11px] font-mono text-rose-700 font-bold">=STDEV.S(range)</p>
                     </div>
                   </div>
-                  <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold">ความนิ่ง/แกว่ง</span>
+                  <span
+                    class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold">ความนิ่ง/แกว่ง</span>
                 </div>
 
                 <div class="p-3 rounded-xl bg-white border border-rose-100 space-y-1 text-xs">
@@ -1646,7 +1735,8 @@ const quizQuestions = [
                   </div>
                   <p class="text-slate-700 leading-relaxed">
                     <strong>ตัวเลขวัด "ความแกว่งหรือการกระจายตัว" ของข้อมูลเทียบกับค่าเฉลี่ย</strong>
-                    ถ้าค่า <code>STDEV.S</code> <strong>ต่ำ</strong> = ข้อมูลเกาะกลุ่มนิ่งสม่ำเสมอ แต่ถ้า <strong>สูง</strong> = ข้อมูลเหวี่ยงห่างจากค่าเฉลี่ยมาก
+                    ถ้าค่า <code>STDEV.S</code> <strong>ต่ำ</strong> = ข้อมูลเกาะกลุ่มนิ่งสม่ำเสมอ แต่ถ้า
+                    <strong>สูง</strong> = ข้อมูลเหวี่ยงห่างจากค่าเฉลี่ยมาก
                   </p>
                 </div>
 
@@ -1655,7 +1745,10 @@ const quizQuestions = [
                     <HelpCircle class="w-3.5 h-3.5 text-rose-600 shrink-0" /> ใช้เพื่ออะไร &amp; ใช้ทำไม?
                   </div>
                   <p class="text-slate-700 leading-relaxed">
-                    <strong>ใช้เพื่อ</strong>วัดความเสถียร ความสม่ำเสมอ หรือความเสี่ยงของข้อมูล <strong>เพราะการดูแค่ค่าเฉลี่ยอย่างเดียวอาจหลอกตาได้</strong> เช่น ร้าน A ขายได้วันละ 1,000 บาททุกวัน กับร้าน B ขายได้วันละ 0 บาทสลับกับ 2,000 บาท ทั้งคู่มีค่าเฉลี่ย 1,000 บาทเท่ากัน แต่ร้าน B มี <code>STDEV.S</code> สูงกว่ามากซึ่งบริหารยากกว่า
+                    <strong>ใช้เพื่อ</strong>วัดความเสถียร ความสม่ำเสมอ หรือความเสี่ยงของข้อมูล
+                    <strong>เพราะการดูแค่ค่าเฉลี่ยอย่างเดียวอาจหลอกตาได้</strong> เช่น ร้าน A ขายได้วันละ 1,000
+                    บาททุกวัน กับร้าน B ขายได้วันละ 0 บาทสลับกับ 2,000 บาท ทั้งคู่มีค่าเฉลี่ย 1,000 บาทเท่ากัน แต่ร้าน B
+                    มี <code>STDEV.S</code> สูงกว่ามากซึ่งบริหารยากกว่า
                   </p>
                 </div>
 
@@ -1664,14 +1757,18 @@ const quizQuestions = [
                     <Lightbulb class="w-3.5 h-3.5 text-amber-500 shrink-0" /> เอาไปใช้งานจริงในกรณีไหน?
                   </div>
                   <ul class="space-y-1.5 text-slate-700 leading-relaxed list-disc pl-4">
-                    <li><strong>เทียบความสม่ำเสมอของ 2 สาขา:</strong> สาขาที่ <code>STDEV.S</code> ต่ำกว่า ยอดขายนิ่งกว่า วางแผนสต๊อกและจัดกะพนักงานง่ายกว่า</li>
-                    <li><strong>ควบคุมคุณภาพ/เวลาจัดส่ง:</strong> เช็กว่าเวลาส่งพัสดุหรือคะแนนสอบนักเรียนเกาะกลุ่มใกล้เกณฑ์มาตรฐาน หรือเหวี่ยงต่างกันสุดขั้ว</li>
-                    <li><strong>ตรวจจับความเสี่ยง (Risk):</strong> <code>STDEV.S</code> พุ่งสูงผิดปกติเป็นสัญญาณเตือนว่ายอดขายไม่เสถียรหรือมีบิลแปลกปลอมเข้ามา</li>
+                    <li><strong>เทียบความสม่ำเสมอของ 2 สาขา:</strong> สาขาที่ <code>STDEV.S</code> ต่ำกว่า
+                      ยอดขายนิ่งกว่า วางแผนสต๊อกและจัดกะพนักงานง่ายกว่า</li>
+                    <li><strong>ควบคุมคุณภาพ/เวลาจัดส่ง:</strong>
+                      เช็กว่าเวลาส่งพัสดุหรือคะแนนสอบนักเรียนเกาะกลุ่มใกล้เกณฑ์มาตรฐาน หรือเหวี่ยงต่างกันสุดขั้ว</li>
+                    <li><strong>ตรวจจับความเสี่ยง (Risk):</strong> <code>STDEV.S</code>
+                      พุ่งสูงผิดปกติเป็นสัญญาณเตือนว่ายอดขายไม่เสถียรหรือมีบิลแปลกปลอมเข้ามา</li>
                   </ul>
                 </div>
               </div>
 
-              <div class="pt-2 border-t border-rose-200/70 text-[11px] text-rose-900 font-medium flex items-center gap-1.5">
+              <div
+                class="pt-2 border-t border-rose-200/70 text-[11px] text-rose-900 font-medium flex items-center gap-1.5">
                 <CheckCircle2 class="w-3.5 h-3.5 text-rose-600 shrink-0" />
                 <span>จำง่าย: "STDEV.S น้อย = นิ่งและสม่ำเสมอ | STDEV.S มาก = แกว่งและแตกต่างสูง"</span>
               </div>
@@ -1690,7 +1787,8 @@ const quizQuestions = [
                       <p class="text-[11px] font-mono text-amber-800 font-bold">=MIN(range) | =MAX(range)</p>
                     </div>
                   </div>
-                  <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">ขอบเขตข้อมูล</span>
+                  <span
+                    class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">ขอบเขตข้อมูล</span>
                 </div>
 
                 <div class="p-3 rounded-xl bg-white border border-amber-100 space-y-1 text-xs">
@@ -1698,7 +1796,8 @@ const quizQuestions = [
                     <Info class="w-3.5 h-3.5 text-amber-600 shrink-0" /> คืออะไร?
                   </div>
                   <p class="text-slate-700 leading-relaxed">
-                    <strong><code>MIN</code></strong> คือค่าต่ำที่สุดในช่วงข้อมูล และ <strong><code>MAX</code></strong> คือค่าสูงที่สุดในช่วงข้อมูล ใช้บอกเพดานบนและพื้นล่างของชุดข้อมูลทันที
+                    <strong><code>MIN</code></strong> คือค่าต่ำที่สุดในช่วงข้อมูล และ <strong><code>MAX</code></strong>
+                    คือค่าสูงที่สุดในช่วงข้อมูล ใช้บอกเพดานบนและพื้นล่างของชุดข้อมูลทันที
                   </p>
                 </div>
 
@@ -1707,7 +1806,10 @@ const quizQuestions = [
                     <HelpCircle class="w-3.5 h-3.5 text-amber-600 shrink-0" /> ใช้เพื่ออะไร &amp; ใช้ทำไม?
                   </div>
                   <p class="text-slate-700 leading-relaxed">
-                    <strong>ใช้เพื่อ</strong>รู้ขอบเขต (Scope) ของข้อมูลทั้งหมดและใช้ตรวจสอบความถูกต้องของข้อมูล (Data Sanity Check) <strong>เพราะถ้าไม่ดู MIN/MAX ก่อน</strong> เราจะไม่รู้เลยว่ามีข้อมูลที่พิมพ์ผิดหลุดกรอบ (เช่น ราคาติดลบ หรือคีย์ศูนย์เกินมา 2 ตัว) แอบปะปนอยู่ในตารางหรือไม่
+                    <strong>ใช้เพื่อ</strong>รู้ขอบเขต (Scope) ของข้อมูลทั้งหมดและใช้ตรวจสอบความถูกต้องของข้อมูล (Data
+                    Sanity Check) <strong>เพราะถ้าไม่ดู MIN/MAX ก่อน</strong>
+                    เราจะไม่รู้เลยว่ามีข้อมูลที่พิมพ์ผิดหลุดกรอบ (เช่น ราคาติดลบ หรือคีย์ศูนย์เกินมา 2 ตัว)
+                    แอบปะปนอยู่ในตารางหรือไม่
                   </p>
                 </div>
 
@@ -1716,14 +1818,19 @@ const quizQuestions = [
                     <Lightbulb class="w-3.5 h-3.5 text-amber-500 shrink-0" /> เอาไปใช้งานจริงในกรณีไหน?
                   </div>
                   <ul class="space-y-1.5 text-slate-700 leading-relaxed list-disc pl-4">
-                    <li><strong>สแกนหาข้อมูลพัง/คีย์ผิด (Data Audit):</strong> เปิดไฟล์ใหม่ให้รัน <code>MIN / MAX</code> ทันที ถ้าเจอ <code>MIN &lt; 0</code> (ยอดขายติดลบ) หรือ <code>MAX</code> พุ่งผิดธรรมชาติ แสดงว่ามีจุดที่ต้องตรวจสอบ</li>
-                    <li><strong>วิเคราะห์ช่วงราคา &amp; โปรโมชัน:</strong> ดูบิลต่ำสุดกับสูงสุดเพื่อจัดชุดคูปองส่วนลดหรือกำหนดยอดขั้นต่ำส่งฟรีให้เหมาะกับพฤติกรรมซื้อ</li>
-                    <li><strong>วัดพิสัยความต่าง (Range = MAX - MIN):</strong> ใช้ดูช่วงคะแนน สต๊อกสินค้าต่ำสุดก่อนสั่งเพิ่ม หรือยอดขายจุดสูงสุดเพื่อเตรียมกำลังผลิต</li>
+                    <li><strong>สแกนหาข้อมูลพัง/คีย์ผิด (Data Audit):</strong> เปิดไฟล์ใหม่ให้รัน <code>MIN / MAX</code>
+                      ทันที ถ้าเจอ <code>MIN &lt; 0</code> (ยอดขายติดลบ) หรือ <code>MAX</code> พุ่งผิดธรรมชาติ
+                      แสดงว่ามีจุดที่ต้องตรวจสอบ</li>
+                    <li><strong>วิเคราะห์ช่วงราคา &amp; โปรโมชัน:</strong>
+                      ดูบิลต่ำสุดกับสูงสุดเพื่อจัดชุดคูปองส่วนลดหรือกำหนดยอดขั้นต่ำส่งฟรีให้เหมาะกับพฤติกรรมซื้อ</li>
+                    <li><strong>วัดพิสัยความต่าง (Range = MAX - MIN):</strong> ใช้ดูช่วงคะแนน
+                      สต๊อกสินค้าต่ำสุดก่อนสั่งเพิ่ม หรือยอดขายจุดสูงสุดเพื่อเตรียมกำลังผลิต</li>
                   </ul>
                 </div>
               </div>
 
-              <div class="pt-2 border-t border-amber-200/70 text-[11px] text-amber-950 font-medium flex items-center gap-1.5">
+              <div
+                class="pt-2 border-t border-amber-200/70 text-[11px] text-amber-950 font-medium flex items-center gap-1.5">
                 <CheckCircle2 class="w-3.5 h-3.5 text-amber-600 shrink-0" />
                 <span>จำง่าย: "MIN-MAX คือไฟฉายส่องหัว-ท้ายตาราง ทั้งสรุปสถิติและดัก Error"</span>
               </div>
@@ -1732,10 +1839,12 @@ const quizQuestions = [
         </div>
 
         <!-- 2.3 INTERACTIVE DEMO: MEAN VS MEDIAN TRAP -->
-        <div class="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 text-white border border-indigo-500/40 space-y-5">
+        <div
+          class="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 text-white border border-indigo-500/40 space-y-5">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
             <div>
-              <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/30 text-xs font-bold">
+              <span
+                class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/30 text-xs font-bold">
                 2.3 Interactive Demo • ทำไมต้องดู Mean คู่กับ Median?
               </span>
               <h4 class="font-black text-base sm:text-lg text-white mt-2">
@@ -1743,13 +1852,12 @@ const quizQuestions = [
               </h4>
             </div>
 
-            <button @click="includeVipOutlier = !includeVipOutlier" type="button"
-              :class="[
-                'px-4 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 transition-all cursor-pointer shrink-0 shadow-md',
-                includeVipOutlier
-                  ? 'bg-rose-600 hover:bg-rose-700 text-white ring-2 ring-rose-400/60'
-                  : 'bg-emerald-500 hover:bg-emerald-600 text-slate-950'
-              ]">
+            <button @click="includeVipOutlier = !includeVipOutlier" type="button" :class="[
+              'px-4 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 transition-all cursor-pointer shrink-0 shadow-md',
+              includeVipOutlier
+                ? 'bg-rose-600 hover:bg-rose-700 text-white ring-2 ring-rose-400/60'
+                : 'bg-emerald-500 hover:bg-emerald-600 text-slate-950'
+            ]">
               <RefreshCw class="w-4 h-4" />
               <span>{{ includeVipOutlier ? 'เอาบิลจัดเลี้ยง 4,500 ฿ ออก' : '+ เพิ่มบิลจัดเลี้ยง VIP (4,500 ฿)' }}</span>
             </button>
@@ -1763,16 +1871,16 @@ const quizQuestions = [
                 <span class="font-mono text-sky-400">หน่วย: บาท</span>
               </div>
               <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                <div v-for="(bill, idx) in trapBills" :key="bill.id"
-                  :class="[
-                    'p-2.5 rounded-xl border text-xs transition-all',
-                    bill.isOutlier
-                      ? 'bg-rose-500/20 border-rose-400 text-rose-200 col-span-2 sm:col-span-5 flex items-center justify-between'
-                      : 'bg-slate-800/80 border-slate-700 text-slate-200'
-                  ]">
+                <div v-for="(bill, idx) in trapBills" :key="bill.id" :class="[
+                  'p-2.5 rounded-xl border text-xs transition-all',
+                  bill.isOutlier
+                    ? 'bg-rose-500/20 border-rose-400 text-rose-200 col-span-2 sm:col-span-5 flex items-center justify-between'
+                    : 'bg-slate-800/80 border-slate-700 text-slate-200'
+                ]">
                   <div>
                     <div class="text-[10px] font-mono text-slate-400">#{{ idx + 1 }} • {{ bill.customer }}</div>
-                    <div class="font-bold text-sm font-mono" :class="bill.isOutlier ? 'text-rose-300' : 'text-emerald-300'">
+                    <div class="font-bold text-sm font-mono"
+                      :class="bill.isOutlier ? 'text-rose-300' : 'text-emerald-300'">
                       {{ bill.amount.toLocaleString() }} ฿
                     </div>
                   </div>
@@ -1797,7 +1905,8 @@ const quizQuestions = [
                 </div>
                 <p class="text-[11px] mt-1" :class="includeVipOutlier ? 'text-rose-200' : 'text-slate-400'">
                   {{ includeVipOutlier
-                    ? `พุ่งจาก ${trapMeanWithoutOutlier.toFixed(2)} เป็น ${trapMean.toFixed(2)} ฿ (+${(trapMean - trapMeanWithoutOutlier).toFixed(0)} ฿) ทั้งที่ลูกค้า 9 คนซื้อไม่เกิน 120 ฿!`
+                    ? `พุ่งจาก ${trapMeanWithoutOutlier.toFixed(2)} เป็น ${trapMean.toFixed(2)} ฿ (+${(trapMean -
+                      trapMeanWithoutOutlier).toFixed(0)} ฿) ทั้งที่ลูกค้า 9 คนซื้อไม่เกิน 120 ฿!`
                     : 'เมื่อไม่มีบิลโดด ค่าเฉลี่ยสะท้อนลูกค้าทั่วไปได้ใกล้เคียงความจริง' }}
                 </p>
               </div>
@@ -1805,14 +1914,16 @@ const quizQuestions = [
               <div class="p-4 rounded-xl bg-emerald-950/60 border border-emerald-400/50">
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-bold text-emerald-200">ค่ามัธยฐาน (MEDIAN)</span>
-                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 text-emerald-300">=MEDIAN(...)</span>
+                  <span
+                    class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 text-emerald-300">=MEDIAN(...)</span>
                 </div>
                 <div class="text-2xl sm:text-3xl font-black font-mono text-emerald-300 mt-1">
                   {{ trapMedian.toFixed(2) }} ฿
                 </div>
                 <p class="text-[11px] text-emerald-100/90 mt-1">
                   {{ includeVipOutlier
-                    ? `ขยับจาก ${trapMedianWithoutOutlier.toFixed(2)} เป็น ${trapMedian.toFixed(2)} ฿ เท่านั้น (ต่างจาก Mean ถึง ${trapDiff.toFixed(2)} ฿)`
+                    ? `ขยับจาก ${trapMedianWithoutOutlier.toFixed(2)} เป็น ${trapMedian.toFixed(2)} ฿ เท่านั้น (ต่างจาก
+                  Mean ถึง ${trapDiff.toFixed(2)} ฿)`
                     : 'อยู่ตรงกลางเป๊ะที่ 90.00 ฿ และทนทานต่อบิลที่มีขนาดใหญ่ผิดปกติ' }}
                 </p>
               </div>
@@ -1834,7 +1945,8 @@ const quizQuestions = [
             การนับและคำนวณแบบ 1 เงื่อนไข (COUNTIF, SUMIF, AVERAGEIF)
           </h3>
           <p class="text-gray-500 text-sm mt-1">
-            ใช้เมื่อต้องการสรุปข้อมูลตามเกณฑ์เงื่อนไข 1 ข้อ (1 Criteria) เช่น แยกตามสาขา, แยกตามหมวดสินค้า หรือคัดตามยอดเงินขั้นต่ำ
+            ใช้เมื่อต้องการสรุปข้อมูลตามเกณฑ์เงื่อนไข 1 ข้อ (1 Criteria) เช่น แยกตามสาขา, แยกตามหมวดสินค้า
+            หรือคัดตามยอดเงินขั้นต่ำ
           </p>
         </div>
 
@@ -1847,7 +1959,8 @@ const quizQuestions = [
                 ผ่าโครงสร้างสูตร &amp; คำศัพท์พารามิเตอร์ที่ต้องรู้ก่อนเขียน (Formula Vocabulary)
               </h4>
             </div>
-            <span class="text-[11px] font-mono text-cyan-300 bg-cyan-500/15 px-2.5 py-1 rounded-full border border-cyan-400/30">
+            <span
+              class="text-[11px] font-mono text-cyan-300 bg-cyan-500/15 px-2.5 py-1 rounded-full border border-cyan-400/30">
               อ่านคำแปลของ Argument ให้ขาด เขียนได้ทุกสูตร!
             </span>
           </div>
@@ -1858,18 +1971,22 @@ const quizQuestions = [
               <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200">=</span>
               <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">SUMIF</span>
               <span class="text-slate-400">(</span>
-              <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/40">criteria_range</span>
+              <span
+                class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/40">criteria_range</span>
               <span class="text-slate-400">,</span>
-              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/40">criteria</span>
+              <span
+                class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/40">criteria</span>
               <span class="text-slate-400">,</span>
-              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">sum_range</span>
+              <span
+                class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">sum_range</span>
               <span class="text-slate-400">)</span>
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
               <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
                 <code class="text-slate-200 font-bold">=</code>
-                <span class="text-slate-400"> เครื่องหมายเริ่มต้นสูตรทุกครั้ง (ไม่ใส่ = โปรแกรมจะมองเป็นข้อความธรรมดา)</span>
+                <span class="text-slate-400"> เครื่องหมายเริ่มต้นสูตรทุกครั้ง (ไม่ใส่ =
+                  โปรแกรมจะมองเป็นข้อความธรรมดา)</span>
               </div>
               <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
                 <code class="text-cyan-300 font-bold">SUMIF</code>
@@ -1891,7 +2008,8 @@ const quizQuestions = [
             <div class="p-3.5 rounded-xl bg-sky-500/10 border border-sky-400/40 space-y-1.5">
               <div class="flex items-center justify-between">
                 <code class="font-bold text-sky-300 text-sm">criteria_range</code>
-                <span class="text-[10px] px-2 py-0.5 rounded bg-sky-500/20 text-sky-200 font-bold">ช่วงตรวจเงื่อนไข</span>
+                <span
+                  class="text-[10px] px-2 py-0.5 rounded bg-sky-500/20 text-sky-200 font-bold">ช่วงตรวจเงื่อนไข</span>
               </div>
               <p class="text-slate-300 leading-relaxed">
                 <strong>ช่วงคอลัมน์ที่ต้องการเข้าไปตรวจสอบ</strong> เช่น คอลัมน์ชื่อสาขา <code>$B$2:$B$41</code>
@@ -1902,7 +2020,8 @@ const quizQuestions = [
             <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-400/40 space-y-1.5">
               <div class="flex items-center justify-between">
                 <code class="font-bold text-amber-300 text-sm">criteria</code>
-                <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-200 font-bold">เงื่อนไข / เกณฑ์</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-200 font-bold">เงื่อนไข /
+                  เกณฑ์</span>
               </div>
               <p class="text-slate-300 leading-relaxed">
                 <strong>สิ่งที่เราอยากกรองหาจากคอลัมน์แรก</strong> เช่น <code>"สาขาสยาม"</code>,
@@ -1913,40 +2032,48 @@ const quizQuestions = [
             <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-400/40 space-y-1.5">
               <div class="flex items-center justify-between">
                 <code class="font-bold text-emerald-300 text-sm">sum_range</code>
-                <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200 font-bold">ช่วงตัวเลขที่จะบวก</span>
+                <span
+                  class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200 font-bold">ช่วงตัวเลขที่จะบวก</span>
               </div>
               <p class="text-slate-300 leading-relaxed">
-                <strong>คอลัมน์ตัวเลขที่ให้รวมยอด</strong> เฉพาะแถวที่ผ่านเงื่อนไขแล้ว เช่น คอลัมน์ยอดขาย <code>$I$2:$I$41</code>
+                <strong>คอลัมน์ตัวเลขที่ให้รวมยอด</strong> เฉพาะแถวที่ผ่านเงื่อนไขแล้ว เช่น คอลัมน์ยอดขาย
+                <code>$I$2:$I$41</code>
               </p>
             </div>
 
             <div class="p-3.5 rounded-xl bg-purple-500/10 border border-purple-400/40 space-y-1.5">
               <div class="flex items-center justify-between">
                 <code class="font-bold text-purple-300 text-sm">average_range</code>
-                <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 font-bold">ช่วงตัวเลขที่จะเฉลี่ย</span>
+                <span
+                  class="text-[10px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 font-bold">ช่วงตัวเลขที่จะเฉลี่ย</span>
               </div>
               <p class="text-slate-300 leading-relaxed">
-                <strong>คอลัมน์ตัวเลขที่ให้หาค่าเฉลี่ย</strong> เฉพาะแถวที่ผ่านเงื่อนไข เช่น <code>$I$2:$I$41</code> (ถ้าไม่ใส่จะเฉลี่ยช่วงเงื่อนไขแทน)
+                <strong>คอลัมน์ตัวเลขที่ให้หาค่าเฉลี่ย</strong> เฉพาะแถวที่ผ่านเงื่อนไข เช่น <code>$I$2:$I$41</code>
+                (ถ้าไม่ใส่จะเฉลี่ยช่วงเงื่อนไขแทน)
               </p>
             </div>
 
             <div class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-400/40 space-y-1.5">
               <div class="flex items-center justify-between">
                 <code class="font-bold text-rose-300 text-sm">$ (Absolute Reference)</code>
-                <span class="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-200 font-bold">ล็อกช่วงเซลล์</span>
+                <span
+                  class="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-200 font-bold">ล็อกช่วงเซลล์</span>
               </div>
               <p class="text-slate-300 leading-relaxed">
-                สัญลักษณ์ตรึงคอลัมน์และแถว (กด <code>F4</code>) เช่น <code>$B$2:$B$41</code> เพื่อไม่ให้ช่วงข้อมูลขยับหนีเมื่อลากสูตรลงด้านล่าง
+                สัญลักษณ์ตรึงคอลัมน์และแถว (กด <code>F4</code>) เช่น <code>$B$2:$B$41</code>
+                เพื่อไม่ให้ช่วงข้อมูลขยับหนีเมื่อลากสูตรลงด้านล่าง
               </p>
             </div>
 
             <div class="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-400/40 space-y-1.5">
               <div class="flex items-center justify-between">
                 <code class="font-bold text-indigo-300 text-sm">* และ "..." (Wildcard / ข้อความ)</code>
-                <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-200 font-bold">สัญลักษณ์เสริม</span>
+                <span
+                  class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-200 font-bold">สัญลักษณ์เสริม</span>
               </div>
               <p class="text-slate-300 leading-relaxed">
-                <code>"..."</code> ใช้ครอบข้อความหรือเงื่อนไข เช่น <code>"กาแฟ"</code>, <code>"&gt;500"</code> ส่วน <code>*</code> แทนคำใดๆ ใช้หาคำบางส่วน เช่น <code>"*ชา*"</code>
+                <code>"..."</code> ใช้ครอบข้อความหรือเงื่อนไข เช่น <code>"กาแฟ"</code>, <code>"&gt;500"</code> ส่วน
+                <code>*</code> แทนคำใดๆ ใช้หาคำบางส่วน เช่น <code>"*ชา*"</code>
               </p>
             </div>
           </div>
@@ -1960,11 +2087,14 @@ const quizQuestions = [
               <span class="px-2 py-0.5 rounded bg-sky-200 text-sky-900 text-[11px] font-bold">นับจำนวน 1 เงื่อนไข</span>
             </div>
             <div class="p-3 rounded-xl bg-slate-900 text-slate-200 font-mono text-xs overflow-x-auto">
-              =COUNTIF(<span class="text-sky-300 font-bold">criteria_range</span>, <span class="text-amber-300 font-bold">criteria</span>)
+              =COUNTIF(<span class="text-sky-300 font-bold">criteria_range</span>, <span
+                class="text-amber-300 font-bold">criteria</span>)
             </div>
             <ul class="text-[11px] text-slate-700 space-y-1 bg-white p-2.5 rounded-xl border border-sky-200/70">
               <li><code class="font-bold text-sky-700">criteria_range</code> = ช่วงคอลัมน์ที่จะตรวจ (เช่น สาขา)</li>
-              <li><code class="font-bold text-amber-700">criteria</code> = เงื่อนไขที่ค้นหา (เช่น <code>"สาขาสยาม"</code>)</li>
+              <li><code class="font-bold text-amber-700">criteria</code> = เงื่อนไขที่ค้นหา (เช่น
+                <code>"สาขาสยาม"</code>)
+              </li>
             </ul>
             <p class="text-xs text-slate-600 leading-relaxed">
               <strong>ตัวอย่าง:</strong> <code>=COUNTIF($B$2:$B$41, "สาขาสยาม")</code><br />
@@ -1975,14 +2105,18 @@ const quizQuestions = [
           <div class="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-3">
             <div class="flex items-center justify-between">
               <span class="font-black text-emerald-950 text-base">2. SUMIF</span>
-              <span class="px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 text-[11px] font-bold">รวมยอด 1 เงื่อนไข</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 text-[11px] font-bold">รวมยอด 1
+                เงื่อนไข</span>
             </div>
             <div class="p-3 rounded-xl bg-slate-900 text-slate-200 font-mono text-xs overflow-x-auto">
-              =SUMIF(<span class="text-sky-300 font-bold">criteria_range</span>, <span class="text-amber-300 font-bold">criteria</span>, <span class="text-emerald-300 font-bold">sum_range</span>)
+              =SUMIF(<span class="text-sky-300 font-bold">criteria_range</span>, <span
+                class="text-amber-300 font-bold">criteria</span>, <span
+                class="text-emerald-300 font-bold">sum_range</span>)
             </div>
             <ul class="text-[11px] text-slate-700 space-y-1 bg-white p-2.5 rounded-xl border border-emerald-200/70">
               <li><code class="font-bold text-sky-700">criteria_range</code> = ช่วงคอลัมน์ที่จะตรวจ (เช่น สาขา)</li>
-              <li><code class="font-bold text-amber-700">criteria</code> = เงื่อนไขที่ค้นหา (เช่น ช่อง <code>A5</code>)</li>
+              <li><code class="font-bold text-amber-700">criteria</code> = เงื่อนไขที่ค้นหา (เช่น ช่อง <code>A5</code>)
+              </li>
               <li><code class="font-bold text-emerald-700">sum_range</code> = ช่วงตัวเลขที่จะบวก (เช่น ยอดขาย)</li>
             </ul>
             <p class="text-xs text-slate-600 leading-relaxed">
@@ -1994,15 +2128,20 @@ const quizQuestions = [
           <div class="p-5 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-3">
             <div class="flex items-center justify-between">
               <span class="font-black text-purple-950 text-base">3. AVERAGEIF</span>
-              <span class="px-2 py-0.5 rounded bg-purple-200 text-purple-900 text-[11px] font-bold">หาค่าเฉลี่ย 1 เงื่อนไข</span>
+              <span class="px-2 py-0.5 rounded bg-purple-200 text-purple-900 text-[11px] font-bold">หาค่าเฉลี่ย 1
+                เงื่อนไข</span>
             </div>
             <div class="p-3 rounded-xl bg-slate-900 text-slate-200 font-mono text-xs overflow-x-auto">
-              =AVERAGEIF(<span class="text-sky-300 font-bold">criteria_range</span>, <span class="text-amber-300 font-bold">criteria</span>, <span class="text-purple-300 font-bold">average_range</span>)
+              =AVERAGEIF(<span class="text-sky-300 font-bold">criteria_range</span>, <span
+                class="text-amber-300 font-bold">criteria</span>, <span
+                class="text-purple-300 font-bold">average_range</span>)
             </div>
             <ul class="text-[11px] text-slate-700 space-y-1 bg-white p-2.5 rounded-xl border border-purple-200/70">
               <li><code class="font-bold text-sky-700">criteria_range</code> = ช่วงคอลัมน์ที่จะตรวจ (เช่น หมวด)</li>
-              <li><code class="font-bold text-amber-700">criteria</code> = เงื่อนไขที่ค้นหา (เช่น <code>"กาแฟ"</code>)</li>
-              <li><code class="font-bold text-purple-700">average_range</code> = ช่วงตัวเลขที่จะเฉลี่ย (เช่น ยอดขาย)</li>
+              <li><code class="font-bold text-amber-700">criteria</code> = เงื่อนไขที่ค้นหา (เช่น <code>"กาแฟ"</code>)
+              </li>
+              <li><code class="font-bold text-purple-700">average_range</code> = ช่วงตัวเลขที่จะเฉลี่ย (เช่น ยอดขาย)
+              </li>
             </ul>
             <p class="text-xs text-slate-600 leading-relaxed">
               <strong>ตัวอย่าง:</strong> <code>=AVERAGEIF($C$2:$C$41, "กาแฟ", $I$2:$I$41)</code><br />
@@ -2052,19 +2191,22 @@ const quizQuestions = [
             </table>
           </div>
 
-          <div class="lg:col-span-5 p-5 rounded-2xl bg-amber-50 border-2 border-amber-200 space-y-3 flex flex-col justify-between">
+          <div
+            class="lg:col-span-5 p-5 rounded-2xl bg-amber-50 border-2 border-amber-200 space-y-3 flex flex-col justify-between">
             <div class="space-y-2">
               <div class="flex items-center gap-2 text-amber-950 font-black text-sm">
                 <AlertTriangle class="w-5 h-5 text-amber-600 shrink-0" />
                 <span>ความสำคัญของการล็อกเซลล์ ($ Absolute Reference)</span>
               </div>
               <p class="text-xs text-amber-900 leading-relaxed">
-                เมื่อสร้างตารางสรุปแล้วต้องการ <strong>ลากสูตรลงด้านล่าง</strong> (AutoFill) จากสาขาสยามลงไปสาขาลาดพร้าว:
+                เมื่อสร้างตารางสรุปแล้วต้องการ <strong>ลากสูตรลงด้านล่าง</strong> (AutoFill)
+                จากสาขาสยามลงไปสาขาลาดพร้าว:
               </p>
               <div class="p-3 rounded-xl bg-white border border-amber-200 font-mono text-xs space-y-1.5">
                 <div class="flex items-center gap-1.5 text-rose-600 flex-wrap">
                   <XCircle class="w-4 h-4 shrink-0" />
-                  <span>ผิด: =SUMIF(B2:B41, K13, I2:I41) <span class="font-sans text-[11px]">(ลากแล้วช่วงเลื่อนเป็น B3:B42!)</span></span>
+                  <span>ผิด: =SUMIF(B2:B41, K13, I2:I41) <span class="font-sans text-[11px]">(ลากแล้วช่วงเลื่อนเป็น
+                      B3:B42!)</span></span>
                 </div>
                 <div class="flex items-center gap-1.5 text-emerald-700 font-bold flex-wrap">
                   <CheckCircle2 class="w-4 h-4 shrink-0" />
@@ -2108,7 +2250,8 @@ const quizQuestions = [
               </div>
             </div>
             <p class="text-[11px] text-amber-800">
-              <strong>คีย์ลัดมือโปร:</strong> คลุมช่วงเซลล์ในสูตรแล้วกดปุ่ม <strong><code>F4</code></strong> (Windows) หรือ <strong><code>Fn + F4</code></strong> (Mac) กดซ้ำเพื่อสลับครบทั้ง 4 รูปแบบอัตโนมัติ
+              <strong>คีย์ลัดมือโปร:</strong> คลุมช่วงเซลล์ในสูตรแล้วกดปุ่ม <strong><code>F4</code></strong> (Windows)
+              หรือ <strong><code>Fn + F4</code></strong> (Mac) กดซ้ำเพื่อสลับครบทั้ง 4 รูปแบบอัตโนมัติ
             </p>
           </div>
         </div>
@@ -2134,7 +2277,8 @@ const quizQuestions = [
         <!-- #1 PITFALL ALERT: PARAMETER POSITION SWAP -->
         <div class="p-5 sm:p-6 rounded-2xl bg-rose-50 border-2 border-rose-300 space-y-4">
           <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <div
+              class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
               <AlertCircle class="w-6 h-6" />
             </div>
             <div class="space-y-1">
@@ -2143,7 +2287,8 @@ const quizQuestions = [
               </h4>
               <p class="text-xs sm:text-sm text-rose-900 leading-relaxed">
                 สูตร <strong>1 เงื่อนไข (ไม่มี S)</strong> เอาช่วงตัวเลขที่จะบวก/เฉลี่ยไว้ <strong>ท้ายสุด</strong>
-                แต่สูตร <strong>หลายเงื่อนไข (เติม S: SUMIFS / AVERAGEIFS)</strong> บังคับให้ย้ายช่วงตัวเลขที่จะบวก/เฉลี่ยมาไว้ <strong>ตัวแรกสุดเสมอ!</strong>
+                แต่สูตร <strong>หลายเงื่อนไข (เติม S: SUMIFS / AVERAGEIFS)</strong>
+                บังคับให้ย้ายช่วงตัวเลขที่จะบวก/เฉลี่ยมาไว้ <strong>ตัวแรกสุดเสมอ!</strong>
                 (เพราะเงื่อนไขด้านหลังสามารถต่อเพิ่มได้เรื่อยๆ ไม่จำกัดจำนวนคู่)
               </p>
             </div>
@@ -2155,26 +2300,33 @@ const quizQuestions = [
               <div class="text-slate-800 leading-relaxed">
                 =SUMIF(<span class="bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-bold">criteria_range</span>,
                 <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">criteria</span>,
-                <span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">sum_range (ช่วงผลรวม)</span>)
+                <span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">sum_range
+                  (ช่วงผลรวม)</span>)
               </div>
               <div class="text-slate-800 leading-relaxed">
                 =AVERAGEIF(<span class="bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-bold">criteria_range</span>,
                 <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">criteria</span>,
-                <span class="bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded font-bold">average_range (ช่วงค่าเฉลี่ย)</span>)
+                <span class="bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded font-bold">average_range
+                  (ช่วงค่าเฉลี่ย)</span>)
               </div>
             </div>
             <div class="p-3.5 rounded-xl bg-white border-2 border-emerald-400 space-y-2">
-              <div class="font-sans font-bold text-emerald-900">แบบหลายเงื่อนไข (ย้าย sum_range / average_range มาตัวแรกสุด!):</div>
+              <div class="font-sans font-bold text-emerald-900">แบบหลายเงื่อนไข (ย้าย sum_range / average_range
+                มาตัวแรกสุด!):</div>
               <div class="text-slate-800 leading-relaxed">
-                =SUMIFS(<span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">sum_range (ช่วงผลรวม)</span>,
-                <span class="bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-bold">criteria_range1 (ช่วงเงื่อนไข 1)</span>,
+                =SUMIFS(<span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">sum_range
+                  (ช่วงผลรวม)</span>,
+                <span class="bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-bold">criteria_range1 (ช่วงเงื่อนไข
+                  1)</span>,
                 <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">criteria1 (เงื่อนไข 1)</span>,
                 <span class="bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-bold">criteria_range2</span>,
                 <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">criteria2</span>)
               </div>
               <div class="text-slate-800 leading-relaxed">
-                =AVERAGEIFS(<span class="bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded font-bold">average_range (ช่วงค่าเฉลี่ย)</span>,
-                <span class="bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-bold">criteria_range1 (ช่วงเงื่อนไข 1)</span>,
+                =AVERAGEIFS(<span class="bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded font-bold">average_range
+                  (ช่วงค่าเฉลี่ย)</span>,
+                <span class="bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-bold">criteria_range1 (ช่วงเงื่อนไข
+                  1)</span>,
                 <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">criteria1 (เงื่อนไข 1)</span>,
                 <span class="bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-bold">criteria_range2</span>,
                 <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">criteria2</span>)
@@ -2184,8 +2336,10 @@ const quizQuestions = [
 
           <div class="p-3 rounded-xl bg-white/90 border border-rose-200 text-xs text-rose-950 leading-relaxed">
             <strong>หมายเหตุเลขต่อท้าย <code>1, 2, ...</code> และกฎขนาดช่วงเซลล์:</strong>
-            ในสูตร <code>*IFS</code> ต้องใส่พารามิเตอร์เงื่อนไขมาเป็น <strong>คู่ๆ เสมอ</strong> คือ <code>(criteria_range1, criteria1)</code> ตามด้วย <code>(criteria_range2, criteria2)</code>
-            และ <strong>ทุกช่วงเซลล์ต้องมีจำนวนแถวเท่ากันเป๊ะ</strong> (เช่น เริ่มแถว <code>2</code> ถึงแถว <code>41</code> เหมือนกันทุกช่วง มิฉะนั้นสูตรจะ Error <code>#VALUE!</code> ทันที)
+            ในสูตร <code>*IFS</code> ต้องใส่พารามิเตอร์เงื่อนไขมาเป็น <strong>คู่ๆ เสมอ</strong> คือ
+            <code>(criteria_range1, criteria1)</code> ตามด้วย <code>(criteria_range2, criteria2)</code>
+            และ <strong>ทุกช่วงเซลล์ต้องมีจำนวนแถวเท่ากันเป๊ะ</strong> (เช่น เริ่มแถว <code>2</code> ถึงแถว
+            <code>41</code> เหมือนกันทุกช่วง มิฉะนั้นสูตรจะ Error <code>#VALUE!</code> ทันที)
           </div>
         </div>
 
@@ -2200,7 +2354,8 @@ const quizQuestions = [
           </div>
 
           <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">ตัวอย่างที่ 2 • SUMIFS (2 มิติ)</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">ตัวอย่างที่ 2 • SUMIFS (2
+              มิติ)</span>
             <p class="font-bold text-slate-900 text-sm">รวมยอดขายหมวด "กาแฟ" ของสาขาสยาม</p>
             <div class="p-2.5 rounded-xl bg-slate-900 text-emerald-300 font-mono overflow-x-auto">
               =SUMIFS($I$2:$I$41, $B$2:$B$41, "สาขาสยาม", $C$2:$C$41, "กาแฟ")
@@ -2208,928 +2363,1011 @@ const quizQuestions = [
           </div>
 
           <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-            <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">ตัวอย่างที่ 3 • ช่วงตัวเลขบนคอลัมน์เดิม</span>
+            <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">ตัวอย่างที่ 3 •
+              ช่วงตัวเลขบนคอลัมน์เดิม</span>
             <p class="font-bold text-slate-900 text-sm">นับบิลยอดขายระหว่าง 100 ถึง 300 บาท</p>
             <div class="p-2.5 rounded-xl bg-slate-900 text-amber-300 font-mono overflow-x-auto">
-              {{ '=COUNTIFS($I$2:$I$41, ">=100", $I$2:$I$41, "<=300")' }}
+              {{ '=COUNTIFS($I$2:$I$41, ">=100", $I$2:$I$41, "<=300")' }} </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ================================================================= -->
-      <!-- MODULE 5: HANDS-ON WORKSHOP — BUILD A NUMERIC KPI DASHBOARD       -->
-      <!-- ================================================================= -->
-      <div class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-sky-200 shadow-sm space-y-6">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-sky-100 pb-5">
-          <div class="space-y-1.5">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="px-3 py-1 bg-sky-100 text-sky-800 font-black text-xs rounded-full uppercase tracking-wider">
-                หน่วยการเรียนรู้ที่ 5 • HANDS-ON PRACTICAL LAB
-              </span>
-              <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full">
-                ภาคปฏิบัติสร้างแดชบอร์ดตัวเลข (6 ขั้นตอน)
-              </span>
+        <!-- ================================================================= -->
+        <!-- MODULE 5: HANDS-ON WORKSHOP — BUILD A NUMERIC KPI DASHBOARD       -->
+        <!-- ================================================================= -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-sky-200 shadow-sm space-y-6">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-sky-100 pb-5">
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span
+                  class="px-3 py-1 bg-sky-100 text-sky-800 font-black text-xs rounded-full uppercase tracking-wider">
+                  หน่วยการเรียนรู้ที่ 5 • HANDS-ON PRACTICAL LAB
+                </span>
+                <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full">
+                  ภาคปฏิบัติสร้างแดชบอร์ดตัวเลข (6 ขั้นตอน)
+                </span>
+              </div>
+              <h3 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+                <SlidersHorizontal class="w-6 h-6 text-sky-600" />
+                ภาคปฏิบัติ: พาลงมือใช้สูตรสร้าง "แดชบอร์ดตัวเลข (Numeric KPI Dashboard)" ทีละขั้นตอน
+              </h3>
+              <p class="text-slate-600 text-xs sm:text-sm">
+                โหลดไฟล์ฝึกปฏิบัติแล้วทำตามทีละขั้นตอน ตั้งแต่จัดวางตาราง, ใส่สูตรสถิติภาพรวม, ตารางสรุปรายสาขา, ตาราง
+                Matrix 2 มิติ ไปจนถึงแดชบอร์ดตัวเลขฉบับสมบูรณ์พร้อมคำตอบให้ตรวจเช็กทันที
+              </p>
             </div>
-            <h3 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-              <SlidersHorizontal class="w-6 h-6 text-sky-600" />
-              ภาคปฏิบัติ: พาลงมือใช้สูตรสร้าง "แดชบอร์ดตัวเลข (Numeric KPI Dashboard)" ทีละขั้นตอน
-            </h3>
-            <p class="text-slate-600 text-xs sm:text-sm">
-              โหลดไฟล์ฝึกปฏิบัติแล้วทำตามทีละขั้นตอน ตั้งแต่จัดวางตาราง, ใส่สูตรสถิติภาพรวม, ตารางสรุปรายสาขา, ตาราง Matrix 2 มิติ ไปจนถึงแดชบอร์ดตัวเลขฉบับสมบูรณ์พร้อมคำตอบให้ตรวจเช็กทันที
-            </p>
+
+            <button @click="downloadDemoExcel" type="button"
+              class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer shrink-0 active:scale-95">
+              <Download class="w-4 h-4" />
+              <span>ดาวน์โหลดไฟล์ปฏิบัติการ (.xlsx) 24 แถว</span>
+            </button>
           </div>
 
-          <button @click="downloadDemoExcel" type="button"
-            class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer shrink-0 active:scale-95">
-            <Download class="w-4 h-4" />
-            <span>ดาวน์โหลดไฟล์ปฏิบัติการ (.xlsx) 24 แถว</span>
-          </button>
-        </div>
-
-        <!-- Mode Switcher (Workshop Default + Sandbox Secondary) -->
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div class="flex flex-wrap gap-2 bg-slate-100 p-1.5 rounded-2xl">
-            <button @click="activeLabTab = 'workshop'" type="button"
-              :class="[
+          <!-- Mode Switcher (Workshop Default + Sandbox Secondary) -->
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap gap-2 bg-slate-100 p-1.5 rounded-2xl">
+              <button @click="activeLabTab = 'workshop'" type="button" :class="[
                 'px-4 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer',
                 activeLabTab === 'workshop' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
               ]">
-              <Play class="w-4 h-4" />
-              <span>โหมดภาคปฏิบัติ: สร้างแดชบอร์ดตัวเลข 6 ขั้นตอน</span>
-            </button>
-            <button @click="activeLabTab = 'conditional'" type="button"
-              :class="[
+                <Play class="w-4 h-4" />
+                <span>โหมดภาคปฏิบัติ: สร้างแดชบอร์ดตัวเลข 6 ขั้นตอน</span>
+              </button>
+              <button @click="activeLabTab = 'conditional'" type="button" :class="[
                 'px-4 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer',
                 activeLabTab === 'conditional' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
               ]">
-              <Code class="w-4 h-4" />
-              <span>โหมด Sandbox: ทดลองสร้างสูตร IF/IFS แบบไฮไลต์แถวสด</span>
-            </button>
-          </div>
-
-          <button v-if="activeLabTab === 'workshop'" @click="showAllWorkshopSteps = !showAllWorkshopSteps" type="button"
-            class="px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
-            :class="showAllWorkshopSteps ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'">
-            <Layers class="w-3.5 h-3.5" />
-            <span>{{ showAllWorkshopSteps ? 'สลับเป็นดูทีละขั้นตอน (1-6)' : 'แสดงทุกขั้นตอนพร้อมกัน (1-6)' }}</span>
-          </button>
-        </div>
-
-        <!-- =============================================================== -->
-        <!-- TAB 1: HANDS-ON WORKSHOP TO BUILD A NUMERIC KPI DASHBOARD       -->
-        <!-- =============================================================== -->
-        <div v-if="activeLabTab === 'workshop'" class="space-y-6">
-
-          <!-- 5 Common Errors & Quick Troubleshooting Box -->
-          <div class="rounded-2xl border border-rose-200 bg-rose-50/60 overflow-hidden">
-            <div class="px-4 py-3 bg-rose-900 text-white flex items-center justify-between gap-3 flex-wrap">
-              <div class="flex items-center gap-2 text-xs sm:text-sm font-black">
-                <AlertTriangle class="w-4 h-4 text-amber-300 shrink-0" />
-                <span>คู่มือแก้ 5 Error ยอดฮิตเวลาพิมพ์สูตรหน้าห้อง (Troubleshooting)</span>
-              </div>
-              <button @click="showErrorCheat = !showErrorCheat" type="button"
-                class="px-3 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold cursor-pointer transition-all">
-                {{ showErrorCheat ? 'ซ่อนกล่องแก้ Error' : 'เปิดดูวิธีแก้ Error' }}
-              </button>
-            </div>
-            <div v-if="showErrorCheat" class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 text-xs">
-              <div class="p-3 rounded-xl bg-white border border-rose-200 space-y-1">
-                <code class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-black">#NAME?</code>
-                <div class="font-bold text-slate-900 pt-1">พิมพ์ชื่อสูตร/สัญลักษณ์ผิด</div>
-                <p class="text-[11px] text-slate-600 leading-relaxed">
-                  เช่น พิมพ์ <code>=SUME</code>, ใช้ตัว <code>x</code> แทน <code>*</code>, หรือลืมใส่ฟันหนู <code>"..."</code> ครอบข้อความภาษาไทย
-                </p>
-              </div>
-              <div class="p-3 rounded-xl bg-white border border-rose-200 space-y-1">
-                <code class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-black">#VALUE!</code>
-                <div class="font-bold text-slate-900 pt-1">ขนาดช่วงเซลล์ไม่เท่ากัน</div>
-                <p class="text-[11px] text-slate-600 leading-relaxed">
-                  ช่วงใน <code>SUMIFS/COUNTIFS</code> แถวไม่ตรงกัน (เช่น <code>B2:B25</code> กับ <code>I2:I24</code>) หรือนำตัวหนังสือมาบวกคูณ
-                </p>
-              </div>
-              <div class="p-3 rounded-xl bg-white border border-rose-200 space-y-1">
-                <code class="px-2 py-0.5 rounded bg-purple-100 text-purple-900 font-black">#DIV/0!</code>
-                <div class="font-bold text-slate-900 pt-1">ตัวหารเป็นศูนย์</div>
-                <p class="text-[11px] text-slate-600 leading-relaxed">
-                  ใส่สูตร <code>% Share</code> ก่อนใส่สูตรยอดรวมแถว 16 หรือใช้ <code>AVERAGEIF</code> แล้วไม่มีแถวใดตรงเงื่อนไขเลย
-                </p>
-              </div>
-              <div class="p-3 rounded-xl bg-white border border-rose-200 space-y-1">
-                <code class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-black">#REF!</code>
-                <div class="font-bold text-slate-900 pt-1">อ้างอิงเซลล์/คอลัมน์ไม่เจอ</div>
-                <p class="text-[11px] text-slate-600 leading-relaxed">
-                  เผลอลบแถวหรือคอลัมน์ข้อมูลที่สูตรกำลังอ้างอิงอยู่ (เช่น ลบคอลัมน์ยอดขาย <code>I</code> หรือพิมพ์ช่วงเซลล์ผิด)
-                </p>
-              </div>
-              <div class="p-3 rounded-xl bg-white border border-sky-200 space-y-1">
-                <code class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-black">ได้ผลลัพธ์เป็น 0</code>
-                <div class="font-bold text-slate-900 pt-1">คำในเงื่อนไขไม่ตรงเป๊ะ</div>
-                <p class="text-[11px] text-slate-600 leading-relaxed">
-                  เช่น พิมพ์ <code>"สยาม"</code> แทน <code>"สาขาสยาม"</code> หรือมีเว้นวรรคส่วนเกินซ่อนอยู่ในข้อความ
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- 6-Step Horizontal Stepper Bar -->
-          <div v-if="!showAllWorkshopSteps" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-            <button v-for="s in workshopStepsMeta" :key="s.step" @click="activeWorkshopStep = s.step" type="button"
-              :class="[
-                'p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1',
-                activeWorkshopStep === s.step
-                  ? 'bg-gradient-to-br from-sky-600 to-indigo-700 text-white border-sky-600 shadow-md ring-2 ring-sky-300/60 scale-[1.01]'
-                  : activeWorkshopStep > s.step
-                    ? 'bg-emerald-50/70 text-emerald-900 border-emerald-200 hover:border-emerald-400'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-sky-300'
-              ]">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] font-mono font-bold uppercase opacity-80">STEP {{ s.step }}</span>
-                <CheckCircle2 v-if="activeWorkshopStep > s.step" class="w-3.5 h-3.5 text-emerald-600" />
-              </div>
-              <div class="text-xs font-black leading-snug">{{ s.shortTitle }}</div>
-            </button>
-          </div>
-
-          <!-- ============================================================= -->
-          <!-- STEP 1: PREPARE FILE & INSPECT MASTER_DATA (24 ROWS)          -->
-          <!-- ============================================================= -->
-          <div v-if="shouldShowStep(1)" class="rounded-3xl border-2 border-slate-200 bg-slate-50/60 p-5 sm:p-6 space-y-5">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
-              <div>
-                <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-cyan-300 text-xs font-mono font-bold">STEP 1 of 6</span>
-                <h4 class="text-lg sm:text-xl font-black text-slate-900 mt-1.5">
-                  ขั้นที่ 1: แยกชีต Master_data ไว้เป็นต้นฉบับ และเตรียมชีต Numeric_Dashboard
-                </h4>
-              </div>
-              <button @click="downloadDemoExcel" type="button"
-                class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0">
-                <Download class="w-4 h-4" />
-                <span>โหลด demo_week4_numeric_dashboard.xlsx</span>
+                <Code class="w-4 h-4" />
+                <span>โหมด Sandbox: ทดลองสร้างสูตร IF/IFS แบบไฮไลต์แถวสด</span>
               </button>
             </div>
 
-            <!-- 3 Mini Setup Instructions -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              <div class="p-4 rounded-2xl bg-white border border-slate-200 space-y-1.5">
-                <div class="font-black text-sky-800">1. อัปโหลดไฟล์เข้า Google Sheets</div>
-                <p class="text-slate-600 leading-relaxed">
-                  กดดาวน์โหลดไฟล์ <code>.xlsx</code> ด้านบน &rarr; อัปโหลดเข้า Google Drive &rarr; คลิกขวา <em>"เปิดด้วย Google Sheets"</em> (หรือบันทึกเป็น Google Sheets)
-                </p>
-              </div>
-              <div class="p-4 rounded-2xl bg-white border border-slate-200 space-y-1.5">
-                <div class="font-black text-indigo-800">2. รู้จักโครงสร้าง 2 ชีต (ไม่ปะปนต้นฉบับ)</div>
-                <p class="text-slate-600 leading-relaxed">
-                  ชีต <code>Master_data</code> เก็บข้อมูลต้นฉบับ 24 แถวไว้เฉยๆ <strong>ห้ามแก้ไข</strong><br />
-                  ชีต <code>Numeric_Dashboard</code> คัดลอกตารางไว้ซ้าย (<code>A1:I25</code>) + พิมพ์สูตรสรุปทางขวา (<code>K1:O30</code>) ในชีตเดียวกัน!
-                </p>
-              </div>
-              <div class="p-4 rounded-2xl bg-white border border-slate-200 space-y-1.5">
-                <div class="font-black text-emerald-800">3. แผนผัง 4 โซน (ฝั่งขวา K1:O30)</div>
-                <p class="text-slate-600 leading-relaxed">
-                  • <strong>Zone 1 (L4:L10):</strong> KPI ภาพรวม 7 ค่า<br />
-                  • <strong>Zone 2 (K13:O16):</strong> สรุปรายสาขา + % Share<br />
-                  • <strong>Zone 3 (K19:O22):</strong> Matrix สาขา &times; หมวด<br />
-                  • <strong>Zone 4 (L25:L30):</strong> เจาะกลุ่ม VIP &amp; เงื่อนไขพิเศษ
-                </p>
-              </div>
-            </div>
+            <button v-if="activeLabTab === 'workshop'" @click="showAllWorkshopSteps = !showAllWorkshopSteps"
+              type="button"
+              class="px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+              :class="showAllWorkshopSteps ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'">
+              <Layers class="w-3.5 h-3.5" />
+              <span>{{ showAllWorkshopSteps ? 'สลับเป็นดูทีละขั้นตอน (1-6)' : 'แสดงทุกขั้นตอนพร้อมกัน (1-6)' }}</span>
+            </button>
+          </div>
 
-            <!-- Column Dictionary A-I -->
-            <div class="p-4 rounded-2xl bg-slate-900 text-white space-y-3">
-              <div class="text-xs font-bold text-cyan-300">พจนานุกรมคอลัมน์ข้อมูลฝั่งซ้ายในชีต Numeric_Dashboard (สำเนามาจาก Master_data แถว 2-25):</div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 text-[11px] font-mono">
-                <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span class="text-sky-300 font-bold">A2:A25</span> &rarr; Order_ID</div>
-                <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span class="text-sky-300 font-bold">B2:B25</span> &rarr; Branch (สาขา)</div>
-                <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span class="text-sky-300 font-bold">C2:C25</span> &rarr; Category (หมวด)</div>
-                <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span class="text-amber-300 font-bold">E2:E25</span> &rarr; Payment_Method</div>
-                <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span class="text-amber-300 font-bold">F2:F25</span> &rarr; Member_Tier (VIP/ทั่วไป)</div>
-                <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span class="text-slate-300 font-bold">D, G, H</span> &rarr; Menu, Qty, Price</div>
-                <div class="p-2 rounded-lg bg-emerald-900/60 border border-emerald-500/50 sm:col-span-2 lg:col-span-2">
-                  <span class="text-emerald-300 font-bold">I2:I25</span> &rarr; Total_Sales (ยอดขายรวม - ใช้เป็น sum_range / average_range)
+          <!-- =============================================================== -->
+          <!-- TAB 1: HANDS-ON WORKSHOP TO BUILD A NUMERIC KPI DASHBOARD       -->
+          <!-- =============================================================== -->
+          <div v-if="activeLabTab === 'workshop'" class="space-y-6">
+
+            <!-- 5 Common Errors & Quick Troubleshooting Box -->
+            <div class="rounded-2xl border border-rose-200 bg-rose-50/60 overflow-hidden">
+              <div class="px-4 py-3 bg-rose-900 text-white flex items-center justify-between gap-3 flex-wrap">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-black">
+                  <AlertTriangle class="w-4 h-4 text-amber-300 shrink-0" />
+                  <span>คู่มือแก้ 5 Error ยอดฮิตเวลาพิมพ์สูตรหน้าห้อง (Troubleshooting)</span>
                 </div>
-              </div>
-            </div>
-
-            <!-- Preview Master_data Table -->
-            <div class="space-y-2">
-              <div class="flex items-center justify-between flex-wrap gap-2">
-                <span class="text-xs font-black text-slate-800">ตัวอย่างข้อมูลตั้งต้นในชีต Master_data (ทั้งหมด 24 แถว):</span>
-                <button @click="showAll24Preview = !showAll24Preview" type="button"
-                  class="px-3 py-1 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-slate-700 cursor-pointer">
-                  {{ showAll24Preview ? 'ย่อเหลือ 8 แถวแรก' : 'ดูข้อมูลครบทั้ง 24 แถว' }}
+                <button @click="showErrorCheat = !showErrorCheat" type="button"
+                  class="px-3 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold cursor-pointer transition-all">
+                  {{ showErrorCheat ? 'ซ่อนกล่องแก้ Error' : 'เปิดดูวิธีแก้ Error' }}
                 </button>
               </div>
-              <div class="overflow-x-auto rounded-2xl border border-slate-200 max-h-72 overflow-y-auto">
-                <table class="w-full text-left text-xs font-mono">
-                  <thead class="bg-slate-800 text-slate-200 font-sans sticky top-0">
-                    <tr>
-                      <th class="p-2.5">Row</th>
-                      <th class="p-2.5">A: Order_ID</th>
-                      <th class="p-2.5">B: Branch</th>
-                      <th class="p-2.5">C: Category</th>
-                      <th class="p-2.5">D: Menu_Item</th>
-                      <th class="p-2.5">E: Payment</th>
-                      <th class="p-2.5">F: Tier</th>
-                      <th class="p-2.5 text-right">I: Total_Sales</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-100 bg-white text-slate-700">
-                    <tr v-for="r in previewMasterRows" :key="r.orderId" class="hover:bg-sky-50/40">
-                      <td class="p-2 text-slate-400">{{ r.row }}</td>
-                      <td class="p-2 font-bold text-sky-700">{{ r.orderId }}</td>
-                      <td class="p-2 font-sans">{{ r.branch }}</td>
-                      <td class="p-2 font-sans">{{ r.category }}</td>
-                      <td class="p-2 font-sans">{{ r.menuItem }}</td>
-                      <td class="p-2 font-sans">{{ r.payment }}</td>
-                      <td class="p-2">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-sans font-bold"
-                          :class="r.tier === 'VIP' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'">
-                          {{ r.tier }}
-                        </span>
-                      </td>
-                      <td class="p-2 text-right font-bold text-emerald-700">{{ r.totalSales.toLocaleString() }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div v-if="!showAllWorkshopSteps" class="flex justify-end pt-2">
-              <button @click="activeWorkshopStep = 2" type="button"
-                class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer">
-                <span>ไปขั้นที่ 2: สร้างกล่อง KPI ภาพรวม (Zone 1)</span>
-                <ArrowRight class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <!-- ============================================================= -->
-          <!-- STEP 2: ZONE 1 — OVERALL KPI SCORECARDS (CELLS L4:L10)        -->
-          <!-- ============================================================= -->
-          <div v-if="shouldShowStep(2)" class="rounded-3xl border-2 border-sky-200 bg-sky-50/30 p-5 sm:p-6 space-y-5">
-            <div class="border-b border-sky-200 pb-4">
-              <span class="px-2.5 py-1 rounded-lg bg-sky-600 text-white text-xs font-mono font-bold">STEP 2 of 6</span>
-              <h4 class="text-lg sm:text-xl font-black text-sky-950 mt-1.5">
-                ขั้นที่ 2: สร้างโซนที่ 1 — กล่อง KPI สถิติภาพรวม (ในชีต Numeric_Dashboard ช่อง L4 ถึง L10)
-              </h4>
-              <p class="text-xs sm:text-sm text-slate-600 mt-1">
-                คลิกที่ช่อง <code>L4</code> ถึง <code>L10</code> (ฝั่งขวาในชีต <code>Numeric_Dashboard</code>) แล้วพิมพ์สูตรที่อ้างอิงตารางฝั่งซ้าย <code>$I$2:$I$25</code> ในชีตเดียวกันได้เลย
-              </p>
-            </div>
-
-            <!-- Formula Guide Table L4:L10 -->
-            <div class="overflow-x-auto rounded-2xl border border-sky-200 bg-white">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-sky-900 text-white">
-                  <tr>
-                    <th class="p-3">พิกัดเซลล์</th>
-                    <th class="p-3">ตัวชี้วัด (KPI)</th>
-                    <th class="p-3">สูตรที่ต้องพิมพ์ใน Google Sheets</th>
-                    <th class="p-3 text-right">คำตอบที่ต้องได้ (ตรวจผล)</th>
-                    <th class="p-3 text-center">คัดลอก</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  <tr v-for="item in zone1FormulaGuide" :key="item.cell" class="hover:bg-sky-50/50">
-                    <td class="p-3 font-mono font-black text-sky-700">{{ item.cell }}</td>
-                    <td class="p-3 font-bold text-slate-800">{{ item.label }}</td>
-                    <td class="p-3 font-mono text-emerald-700 font-bold">{{ item.formula }}</td>
-                    <td class="p-3 text-right font-mono font-black text-slate-900">{{ item.answer }}</td>
-                    <td class="p-3 text-center">
-                      <button @click="copyText(item.formula, `z1-${item.cell}`)" type="button"
-                        class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 font-bold inline-flex items-center gap-1 cursor-pointer">
-                        <Check v-if="copiedKey === `z1-${item.cell}`" class="w-3.5 h-3.5 text-emerald-600" />
-                        <Copy v-else class="w-3.5 h-3.5" />
-                        <span>{{ copiedKey === `z1-${item.cell}` ? 'แล้ว' : 'Copy' }}</span>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Live Preview Zone 1 Cards -->
-            <div class="p-4 rounded-2xl bg-slate-900 text-white space-y-3">
-              <div class="text-xs font-bold text-cyan-300">ผลลัพธ์ Live Preview โซนที่ 1 (เมื่อใส่สูตรครบ L4:L10):</div>
-              <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
-                <div v-for="card in zone1FormulaGuide" :key="`pv-${card.cell}`"
-                  class="p-3 rounded-xl bg-slate-800/90 border border-slate-700 space-y-1">
-                  <div class="text-[10px] font-mono text-sky-300">{{ card.cell }} • {{ card.label }}</div>
-                  <div class="text-sm sm:text-base font-black font-mono text-emerald-300">{{ card.answer }}</div>
+              <div v-if="showErrorCheat" class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 text-xs">
+                <div class="p-3 rounded-xl bg-white border border-rose-200 space-y-1">
+                  <code class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-black">#NAME?</code>
+                  <div class="font-bold text-slate-900 pt-1">พิมพ์ชื่อสูตร/สัญลักษณ์ผิด</div>
+                  <p class="text-[11px] text-slate-600 leading-relaxed">
+                    เช่น พิมพ์ <code>=SUME</code>, ใช้ตัว <code>x</code> แทน <code>*</code>, หรือลืมใส่ฟันหนู
+                    <code>"..."</code> ครอบข้อความภาษาไทย
+                  </p>
+                </div>
+                <div class="p-3 rounded-xl bg-white border border-rose-200 space-y-1">
+                  <code class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-black">#VALUE!</code>
+                  <div class="font-bold text-slate-900 pt-1">ขนาดช่วงเซลล์ไม่เท่ากัน</div>
+                  <p class="text-[11px] text-slate-600 leading-relaxed">
+                    ช่วงใน <code>SUMIFS/COUNTIFS</code> แถวไม่ตรงกัน (เช่น <code>B2:B25</code> กับ <code>I2:I24</code>)
+                    หรือนำตัวหนังสือมาบวกคูณ
+                  </p>
+                </div>
+                <div class="p-3 rounded-xl bg-white border border-rose-200 space-y-1">
+                  <code class="px-2 py-0.5 rounded bg-purple-100 text-purple-900 font-black">#DIV/0!</code>
+                  <div class="font-bold text-slate-900 pt-1">ตัวหารเป็นศูนย์</div>
+                  <p class="text-[11px] text-slate-600 leading-relaxed">
+                    ใส่สูตร <code>% Share</code> ก่อนใส่สูตรยอดรวมแถว 16 หรือใช้ <code>AVERAGEIF</code>
+                    แล้วไม่มีแถวใดตรงเงื่อนไขเลย
+                  </p>
+                </div>
+                <div class="p-3 rounded-xl bg-white border border-rose-200 space-y-1">
+                  <code class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-black">#REF!</code>
+                  <div class="font-bold text-slate-900 pt-1">อ้างอิงเซลล์/คอลัมน์ไม่เจอ</div>
+                  <p class="text-[11px] text-slate-600 leading-relaxed">
+                    เผลอลบแถวหรือคอลัมน์ข้อมูลที่สูตรกำลังอ้างอิงอยู่ (เช่น ลบคอลัมน์ยอดขาย <code>I</code>
+                    หรือพิมพ์ช่วงเซลล์ผิด)
+                  </p>
+                </div>
+                <div class="p-3 rounded-xl bg-white border border-sky-200 space-y-1">
+                  <code class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-black">ได้ผลลัพธ์เป็น 0</code>
+                  <div class="font-bold text-slate-900 pt-1">คำในเงื่อนไขไม่ตรงเป๊ะ</div>
+                  <p class="text-[11px] text-slate-600 leading-relaxed">
+                    เช่น พิมพ์ <code>"สยาม"</code> แทน <code>"สาขาสยาม"</code> หรือมีเว้นวรรคส่วนเกินซ่อนอยู่ในข้อความ
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div v-if="!showAllWorkshopSteps" class="flex items-center justify-between pt-2">
-              <button @click="activeWorkshopStep = 1" type="button"
-                class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer">
-                &larr; ย้อนกลับขั้นที่ 1
-              </button>
-              <button @click="activeWorkshopStep = 3" type="button"
-                class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer">
-                <span>ไปขั้นที่ 3: ตารางสรุปรายสาขา + % Share (Zone 2)</span>
-                <ArrowRight class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <!-- ============================================================= -->
-          <!-- STEP 3: ZONE 2 — BRANCH SUMMARY + % SHARE (K13:O16)           -->
-          <!-- ============================================================= -->
-          <div v-if="shouldShowStep(3)" class="rounded-3xl border-2 border-emerald-200 bg-emerald-50/30 p-5 sm:p-6 space-y-5">
-            <div class="border-b border-emerald-200 pb-4">
-              <span class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-mono font-bold">STEP 3 of 6</span>
-              <h4 class="text-lg sm:text-xl font-black text-emerald-950 mt-1.5">
-                ขั้นที่ 3: สร้างโซนที่ 2 — ตารางสรุปรายสาขา + สัดส่วน % Share (ช่อง K13 ถึง O16)
-              </h4>
-              <p class="text-xs sm:text-sm text-slate-600 mt-1">
-                หัวใจของการทำงานเร็ว: <strong>พิมพ์สูตรแค่แถวแรก (แถว 13: สาขาสยาม) พร้อมใส่ <code>$</code> ล็อกช่วงข้อมูล แล้วลากลงแถว 14–15 ทันที!</strong>
-              </p>
-            </div>
-
-            <!-- Row 13 Formula Instructions -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              <div class="p-4 rounded-2xl bg-white border border-emerald-200 space-y-2">
+            <!-- 6-Step Horizontal Stepper Bar -->
+            <div v-if="!showAllWorkshopSteps" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              <button v-for="s in workshopStepsMeta" :key="s.step" @click="activeWorkshopStep = s.step" type="button"
+                :class="[
+                  'p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1',
+                  activeWorkshopStep === s.step
+                    ? 'bg-gradient-to-br from-sky-600 to-indigo-700 text-white border-sky-600 shadow-md ring-2 ring-sky-300/60 scale-[1.01]'
+                    : activeWorkshopStep > s.step
+                      ? 'bg-emerald-50/70 text-emerald-900 border-emerald-200 hover:border-emerald-400'
+                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-sky-300'
+                ]">
                 <div class="flex items-center justify-between">
-                  <span class="font-black text-emerald-950">ช่อง L13 • จำนวนบิล (COUNTIF)</span>
-                  <button @click="copyText('=COUNTIF($B$2:$B$25, $K13)', 'z2-l13')" type="button"
-                    class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold cursor-pointer">
-                    {{ copiedKey === 'z2-l13' ? 'คัดลอกแล้ว' : 'Copy สูตร' }}
-                  </button>
+                  <span class="text-[10px] font-mono font-bold uppercase opacity-80">STEP {{ s.step }}</span>
+                  <CheckCircle2 v-if="activeWorkshopStep > s.step" class="w-3.5 h-3.5 text-emerald-600" />
                 </div>
-                <code class="block p-2.5 rounded-xl bg-slate-900 text-sky-300 font-mono break-all">
-                  =COUNTIF($B$2:$B$25, $K13)
-                </code>
-                <p class="text-slate-600">อ้างอิงชื่อสาขาจาก <code>$K13</code> (ไม่ล็อกเลขแถว 13 เพื่อให้ลากลงไปเป็น <code>$K14</code>, <code>$K15</code> อัตโนมัติ)</p>
-              </div>
-
-              <div class="p-4 rounded-2xl bg-white border border-emerald-200 space-y-2">
-                <div class="flex items-center justify-between">
-                  <span class="font-black text-emerald-950">ช่อง M13 • ยอดขายรวม (SUMIF)</span>
-                  <button @click="copyText('=SUMIF($B$2:$B$25, $K13, $I$2:$I$25)', 'z2-m13')" type="button"
-                    class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold cursor-pointer">
-                    {{ copiedKey === 'z2-m13' ? 'คัดลอกแล้ว' : 'Copy สูตร' }}
-                  </button>
-                </div>
-                <code class="block p-2.5 rounded-xl bg-slate-900 text-emerald-300 font-mono break-all">
-                  =SUMIF($B$2:$B$25, $K13, $I$2:$I$25)
-                </code>
-                <p class="text-slate-600">ตรวจคอลัมน์สาขา <code>$B$2:$B$25</code> ให้ตรงกับ <code>$K13</code> แล้วไปรวมยอดขายที่ <code>$I$2:$I$25</code></p>
-              </div>
-
-              <div class="p-4 rounded-2xl bg-white border border-emerald-200 space-y-2">
-                <div class="flex items-center justify-between">
-                  <span class="font-black text-emerald-950">ช่อง N13 • เฉลี่ยต่อบิล (AVERAGEIF)</span>
-                  <button @click="copyText('=AVERAGEIF($B$2:$B$25, $K13, $I$2:$I$25)', 'z2-n13')" type="button"
-                    class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold cursor-pointer">
-                    {{ copiedKey === 'z2-n13' ? 'คัดลอกแล้ว' : 'Copy สูตร' }}
-                  </button>
-                </div>
-                <code class="block p-2.5 rounded-xl bg-slate-900 text-purple-300 font-mono break-all">
-                  =AVERAGEIF($B$2:$B$25, $K13, $I$2:$I$25)
-                </code>
-                <p class="text-slate-600">หาค่าเฉลี่ยยอดขายเฉพาะบิลของสาขานั้น</p>
-              </div>
-
-              <div class="p-4 rounded-2xl bg-white border border-emerald-200 space-y-2">
-                <div class="flex items-center justify-between">
-                  <span class="font-black text-emerald-950">ช่อง O13 • สัดส่วน % Share (ล็อกตัวหาร $M$16)</span>
-                  <button @click="copyText('=M13/$M$16', 'z2-o13')" type="button"
-                    class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold cursor-pointer">
-                    {{ copiedKey === 'z2-o13' ? 'คัดลอกแล้ว' : 'Copy สูตร' }}
-                  </button>
-                </div>
-                <code class="block p-2.5 rounded-xl bg-slate-900 text-amber-300 font-mono break-all">
-                  =M13/$M$16
-                </code>
-                <p class="text-slate-600">
-                  อย่าลืมใส่สูตรรวมแถว 16 ก่อน: <code>L16</code>=<code>=SUM(L13:L15)</code>, <code>M16</code>=<code>=SUM(M13:M15)</code>, <code>N16</code>=<code>=M16/L16</code>, <code>O16</code>=<code>=SUM(O13:O15)</code> แล้วกดรูป <strong>%</strong> บนแถบเครื่องมือ
-                </p>
-              </div>
-            </div>
-
-            <!-- Live Preview Zone 2 Table -->
-            <div class="overflow-x-auto rounded-2xl border border-emerald-200 bg-white">
-              <div class="px-4 py-2.5 bg-emerald-900 text-white text-xs font-bold flex items-center justify-between">
-                <span>ตารางคำตอบที่ถูกต้องสำหรับ Zone 2 (K13:O16)</span>
-                <span class="font-mono text-emerald-200">ลากสูตรแถว 13 &rarr; 15</span>
-              </div>
-              <table class="w-full text-left text-xs">
-                <thead class="bg-slate-100 text-slate-700 font-bold">
-                  <tr>
-                    <th class="p-3">K: สาขา</th>
-                    <th class="p-3 text-right">L: จำนวนบิล (COUNTIF)</th>
-                    <th class="p-3 text-right">M: ยอดขายรวม (SUMIF)</th>
-                    <th class="p-3 text-right">N: เฉลี่ย/บิล (AVERAGEIF)</th>
-                    <th class="p-3">O: สัดส่วน % Share</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  <tr v-for="b in dashboardBranchSummary" :key="b.branch" class="hover:bg-emerald-50/40">
-                    <td class="p-3 font-bold text-slate-900">แถว {{ b.rowNum }}: {{ b.branch }}</td>
-                    <td class="p-3 text-right font-mono font-bold text-sky-700">{{ b.count }}</td>
-                    <td class="p-3 text-right font-mono font-bold text-emerald-700">{{ b.sum.toLocaleString() }} ฿</td>
-                    <td class="p-3 text-right font-mono font-bold text-purple-700">{{ b.average.toFixed(2) }} ฿</td>
-                    <td class="p-3">
-                      <div class="flex items-center gap-2">
-                        <div class="w-24 bg-slate-100 rounded-full h-2 overflow-hidden">
-                          <div class="h-full bg-emerald-500 rounded-full" :style="{ width: `${b.sharePercent}%` }"></div>
-                        </div>
-                        <span class="font-mono font-black text-emerald-800">{{ b.sharePercent.toFixed(1) }}%</span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr class="bg-emerald-50 font-black text-emerald-950 border-t-2 border-emerald-300">
-                    <td class="p-3">แถว 16: รวมทั้งหมด</td>
-                    <td class="p-3 text-right font-mono">{{ dashboardKpis.count }}</td>
-                    <td class="p-3 text-right font-mono">{{ dashboardKpis.sum.toLocaleString() }} ฿</td>
-                    <td class="p-3 text-right font-mono">{{ dashboardKpis.average.toFixed(2) }} ฿</td>
-                    <td class="p-3 font-mono">100.0%</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div v-if="!showAllWorkshopSteps" class="flex items-center justify-between pt-2">
-              <button @click="activeWorkshopStep = 2" type="button"
-                class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer">
-                &larr; ย้อนกลับขั้นที่ 2
-              </button>
-              <button @click="activeWorkshopStep = 4" type="button"
-                class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer">
-                <span>ไปขั้นที่ 4: ตาราง Matrix 2 มิติ (Zone 3)</span>
-                <ArrowRight class="w-4 h-4" />
+                <div class="text-xs font-black leading-snug">{{ s.shortTitle }}</div>
               </button>
             </div>
-          </div>
 
-          <!-- ============================================================= -->
-          <!-- STEP 4: ZONE 3 — 2D MATRIX (BRANCH x CATEGORY, K19:O22)       -->
-          <!-- ============================================================= -->
-          <div v-if="shouldShowStep(4)" class="rounded-3xl border-2 border-indigo-200 bg-indigo-50/30 p-5 sm:p-6 space-y-5">
-            <div class="border-b border-indigo-200 pb-4">
-              <span class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-xs font-mono font-bold">STEP 4 of 6</span>
-              <h4 class="text-lg sm:text-xl font-black text-indigo-950 mt-1.5">
-                ขั้นที่ 4: สร้างโซนที่ 3 — ตารางเจาะลึก 2 มิติ "สาขา &times; หมวดสินค้า" (ช่อง K19 ถึง O22)
-              </h4>
-              <p class="text-xs sm:text-sm text-slate-600 mt-1">
-                ใช้ <code>=SUMIFS()</code> เพื่อดูว่าแต่ละสาขาขายหมวดสินค้าใดได้เงินเท่าไหร่ — พิมพ์สูตรเดียวที่ช่อง <code>L20</code> แล้วลากคลุมได้ทั้ง 9 ช่อง!
-              </p>
-            </div>
+            <!-- ============================================================= -->
+            <!-- STEP 1: PREPARE FILE & INSPECT MASTER_DATA (24 ROWS)          -->
+            <!-- ============================================================= -->
+            <div v-if="shouldShowStep(1)"
+              class="rounded-3xl border-2 border-slate-200 bg-slate-50/60 p-5 sm:p-6 space-y-5">
+              <div
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                <div>
+                  <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-cyan-300 text-xs font-mono font-bold">STEP 1 of
+                    6</span>
+                  <h4 class="text-lg sm:text-xl font-black text-slate-900 mt-1.5">
+                    ขั้นที่ 1: แยกชีต Master_data ไว้เป็นต้นฉบับ และเตรียมชีต Numeric_Dashboard
+                  </h4>
+                </div>
+                <button @click="downloadDemoExcel" type="button"
+                  class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0">
+                  <Download class="w-4 h-4" />
+                  <span>โหลด demo_week4_numeric_dashboard.xlsx</span>
+                </button>
+              </div>
 
-            <!-- Formula Explanation: Mixed Reference vs Manual -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              <div class="lg:col-span-8 p-4 rounded-2xl bg-slate-900 text-white space-y-3">
+              <!-- 3 Mini Setup Instructions -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div class="p-4 rounded-2xl bg-white border border-slate-200 space-y-1.5">
+                  <div class="font-black text-sky-800">1. อัปโหลดไฟล์เข้า Google Sheets</div>
+                  <p class="text-slate-600 leading-relaxed">
+                    กดดาวน์โหลดไฟล์ <code>.xlsx</code> ด้านบน &rarr; อัปโหลดเข้า Google Drive &rarr; คลิกขวา
+                    <em>"เปิดด้วย Google Sheets"</em> (หรือบันทึกเป็น Google Sheets)
+                  </p>
+                </div>
+                <div class="p-4 rounded-2xl bg-white border border-slate-200 space-y-1.5">
+                  <div class="font-black text-indigo-800">2. รู้จักโครงสร้าง 2 ชีต (ไม่ปะปนต้นฉบับ)</div>
+                  <p class="text-slate-600 leading-relaxed">
+                    ชีต <code>Master_data</code> เก็บข้อมูลต้นฉบับ 24 แถวไว้เฉยๆ <strong>ห้ามแก้ไข</strong><br />
+                    ชีต <code>Numeric_Dashboard</code> คัดลอกตารางไว้ซ้าย (<code>A1:I25</code>) + พิมพ์สูตรสรุปทางขวา
+                    (<code>K1:O30</code>) ในชีตเดียวกัน!
+                  </p>
+                </div>
+                <div class="p-4 rounded-2xl bg-white border border-slate-200 space-y-1.5">
+                  <div class="font-black text-emerald-800">3. แผนผัง 4 โซน (ฝั่งขวา K1:O30)</div>
+                  <p class="text-slate-600 leading-relaxed">
+                    • <strong>Zone 1 (L4:L10):</strong> KPI ภาพรวม 7 ค่า<br />
+                    • <strong>Zone 2 (K13:O16):</strong> สรุปรายสาขา + % Share<br />
+                    • <strong>Zone 3 (K19:O22):</strong> Matrix สาขา &times; หมวด<br />
+                    • <strong>Zone 4 (L25:L30):</strong> เจาะกลุ่ม VIP &amp; เงื่อนไขพิเศษ
+                  </p>
+                </div>
+              </div>
+
+              <!-- Column Dictionary A-I -->
+              <div class="p-4 rounded-2xl bg-slate-900 text-white space-y-3">
+                <div class="text-xs font-bold text-cyan-300">พจนานุกรมคอลัมน์ข้อมูลฝั่งซ้ายในชีต Numeric_Dashboard
+                  (สำเนามาจาก Master_data แถว 2-25):</div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 text-[11px] font-mono">
+                  <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span
+                      class="text-sky-300 font-bold">A2:A25</span> &rarr; Order_ID</div>
+                  <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span
+                      class="text-sky-300 font-bold">B2:B25</span> &rarr; Branch (สาขา)</div>
+                  <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span
+                      class="text-sky-300 font-bold">C2:C25</span> &rarr; Category (หมวด)</div>
+                  <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span
+                      class="text-amber-300 font-bold">E2:E25</span> &rarr; Payment_Method</div>
+                  <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span
+                      class="text-amber-300 font-bold">F2:F25</span> &rarr; Member_Tier (VIP/ทั่วไป)</div>
+                  <div class="p-2 rounded-lg bg-slate-800 border border-slate-700"><span
+                      class="text-slate-300 font-bold">D, G, H</span> &rarr; Menu, Qty, Price</div>
+                  <div
+                    class="p-2 rounded-lg bg-emerald-900/60 border border-emerald-500/50 sm:col-span-2 lg:col-span-2">
+                    <span class="text-emerald-300 font-bold">I2:I25</span> &rarr; Total_Sales (ยอดขายรวม - ใช้เป็น
+                    sum_range / average_range)
+                  </div>
+                </div>
+              </div>
+
+              <!-- Preview Master_data Table -->
+              <div class="space-y-2">
                 <div class="flex items-center justify-between flex-wrap gap-2">
-                  <span class="text-xs font-bold text-cyan-300">สูตรมือโปรที่ช่อง L20 (ใช้ Mixed Reference ลากได้ทั้ง 9 ช่อง!):</span>
-                  <button @click="copyText('=SUMIFS($I$2:$I$25, $B$2:$B$25, $K20, $C$2:$C$25, L$19)', 'z3-l20')" type="button"
-                    class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer">
-                    <Check v-if="copiedKey === 'z3-l20'" class="w-3.5 h-3.5" />
-                    <Copy v-else class="w-3.5 h-3.5" />
-                    <span>{{ copiedKey === 'z3-l20' ? 'คัดลอกแล้ว' : 'Copy สูตร L20' }}</span>
+                  <span class="text-xs font-black text-slate-800">ตัวอย่างข้อมูลตั้งต้นในชีต Master_data (ทั้งหมด 24
+                    แถว):</span>
+                  <button @click="showAll24Preview = !showAll24Preview" type="button"
+                    class="px-3 py-1 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-slate-700 cursor-pointer">
+                    {{ showAll24Preview ? 'ย่อเหลือ 8 แถวแรก' : 'ดูข้อมูลครบทั้ง 24 แถว' }}
                   </button>
                 </div>
-                <div class="p-3 rounded-xl bg-slate-950 border border-indigo-500/40 font-mono text-xs sm:text-sm text-emerald-300 break-all">
-                  =SUMIFS($I$2:$I$25, $B$2:$B$25, <span class="text-amber-300 font-bold">$K20</span>, $C$2:$C$25, <span class="text-sky-300 font-bold">L$19</span>)
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-300">
-                  <div class="p-2.5 rounded-lg bg-slate-800 border border-slate-700">
-                    <code class="text-amber-300 font-bold">$K20</code> (ล็อกคอลัมน์ K, ปล่อยเลขแถว 20): เวลาลากไปทางขวา ชื่อสาขาจะยังอ่านจากคอลัมน์ K เสมอ แต่พอลงล่างจะเปลี่ยนเป็น K21, K22
-                  </div>
-                  <div class="p-2.5 rounded-lg bg-slate-800 border border-slate-700">
-                    <code class="text-sky-300 font-bold">L$19</code> (ปล่อยคอลัมน์ L, ล็อกเลขแถว 19): เวลาลากไปขวาจะอ่านหัวตาราง M19 (ชา), N19 (เบเกอรี่) แต่พอลงล่างจะไม่หลุดจากแถว 19
-                  </div>
-                </div>
-              </div>
-
-              <div class="lg:col-span-4 p-4 rounded-2xl bg-white border border-indigo-200 space-y-2.5 text-xs flex flex-col justify-between">
-                <div class="space-y-1.5">
-                  <div class="font-black text-indigo-950">สรุป 3 สเต็ปในโซนที่ 3:</div>
-                  <ol class="list-decimal pl-4 space-y-1 text-slate-600">
-                    <li>วางสูตรข้างต้นลงในช่อง <code>L20</code></li>
-                    <li>ลากมุมขวาล่างจาก <code>L20</code> &rarr; <code>N20</code> แล้วลากลงถึง <code>N22</code></li>
-                    <li>ช่อง <code>O20</code> ใส่สูตร <code>=SUM(L20:N20)</code> แล้วลากลงถึง <code>O22</code></li>
-                  </ol>
-                </div>
-                <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
-                  <strong>สำหรับผู้เริ่มต้น:</strong> หากยังสับสน <code>$K20</code> สามารถพิมพ์ชื่อเงื่อนไขตรงๆ ได้ เช่น <code>"สาขาสยาม"</code>, <code>"กาแฟ"</code> ทีละช่อง
-                </div>
-              </div>
-            </div>
-
-            <!-- Live Preview Zone 3 Matrix with Heatmap Highlight -->
-            <div class="overflow-x-auto rounded-2xl border border-indigo-200 bg-white">
-              <div class="px-4 py-2.5 bg-indigo-900 text-white text-xs font-bold flex items-center justify-between">
-                <span>ตารางคำตอบที่ถูกต้องสำหรับ Zone 3 (Matrix ยอดขาย สาขา &times; หมวดสินค้า)</span>
-                <span class="font-mono text-amber-300">ช่องยอดสูงสุด: {{ dashboardMatrix.maxBranch }} &times; {{ dashboardMatrix.maxCategory }}</span>
-              </div>
-              <table class="w-full text-left text-xs">
-                <thead class="bg-slate-100 text-slate-700 font-bold">
-                  <tr>
-                    <th class="p-3">K: สาขา / หมวดสินค้า</th>
-                    <th class="p-3 text-right">L: กาแฟ</th>
-                    <th class="p-3 text-right">M: ชา</th>
-                    <th class="p-3 text-right">N: เบเกอรี่</th>
-                    <th class="p-3 text-right">O: รวมรายสาขา (=SUM)</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  <tr v-for="row in dashboardMatrix.rows" :key="row.branch">
-                    <td class="p-3 font-bold text-slate-900">แถว {{ row.rowNum }}: {{ row.branch }}</td>
-                    <td v-for="cat in categoryList" :key="cat" class="p-3 text-right font-mono font-bold"
-                      :class="row.cells[cat] === dashboardMatrix.maxCell ? 'bg-amber-100 text-amber-950 font-black' : 'text-slate-700'">
-                      {{ row.cells[cat].toLocaleString() }} ฿
-                    </td>
-                    <td class="p-3 text-right font-mono font-black text-indigo-800 bg-indigo-50/60">
-                      {{ row.rowTotal.toLocaleString() }} ฿
-                    </td>
-                  </tr>
-                  <tr class="bg-indigo-50 font-black text-indigo-950 border-t-2 border-indigo-300">
-                    <td class="p-3">รวมตามหมวดสินค้า</td>
-                    <td v-for="cat in categoryList" :key="`tot-${cat}`" class="p-3 text-right font-mono">
-                      {{ dashboardMatrix.colTotals[cat].toLocaleString() }} ฿
-                    </td>
-                    <td class="p-3 text-right font-mono">{{ dashboardMatrix.grandTotal.toLocaleString() }} ฿</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div v-if="!showAllWorkshopSteps" class="flex items-center justify-between pt-2">
-              <button @click="activeWorkshopStep = 3" type="button"
-                class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer">
-                &larr; ย้อนกลับขั้นที่ 3
-              </button>
-              <button @click="activeWorkshopStep = 5" type="button"
-                class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer">
-                <span>ไปขั้นที่ 5: ตัวเลขเจาะกลุ่ม VIP และเงื่อนไขพิเศษ (Zone 4)</span>
-                <ArrowRight class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <!-- ============================================================= -->
-          <!-- STEP 5: ZONE 4 — SEGMENT & MULTI-CONDITION KPIS (L25:L30)     -->
-          <!-- ============================================================= -->
-          <div v-if="shouldShowStep(5)" class="rounded-3xl border-2 border-purple-200 bg-purple-50/30 p-5 sm:p-6 space-y-5">
-            <div class="border-b border-purple-200 pb-4">
-              <span class="px-2.5 py-1 rounded-lg bg-purple-600 text-white text-xs font-mono font-bold">STEP 5 of 6</span>
-              <h4 class="text-lg sm:text-xl font-black text-purple-950 mt-1.5">
-                ขั้นที่ 5: สร้างโซนที่ 4 — ตัวเลขเจาะกลุ่มลูกค้าและเงื่อนไขพิเศษ (ช่อง L25 ถึง L30)
-              </h4>
-              <p class="text-xs sm:text-sm text-slate-600 mt-1">
-                ฝึกใช้ฟังก์ชัน <code>COUNTIFS</code>, <code>SUMIFS</code>, <code>AVERAGEIF</code> และเงื่อนไขช่วงตัวเลข (<code>&gt;=</code>, <code>&lt;=</code>) เพื่อตอบคำถามเชิงพฤติกรรมลูกค้า
-              </p>
-            </div>
-
-            <div class="overflow-x-auto rounded-2xl border border-purple-200 bg-white">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-purple-900 text-white">
-                  <tr>
-                    <th class="p-3">เซลล์</th>
-                    <th class="p-3">ฟังก์ชัน</th>
-                    <th class="p-3">โจทย์คำถามธุรกิจ</th>
-                    <th class="p-3">สูตร Google Sheets</th>
-                    <th class="p-3 text-right">คำตอบจริง</th>
-                    <th class="p-3 text-center">คัดลอก</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  <tr v-for="z4 in zone4FormulaGuide" :key="z4.cell" class="hover:bg-purple-50/50">
-                    <td class="p-3 font-mono font-black text-purple-700">{{ z4.cell }}</td>
-                    <td class="p-3">
-                      <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-mono font-bold text-[10px]">{{ z4.funcTag }}</span>
-                    </td>
-                    <td class="p-3 font-bold text-slate-800">{{ z4.title }}</td>
-                    <td class="p-3 font-mono text-emerald-700 text-[11px] break-all">{{ z4.formula }}</td>
-                    <td class="p-3 text-right font-mono font-black text-slate-900 whitespace-nowrap">{{ z4.answer }}</td>
-                    <td class="p-3 text-center">
-                      <button @click="copyText(z4.formula, `z4-${z4.cell}`)" type="button"
-                        class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-purple-100 text-slate-700 font-bold inline-flex items-center gap-1 cursor-pointer">
-                        <Check v-if="copiedKey === `z4-${z4.cell}`" class="w-3.5 h-3.5 text-emerald-600" />
-                        <Copy v-else class="w-3.5 h-3.5" />
-                        <span>{{ copiedKey === `z4-${z4.cell}` ? 'แล้ว' : 'Copy' }}</span>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Live Preview VIP vs General Comparison -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div class="p-4 rounded-2xl bg-white border border-amber-200 space-y-1">
-                <div class="text-[11px] font-bold text-amber-800">L27 • ค่าเฉลี่ยลูกค้า VIP</div>
-                <div class="text-2xl font-black font-mono text-amber-600">{{ dashboardSegments.vipAvg.toFixed(2) }} ฿</div>
-                <div class="text-[11px] text-slate-500">สูงกว่าลูกค้าทั่วไป +{{ dashboardSegments.vipVsGeneralDiff.toFixed(2) }} ฿/บิล</div>
-              </div>
-              <div class="p-4 rounded-2xl bg-white border border-slate-200 space-y-1">
-                <div class="text-[11px] font-bold text-slate-600">L28 • ค่าเฉลี่ยลูกค้าทั่วไป</div>
-                <div class="text-2xl font-black font-mono text-slate-800">{{ dashboardSegments.generalAvg.toFixed(2) }} ฿</div>
-                <div class="text-[11px] text-slate-500">เปรียบเทียบตรงๆ ด้วย AVERAGEIF</div>
-              </div>
-              <div class="p-4 rounded-2xl bg-white border border-purple-200 space-y-1">
-                <div class="text-[11px] font-bold text-purple-800">L25 &amp; L26 • VIP QR / บัตรเครดิต</div>
-                <div class="text-xl font-black font-mono text-purple-700">{{ dashboardSegments.vipQrCount }} บิล / {{ dashboardSegments.vipCardSum.toLocaleString() }} ฿</div>
-                <div class="text-[11px] text-slate-500">เจาะช่องทางจ่ายเงินด้วย COUNTIFS/SUMIFS</div>
-              </div>
-              <div class="p-4 rounded-2xl bg-white border border-emerald-200 space-y-1">
-                <div class="text-[11px] font-bold text-emerald-800">L29 &amp; L30 • บิลมูลค่าสูง &amp; ช่วงกลาง</div>
-                <div class="text-xl font-black font-mono text-emerald-700">{{ dashboardSegments.highOrderCount }} บิล / {{ dashboardSegments.midRangeSum.toLocaleString() }} ฿</div>
-                <div class="text-[11px] text-slate-500">บิล &gt;=200 บาท และช่วง 100–200 บาท</div>
-              </div>
-            </div>
-
-            <div v-if="!showAllWorkshopSteps" class="flex items-center justify-between pt-2">
-              <button @click="activeWorkshopStep = 4" type="button"
-                class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer">
-                &larr; ย้อนกลับขั้นที่ 4
-              </button>
-              <button @click="activeWorkshopStep = 6" type="button"
-                class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer">
-                <span>ไปขั้นที่ 6: ตกแต่งเป็นแดชบอร์ดฉบับสมบูรณ์!</span>
-                <ArrowRight class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <!-- ============================================================= -->
-          <!-- STEP 6: POLISH & COMPLETE NUMERIC KPI DASHBOARD SHOWCASE      -->
-          <!-- ============================================================= -->
-          <div v-if="shouldShowStep(6)" class="rounded-3xl border-2 border-teal-300 bg-gradient-to-br from-slate-900 via-sky-950 to-indigo-950 text-white p-5 sm:p-7 space-y-6 shadow-lg">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/15 pb-4">
-              <div>
-                <span class="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 text-xs font-mono font-black">STEP 6 of 6 • FINAL RESULT</span>
-                <h4 class="text-lg sm:text-2xl font-black text-white mt-1.5">
-                  ขั้นที่ 6: ตกแต่งและตรวจสอบ "แดชบอร์ดตัวเลขฉบับสมบูรณ์ (Final Numeric KPI Dashboard)"
-                </h4>
-              </div>
-              <span class="px-3 py-1 rounded-full bg-white/10 text-cyan-200 text-xs font-mono border border-white/20 shrink-0">
-                24 Rows Verified
-              </span>
-            </div>
-
-            <!-- 4-Point Google Sheets Polish Checklist -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-              <div class="p-3.5 rounded-xl bg-white/10 border border-white/15 space-y-1">
-                <div class="font-bold text-cyan-300">1. ซ่อนเส้น Gridlines</div>
-                <p class="text-slate-200">เมนู <code>View &rarr; Show &rarr; Gridlines</code> (เอาติ๊กถูกออก) เพื่อเปลี่ยนแผ่นงานให้ดูเหมือนหน้า Dashboard สะอาดตา</p>
-              </div>
-              <div class="p-3.5 rounded-xl bg-white/10 border border-white/15 space-y-1">
-                <div class="font-bold text-emerald-300">2. จัด Format ตัวเลข &amp; %</div>
-                <p class="text-slate-200">ใส่ลูกน้ำหลักพัน <code>#,##0</code> ให้ช่องยอดขาย และตั้งค่าทศนิยม 1 ตำแหน่ง <code>0.0%</code> ให้คอลัมน์สัดส่วน</p>
-              </div>
-              <div class="p-3.5 rounded-xl bg-white/10 border border-white/15 space-y-1">
-                <div class="font-bold text-amber-300">3. ใส่ Color Scale (Heatmap)</div>
-                <p class="text-slate-200">คลุม <code>L20:N22</code> &rarr; <code>Format &rarr; Conditional formatting &rarr; Color scale</code> เพื่อไฮไลต์จุดขายดีด้วยสีอัตโนมัติ</p>
-              </div>
-              <div class="p-3.5 rounded-xl bg-white/10 border border-white/15 space-y-1">
-                <div class="font-bold text-purple-300">4. เขียน Executive Insights</div>
-                <p class="text-slate-200">สรุปสิ่งที่ค้นพบด้านล่างตารางด้วยตัวเลขและเปอร์เซ็นต์จริง 3 ข้อ เพื่อให้ผู้บริหารตัดสินใจได้ทันที</p>
-              </div>
-            </div>
-
-            <!-- Unified Final Complete Numeric Dashboard Preview -->
-            <div class="p-5 rounded-2xl bg-slate-950/90 border border-cyan-500/30 space-y-5">
-              <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
-                <div class="font-black text-base text-white flex items-center gap-2">
-                  <BarChart3 class="w-5 h-5 text-cyan-400" />
-                  <span>ตัวอย่างหน้าตาแดชบอร์ดตัวเลขฉบับสมบูรณ์ (ตรวจเทียบคำตอบครบทุกโซน)</span>
-                </div>
-                <span class="text-xs font-mono text-emerald-300">Numeric_Dashboard (24 Orders from Master_data)</span>
-              </div>
-
-              <!-- Zone 1 Strip -->
-              <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-                <div v-for="card in zone1FormulaGuide" :key="`fin-${card.cell}`"
-                  class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
-                  <div class="text-[10px] text-slate-400">{{ card.label }}</div>
-                  <div class="text-sm font-black font-mono text-cyan-300 mt-0.5">{{ card.answer }}</div>
-                </div>
-              </div>
-
-              <!-- Zone 2 & Zone 3 Side-by-Side -->
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
-                <!-- Zone 2 Mini -->
-                <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2.5">
-                  <div class="font-bold text-emerald-300">Zone 2: สรุปรายสาขา (% Share)</div>
-                  <div class="space-y-2">
-                    <div v-for="b in dashboardBranchSummary" :key="`fin-b-${b.branch}`" class="space-y-1">
-                      <div class="flex items-center justify-between">
-                        <span class="font-bold text-white">{{ b.branch }} ({{ b.count }} บิล)</span>
-                        <span class="font-mono text-emerald-300 font-bold">{{ b.sum.toLocaleString() }} ฿ ({{ b.sharePercent.toFixed(1) }}%)</span>
-                      </div>
-                      <div class="w-full bg-slate-800 rounded-full h-1.5">
-                        <div class="h-full bg-emerald-400 rounded-full" :style="{ width: `${b.sharePercent}%` }"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Zone 3 Mini Heatmap -->
-                <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2.5">
-                  <div class="font-bold text-amber-300">Zone 3: Matrix สาขา &times; หมวดสินค้า (Heatmap)</div>
-                  <table class="w-full text-left font-mono text-[11px]">
-                    <thead class="text-slate-400 border-b border-slate-800 font-sans">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 max-h-72 overflow-y-auto">
+                  <table class="w-full text-left text-xs font-mono">
+                    <thead class="bg-slate-800 text-slate-200 font-sans sticky top-0">
                       <tr>
-                        <th class="pb-1.5">สาขา</th>
-                        <th class="pb-1.5 text-right">กาแฟ</th>
-                        <th class="pb-1.5 text-right">ชา</th>
-                        <th class="pb-1.5 text-right">เบเกอรี่</th>
-                        <th class="pb-1.5 text-right">รวม</th>
+                        <th class="p-2.5">Row</th>
+                        <th class="p-2.5">A: Order_ID</th>
+                        <th class="p-2.5">B: Branch</th>
+                        <th class="p-2.5">C: Category</th>
+                        <th class="p-2.5">D: Menu_Item</th>
+                        <th class="p-2.5">E: Payment</th>
+                        <th class="p-2.5">F: Tier</th>
+                        <th class="p-2.5 text-right">I: Total_Sales</th>
                       </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800">
-                      <tr v-for="row in dashboardMatrix.rows" :key="`fin-m-${row.branch}`">
-                        <td class="py-1.5 font-sans font-bold text-slate-200">{{ row.branch }}</td>
-                        <td v-for="cat in categoryList" :key="`fin-c-${cat}`" class="py-1.5 text-right"
-                          :class="row.cells[cat] === dashboardMatrix.maxCell ? 'text-amber-300 font-black' : 'text-slate-300'">
-                          {{ row.cells[cat].toLocaleString() }}
+                    <tbody class="divide-y divide-slate-100 bg-white text-slate-700">
+                      <tr v-for="r in previewMasterRows" :key="r.orderId" class="hover:bg-sky-50/40">
+                        <td class="p-2 text-slate-400">{{ r.row }}</td>
+                        <td class="p-2 font-bold text-sky-700">{{ r.orderId }}</td>
+                        <td class="p-2 font-sans">{{ r.branch }}</td>
+                        <td class="p-2 font-sans">{{ r.category }}</td>
+                        <td class="p-2 font-sans">{{ r.menuItem }}</td>
+                        <td class="p-2 font-sans">{{ r.payment }}</td>
+                        <td class="p-2">
+                          <span class="px-2 py-0.5 rounded text-[10px] font-sans font-bold"
+                            :class="r.tier === 'VIP' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'">
+                            {{ r.tier }}
+                          </span>
                         </td>
-                        <td class="py-1.5 text-right text-cyan-300 font-bold">{{ row.rowTotal.toLocaleString() }}</td>
+                        <td class="p-2 text-right font-bold text-emerald-700">{{ r.totalSales.toLocaleString() }}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              <!-- Auto-Computed Executive Insights -->
-              <div class="p-4 rounded-xl bg-emerald-950/50 border border-emerald-500/40 space-y-2">
-                <div class="text-xs font-black text-emerald-300 flex items-center gap-1.5">
-                  <Lightbulb class="w-4 h-4 text-amber-300" />
-                  <span>ตัวอย่าง Executive Mini-Insights 3 ข้อ (สร้างจากตัวเลขจริงของแดชบอร์ด):</span>
-                </div>
-                <ul class="list-disc pl-5 text-xs text-slate-200 space-y-1 leading-relaxed">
-                  <li>
-                    <strong>ภาพรวม &amp; การกระจายตัว:</strong> จาก {{ dashboardKpis.count }} บิล สร้างยอดขายรวม <strong>{{ dashboardKpis.sum.toLocaleString() }} บาท</strong> ค่าเฉลี่ย <strong>{{ dashboardKpis.average.toFixed(2) }} บาท</strong> ใกล้เคียงกับมัธยฐาน <strong>{{ dashboardKpis.median.toFixed(2) }} บาท</strong> แสดงว่ายอดซื้อปกติกระจายตัวสมดุล
-                  </li>
-                  <li>
-                    <strong>สาขาและสินค้าทำเงิน:</strong> <strong>{{ topBranch.branch }}</strong> ทำยอดขายสูงสุด <strong>{{ topBranch.sum.toLocaleString() }} บาท ({{ topBranch.sharePercent.toFixed(1) }}%)</strong> โดยคู่ที่ทำรายได้สูงสุดในร้านคือ <strong>{{ dashboardMatrix.maxBranch }} &times; {{ dashboardMatrix.maxCategory }} ({{ dashboardMatrix.maxCell.toLocaleString() }} บาท)</strong>
-                  </li>
-                  <li>
-                    <strong>พฤติกรรมกลุ่มลูกค้า:</strong> สมาชิก <strong>VIP</strong> มียอดเฉลี่ยต่อบิล <strong>{{ dashboardSegments.vipAvg.toFixed(2) }} บาท</strong> สูงกว่าลูกค้าทั่วไป ({{ dashboardSegments.generalAvg.toFixed(2) }} บาท) อยู่ถึง <strong>+{{ dashboardSegments.vipVsGeneralDiff.toFixed(2) }} บาทต่อบิล</strong> จึงควรจัดโปรโมชันดึงลูกค้าทั่วไปสมัครสมาชิก VIP
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div v-if="!showAllWorkshopSteps" class="flex items-center justify-between pt-2">
-              <button @click="activeWorkshopStep = 5" type="button"
-                class="px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 cursor-pointer">
-                &larr; ย้อนกลับขั้นที่ 5
-              </button>
-              <span class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
-                <CheckCircle2 class="w-4 h-4" /> เสร็จสิ้นภาคปฏิบัติ! เลื่อนลงด้านล่างเพื่อทำมินิเกมและใบงานที่ 4 ได้เลย
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- =============================================================== -->
-        <!-- TAB 2: CONDITIONAL FORMULA BUILDER                              -->
-        <!-- =============================================================== -->
-        <div v-if="activeLabTab === 'conditional'" class="space-y-5">
-          <!-- Controls Panel -->
-          <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-5">
-            <!-- Step 1: Select Function -->
-            <div class="space-y-2">
-              <div class="text-xs font-bold text-cyan-300 uppercase tracking-wider">
-                1. เลือกฟังก์ชันที่ต้องการทดสอบ (สังเกตความต่างระหว่าง 1 เงื่อนไข กับ หลายเงื่อนไข):
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <button v-for="fn in ['COUNTIF', 'SUMIF', 'AVERAGEIF', 'COUNTIFS', 'SUMIFS', 'AVERAGEIFS']" :key="fn"
-                  @click="condFunc = fn" type="button"
-                  :class="[
-                    'px-3.5 py-2 rounded-xl font-mono font-bold text-xs transition-all cursor-pointer border',
-                    condFunc === fn
-                      ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md scale-[1.02]'
-                      : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500'
-                  ]">
-                  ={{ fn }}(...)
+              <div v-if="!showAllWorkshopSteps" class="flex justify-end pt-2">
+                <button @click="activeWorkshopStep = 2" type="button"
+                  class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer">
+                  <span>ไปขั้นที่ 2: สร้างกล่อง KPI ภาพรวม (Zone 1)</span>
+                  <ArrowRight class="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            <!-- Step 2: Criteria Selectors -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <!-- Criteria 1 -->
-              <div class="p-4 rounded-xl bg-slate-800/80 border border-sky-500/40 space-y-2.5">
-                <div class="text-xs font-black text-sky-300">เงื่อนไขที่ 1 (Criteria 1)</div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <div>
-                    <label class="block text-[11px] text-slate-400 mb-1">คอลัมน์ตรวจสอบ:</label>
-                    <select v-model="cond1Field"
-                      class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
-                      <option v-for="(meta, key) in cond1FieldMeta" :key="key" :value="key">{{ meta.label }}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-[11px] text-slate-400 mb-1">ค่าเงื่อนไขที่ต้องการ:</label>
-                    <select v-model="cond1Value"
-                      class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
-                      <option v-for="opt in cond1FieldMeta[cond1Field].options" :key="opt" :value="opt">{{ opt }}</option>
-                    </select>
+            <!-- ============================================================= -->
+            <!-- STEP 2: ZONE 1 — OVERALL KPI SCORECARDS (CELLS L4:L10)        -->
+            <!-- ============================================================= -->
+            <div v-if="shouldShowStep(2)" class="rounded-3xl border-2 border-sky-200 bg-sky-50/30 p-5 sm:p-6 space-y-5">
+              <div class="border-b border-sky-200 pb-4">
+                <span class="px-2.5 py-1 rounded-lg bg-sky-600 text-white text-xs font-mono font-bold">STEP 2 of
+                  6</span>
+                <h4 class="text-lg sm:text-xl font-black text-sky-950 mt-1.5">
+                  ขั้นที่ 2: สร้างโซนที่ 1 — กล่อง KPI สถิติภาพรวม (ในชีต Numeric_Dashboard ช่อง L4 ถึง L10)
+                </h4>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1">
+                  คลิกที่ช่อง <code>L4</code> ถึง <code>L10</code> (ฝั่งขวาในชีต <code>Numeric_Dashboard</code>)
+                  แล้วพิมพ์สูตรที่อ้างอิงตารางฝั่งซ้าย <code>$I$2:$I$25</code> ในชีตเดียวกันได้เลย
+                </p>
+              </div>
+
+              <!-- Formula Guide Table L4:L10 -->
+              <div class="overflow-x-auto rounded-2xl border border-sky-200 bg-white">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-sky-900 text-white">
+                    <tr>
+                      <th class="p-3">พิกัดเซลล์</th>
+                      <th class="p-3">ตัวชี้วัด (KPI)</th>
+                      <th class="p-3">สูตรที่ต้องพิมพ์ใน Google Sheets</th>
+                      <th class="p-3 text-right">คำตอบที่ต้องได้ (ตรวจผล)</th>
+                      <th class="p-3 text-center">คัดลอก</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr v-for="item in zone1FormulaGuide" :key="item.cell" class="hover:bg-sky-50/50">
+                      <td class="p-3 font-mono font-black text-sky-700">{{ item.cell }}</td>
+                      <td class="p-3 font-bold text-slate-800">{{ item.label }}</td>
+                      <td class="p-3 font-mono text-emerald-700 font-bold">{{ item.formula }}</td>
+                      <td class="p-3 text-right font-mono font-black text-slate-900">{{ item.answer }}</td>
+                      <td class="p-3 text-center">
+                        <button @click="copyText(item.formula, `z1-${item.cell}`)" type="button"
+                          class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 font-bold inline-flex items-center gap-1 cursor-pointer">
+                          <Check v-if="copiedKey === `z1-${item.cell}`" class="w-3.5 h-3.5 text-emerald-600" />
+                          <Copy v-else class="w-3.5 h-3.5" />
+                          <span>{{ copiedKey === `z1-${item.cell}` ? 'แล้ว' : 'Copy' }}</span>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Live Preview Zone 1 Cards -->
+              <div class="p-4 rounded-2xl bg-slate-900 text-white space-y-3">
+                <div class="text-xs font-bold text-cyan-300">ผลลัพธ์ Live Preview โซนที่ 1 (เมื่อใส่สูตรครบ L4:L10):
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+                  <div v-for="card in zone1FormulaGuide" :key="`pv-${card.cell}`"
+                    class="p-3 rounded-xl bg-slate-800/90 border border-slate-700 space-y-1">
+                    <div class="text-[10px] font-mono text-sky-300">{{ card.cell }} • {{ card.label }}</div>
+                    <div class="text-sm sm:text-base font-black font-mono text-emerald-300">{{ card.answer }}</div>
                   </div>
                 </div>
               </div>
 
-              <!-- Criteria 2 -->
-              <div class="p-4 rounded-xl border space-y-2.5 transition-all"
-                :class="isMultiConditionFunc ? 'bg-slate-800/80 border-purple-500/40' : 'bg-slate-800/30 border-slate-800 opacity-50 pointer-events-none'">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-black text-purple-300">เงื่อนไขที่ 2 (Criteria 2)</span>
-                  <span class="text-[10px] px-2 py-0.5 rounded bg-black/40 text-slate-300">
-                    {{ isMultiConditionFunc ? 'เปิดใช้งาน' : 'เลือกสูตร *IFS เพื่อใช้เงื่อนไขที่ 2' }}
-                  </span>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <div>
-                    <label class="block text-[11px] text-slate-400 mb-1">คอลัมน์ตรวจสอบ:</label>
-                    <select v-model="cond2Field" :disabled="!isMultiConditionFunc"
-                      class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-purple-400">
-                      <option v-for="(meta, key) in cond2FieldMeta" :key="key" :value="key">{{ meta.label }}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-[11px] text-slate-400 mb-1">ค่าเงื่อนไขที่ต้องการ:</label>
-                    <select v-model="cond2Value" :disabled="!isMultiConditionFunc"
-                      class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-purple-400">
-                      <option v-for="opt in cond2FieldMeta[cond2Field].options" :key="opt" :value="opt">
-                        {{ cond2Field === 'Total_Sales_Gte' ? `>= ${opt} บาท` : opt }}
-                      </option>
-                    </select>
-                  </div>
-                </div>
+              <div v-if="!showAllWorkshopSteps" class="flex items-center justify-between pt-2">
+                <button @click="activeWorkshopStep = 1" type="button"
+                  class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer">
+                  &larr; ย้อนกลับขั้นที่ 1
+                </button>
+                <button @click="activeWorkshopStep = 3" type="button"
+                  class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer">
+                  <span>ไปขั้นที่ 3: ตารางสรุปรายสาขา + % Share (Zone 2)</span>
+                  <ArrowRight class="w-4 h-4" />
+                </button>
               </div>
             </div>
 
-            <!-- Step 3: Generated Formula & Live Result -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center pt-1">
-              <div class="lg:col-span-8 p-4 rounded-xl bg-slate-950 border border-emerald-500/40 space-y-2">
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-[11px] font-bold text-emerald-300 uppercase">สูตรที่ระบบสร้างให้อัตโนมัติ (ช่วงข้อมูล A2:I13):</span>
-                  <button @click="copyText(generatedFormula, 'cond-gen')" type="button"
-                    class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1 cursor-pointer">
-                    <Check v-if="copiedKey === 'cond-gen'" class="w-3.5 h-3.5" />
-                    <Copy v-else class="w-3.5 h-3.5" />
-                    <span>{{ copiedKey === 'cond-gen' ? 'คัดลอกแล้ว' : 'คัดลอกสูตร' }}</span>
+            <!-- ============================================================= -->
+            <!-- STEP 3: ZONE 2 — BRANCH SUMMARY + % SHARE (K13:O16)           -->
+            <!-- ============================================================= -->
+            <div v-if="shouldShowStep(3)"
+              class="rounded-3xl border-2 border-emerald-200 bg-emerald-50/30 p-5 sm:p-6 space-y-5">
+              <div class="border-b border-emerald-200 pb-4">
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-mono font-bold">STEP 3 of
+                  6</span>
+                <h4 class="text-lg sm:text-xl font-black text-emerald-950 mt-1.5">
+                  ขั้นที่ 3: สร้างโซนที่ 2 — ตารางสรุปรายสาขา + สัดส่วน % Share (ช่อง K13 ถึง O16)
+                </h4>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1">
+                  หัวใจของการทำงานเร็ว: <strong>พิมพ์สูตรแค่แถวแรก (แถว 13: สาขาสยาม) พร้อมใส่ <code>$</code>
+                    ล็อกช่วงข้อมูล แล้วลากลงแถว 14–15 ทันที!</strong>
+                </p>
+              </div>
+
+              <!-- Row 13 Formula Instructions -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div class="p-4 rounded-2xl bg-white border border-emerald-200 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-black text-emerald-950">ช่อง L13 • จำนวนบิล (COUNTIF)</span>
+                    <button @click="copyText('=COUNTIF($B$2:$B$25, $K13)', 'z2-l13')" type="button"
+                      class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold cursor-pointer">
+                      {{ copiedKey === 'z2-l13' ? 'คัดลอกแล้ว' : 'Copy สูตร' }}
+                    </button>
+                  </div>
+                  <code class="block p-2.5 rounded-xl bg-slate-900 text-sky-300 font-mono break-all">
+                  =COUNTIF($B$2:$B$25, $K13)
+                </code>
+                  <p class="text-slate-600">อ้างอิงชื่อสาขาจาก <code>$K13</code> (ไม่ล็อกเลขแถว 13 เพื่อให้ลากลงไปเป็น
+                    <code>$K14</code>, <code>$K15</code> อัตโนมัติ)
+                  </p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-white border border-emerald-200 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-black text-emerald-950">ช่อง M13 • ยอดขายรวม (SUMIF)</span>
+                    <button @click="copyText('=SUMIF($B$2:$B$25, $K13, $I$2:$I$25)', 'z2-m13')" type="button"
+                      class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold cursor-pointer">
+                      {{ copiedKey === 'z2-m13' ? 'คัดลอกแล้ว' : 'Copy สูตร' }}
+                    </button>
+                  </div>
+                  <code class="block p-2.5 rounded-xl bg-slate-900 text-emerald-300 font-mono break-all">
+                  =SUMIF($B$2:$B$25, $K13, $I$2:$I$25)
+                </code>
+                  <p class="text-slate-600">ตรวจคอลัมน์สาขา <code>$B$2:$B$25</code> ให้ตรงกับ <code>$K13</code>
+                    แล้วไปรวมยอดขายที่ <code>$I$2:$I$25</code></p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-white border border-emerald-200 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-black text-emerald-950">ช่อง N13 • เฉลี่ยต่อบิล (AVERAGEIF)</span>
+                    <button @click="copyText('=AVERAGEIF($B$2:$B$25, $K13, $I$2:$I$25)', 'z2-n13')" type="button"
+                      class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold cursor-pointer">
+                      {{ copiedKey === 'z2-n13' ? 'คัดลอกแล้ว' : 'Copy สูตร' }}
+                    </button>
+                  </div>
+                  <code class="block p-2.5 rounded-xl bg-slate-900 text-purple-300 font-mono break-all">
+                  =AVERAGEIF($B$2:$B$25, $K13, $I$2:$I$25)
+                </code>
+                  <p class="text-slate-600">หาค่าเฉลี่ยยอดขายเฉพาะบิลของสาขานั้น</p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-white border border-emerald-200 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-black text-emerald-950">ช่อง O13 • สัดส่วน % Share (ล็อกตัวหาร $M$16)</span>
+                    <button @click="copyText('=M13/$M$16', 'z2-o13')" type="button"
+                      class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold cursor-pointer">
+                      {{ copiedKey === 'z2-o13' ? 'คัดลอกแล้ว' : 'Copy สูตร' }}
+                    </button>
+                  </div>
+                  <code class="block p-2.5 rounded-xl bg-slate-900 text-amber-300 font-mono break-all">
+                  =M13/$M$16
+                </code>
+                  <p class="text-slate-600">
+                    อย่าลืมใส่สูตรรวมแถว 16 ก่อน: <code>L16</code>=<code>=SUM(L13:L15)</code>,
+                    <code>M16</code>=<code>=SUM(M13:M15)</code>, <code>N16</code>=<code>=M16/L16</code>,
+                    <code>O16</code>=<code>=SUM(O13:O15)</code> แล้วกดรูป <strong>%</strong> บนแถบเครื่องมือ
+                  </p>
+                </div>
+              </div>
+
+              <!-- Live Preview Zone 2 Table -->
+              <div class="overflow-x-auto rounded-2xl border border-emerald-200 bg-white">
+                <div class="px-4 py-2.5 bg-emerald-900 text-white text-xs font-bold flex items-center justify-between">
+                  <span>ตารางคำตอบที่ถูกต้องสำหรับ Zone 2 (K13:O16)</span>
+                  <span class="font-mono text-emerald-200">ลากสูตรแถว 13 &rarr; 15</span>
+                </div>
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-100 text-slate-700 font-bold">
+                    <tr>
+                      <th class="p-3">K: สาขา</th>
+                      <th class="p-3 text-right">L: จำนวนบิล (COUNTIF)</th>
+                      <th class="p-3 text-right">M: ยอดขายรวม (SUMIF)</th>
+                      <th class="p-3 text-right">N: เฉลี่ย/บิล (AVERAGEIF)</th>
+                      <th class="p-3">O: สัดส่วน % Share</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr v-for="b in dashboardBranchSummary" :key="b.branch" class="hover:bg-emerald-50/40">
+                      <td class="p-3 font-bold text-slate-900">แถว {{ b.rowNum }}: {{ b.branch }}</td>
+                      <td class="p-3 text-right font-mono font-bold text-sky-700">{{ b.count }}</td>
+                      <td class="p-3 text-right font-mono font-bold text-emerald-700">{{ b.sum.toLocaleString() }} ฿
+                      </td>
+                      <td class="p-3 text-right font-mono font-bold text-purple-700">{{ b.average.toFixed(2) }} ฿</td>
+                      <td class="p-3">
+                        <div class="flex items-center gap-2">
+                          <div class="w-24 bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div class="h-full bg-emerald-500 rounded-full" :style="{ width: `${b.sharePercent}%` }">
+                            </div>
+                          </div>
+                          <span class="font-mono font-black text-emerald-800">{{ b.sharePercent.toFixed(1) }}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr class="bg-emerald-50 font-black text-emerald-950 border-t-2 border-emerald-300">
+                      <td class="p-3">แถว 16: รวมทั้งหมด</td>
+                      <td class="p-3 text-right font-mono">{{ dashboardKpis.count }}</td>
+                      <td class="p-3 text-right font-mono">{{ dashboardKpis.sum.toLocaleString() }} ฿</td>
+                      <td class="p-3 text-right font-mono">{{ dashboardKpis.average.toFixed(2) }} ฿</td>
+                      <td class="p-3 font-mono">100.0%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div v-if="!showAllWorkshopSteps" class="flex items-center justify-between pt-2">
+                <button @click="activeWorkshopStep = 2" type="button"
+                  class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer">
+                  &larr; ย้อนกลับขั้นที่ 2
+                </button>
+                <button @click="activeWorkshopStep = 4" type="button"
+                  class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer">
+                  <span>ไปขั้นที่ 4: ตาราง Matrix 2 มิติ (Zone 3)</span>
+                  <ArrowRight class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- STEP 4: ZONE 3 — 2D MATRIX (BRANCH x CATEGORY, K19:O22)       -->
+            <!-- ============================================================= -->
+            <div v-if="shouldShowStep(4)"
+              class="rounded-3xl border-2 border-indigo-200 bg-indigo-50/30 p-5 sm:p-6 space-y-5">
+              <div class="border-b border-indigo-200 pb-4">
+                <span class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-xs font-mono font-bold">STEP 4 of
+                  6</span>
+                <h4 class="text-lg sm:text-xl font-black text-indigo-950 mt-1.5">
+                  ขั้นที่ 4: สร้างโซนที่ 3 — ตารางเจาะลึก 2 มิติ "สาขา &times; หมวดสินค้า" (ช่อง K19 ถึง O22)
+                </h4>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1">
+                  ใช้ <code>=SUMIFS()</code> เพื่อดูว่าแต่ละสาขาขายหมวดสินค้าใดได้เงินเท่าไหร่ — พิมพ์สูตรเดียวที่ช่อง
+                  <code>L20</code> แล้วลากคลุมได้ทั้ง 9 ช่อง!
+                </p>
+              </div>
+
+              <!-- Formula Explanation: Mixed Reference vs Manual -->
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <div class="lg:col-span-8 p-4 rounded-2xl bg-slate-900 text-white space-y-3">
+                  <div class="flex items-center justify-between flex-wrap gap-2">
+                    <span class="text-xs font-bold text-cyan-300">สูตรมือโปรที่ช่อง L20 (ใช้ Mixed Reference ลากได้ทั้ง
+                      9 ช่อง!):</span>
+                    <button @click="copyText('=SUMIFS($I$2:$I$25, $B$2:$B$25, $K20, $C$2:$C$25, L$19)', 'z3-l20')"
+                      type="button"
+                      class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer">
+                      <Check v-if="copiedKey === 'z3-l20'" class="w-3.5 h-3.5" />
+                      <Copy v-else class="w-3.5 h-3.5" />
+                      <span>{{ copiedKey === 'z3-l20' ? 'คัดลอกแล้ว' : 'Copy สูตร L20' }}</span>
+                    </button>
+                  </div>
+                  <div
+                    class="p-3 rounded-xl bg-slate-950 border border-indigo-500/40 font-mono text-xs sm:text-sm text-emerald-300 break-all">
+                    =SUMIFS($I$2:$I$25, $B$2:$B$25, <span class="text-amber-300 font-bold">$K20</span>, $C$2:$C$25,
+                    <span class="text-sky-300 font-bold">L$19</span>)
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-300">
+                    <div class="p-2.5 rounded-lg bg-slate-800 border border-slate-700">
+                      <code class="text-amber-300 font-bold">$K20</code> (ล็อกคอลัมน์ K, ปล่อยเลขแถว 20):
+                      เวลาลากไปทางขวา ชื่อสาขาจะยังอ่านจากคอลัมน์ K เสมอ แต่พอลงล่างจะเปลี่ยนเป็น K21, K22
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-slate-800 border border-slate-700">
+                      <code class="text-sky-300 font-bold">L$19</code> (ปล่อยคอลัมน์ L, ล็อกเลขแถว 19):
+                      เวลาลากไปขวาจะอ่านหัวตาราง M19 (ชา), N19 (เบเกอรี่) แต่พอลงล่างจะไม่หลุดจากแถว 19
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="lg:col-span-4 p-4 rounded-2xl bg-white border border-indigo-200 space-y-2.5 text-xs flex flex-col justify-between">
+                  <div class="space-y-1.5">
+                    <div class="font-black text-indigo-950">สรุป 3 สเต็ปในโซนที่ 3:</div>
+                    <ol class="list-decimal pl-4 space-y-1 text-slate-600">
+                      <li>วางสูตรข้างต้นลงในช่อง <code>L20</code></li>
+                      <li>ลากมุมขวาล่างจาก <code>L20</code> &rarr; <code>N20</code> แล้วลากลงถึง <code>N22</code></li>
+                      <li>ช่อง <code>O20</code> ใส่สูตร <code>=SUM(L20:N20)</code> แล้วลากลงถึง <code>O22</code></li>
+                    </ol>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
+                    <strong>สำหรับผู้เริ่มต้น:</strong> หากยังสับสน <code>$K20</code> สามารถพิมพ์ชื่อเงื่อนไขตรงๆ ได้
+                    เช่น <code>"สาขาสยาม"</code>, <code>"กาแฟ"</code> ทีละช่อง
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Preview Zone 3 Matrix with Heatmap Highlight -->
+              <div class="overflow-x-auto rounded-2xl border border-indigo-200 bg-white">
+                <div class="px-4 py-2.5 bg-indigo-900 text-white text-xs font-bold flex items-center justify-between">
+                  <span>ตารางคำตอบที่ถูกต้องสำหรับ Zone 3 (Matrix ยอดขาย สาขา &times; หมวดสินค้า)</span>
+                  <span class="font-mono text-amber-300">ช่องยอดสูงสุด: {{ dashboardMatrix.maxBranch }} &times; {{
+                    dashboardMatrix.maxCategory }}</span>
+                </div>
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-100 text-slate-700 font-bold">
+                    <tr>
+                      <th class="p-3">K: สาขา / หมวดสินค้า</th>
+                      <th class="p-3 text-right">L: กาแฟ</th>
+                      <th class="p-3 text-right">M: ชา</th>
+                      <th class="p-3 text-right">N: เบเกอรี่</th>
+                      <th class="p-3 text-right">O: รวมรายสาขา (=SUM)</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr v-for="row in dashboardMatrix.rows" :key="row.branch">
+                      <td class="p-3 font-bold text-slate-900">แถว {{ row.rowNum }}: {{ row.branch }}</td>
+                      <td v-for="cat in categoryList" :key="cat" class="p-3 text-right font-mono font-bold"
+                        :class="row.cells[cat] === dashboardMatrix.maxCell ? 'bg-amber-100 text-amber-950 font-black' : 'text-slate-700'">
+                        {{ row.cells[cat].toLocaleString() }} ฿
+                      </td>
+                      <td class="p-3 text-right font-mono font-black text-indigo-800 bg-indigo-50/60">
+                        {{ row.rowTotal.toLocaleString() }} ฿
+                      </td>
+                    </tr>
+                    <tr class="bg-indigo-50 font-black text-indigo-950 border-t-2 border-indigo-300">
+                      <td class="p-3">รวมตามหมวดสินค้า</td>
+                      <td v-for="cat in categoryList" :key="`tot-${cat}`" class="p-3 text-right font-mono">
+                        {{ dashboardMatrix.colTotals[cat].toLocaleString() }} ฿
+                      </td>
+                      <td class="p-3 text-right font-mono">{{ dashboardMatrix.grandTotal.toLocaleString() }} ฿</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div v-if="!showAllWorkshopSteps" class="flex items-center justify-between pt-2">
+                <button @click="activeWorkshopStep = 3" type="button"
+                  class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer">
+                  &larr; ย้อนกลับขั้นที่ 3
+                </button>
+                <button @click="activeWorkshopStep = 5" type="button"
+                  class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer">
+                  <span>ไปขั้นที่ 5: ตัวเลขเจาะกลุ่ม VIP และเงื่อนไขพิเศษ (Zone 4)</span>
+                  <ArrowRight class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- STEP 5: ZONE 4 — SEGMENT & MULTI-CONDITION KPIS (L25:L30)     -->
+            <!-- ============================================================= -->
+            <div v-if="shouldShowStep(5)"
+              class="rounded-3xl border-2 border-purple-200 bg-purple-50/30 p-5 sm:p-6 space-y-5">
+              <div class="border-b border-purple-200 pb-4">
+                <span class="px-2.5 py-1 rounded-lg bg-purple-600 text-white text-xs font-mono font-bold">STEP 5 of
+                  6</span>
+                <h4 class="text-lg sm:text-xl font-black text-purple-950 mt-1.5">
+                  ขั้นที่ 5: สร้างโซนที่ 4 — ตัวเลขเจาะกลุ่มลูกค้าและเงื่อนไขพิเศษ (ช่อง L25 ถึง L30)
+                </h4>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1">
+                  ฝึกใช้ฟังก์ชัน <code>COUNTIFS</code>, <code>SUMIFS</code>, <code>AVERAGEIF</code>
+                  และเงื่อนไขช่วงตัวเลข (<code>&gt;=</code>, <code>&lt;=</code>) เพื่อตอบคำถามเชิงพฤติกรรมลูกค้า
+                </p>
+              </div>
+
+              <div class="overflow-x-auto rounded-2xl border border-purple-200 bg-white">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-purple-900 text-white">
+                    <tr>
+                      <th class="p-3">เซลล์</th>
+                      <th class="p-3">ฟังก์ชัน</th>
+                      <th class="p-3">โจทย์คำถามธุรกิจ</th>
+                      <th class="p-3">สูตร Google Sheets</th>
+                      <th class="p-3 text-right">คำตอบจริง</th>
+                      <th class="p-3 text-center">คัดลอก</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr v-for="z4 in zone4FormulaGuide" :key="z4.cell" class="hover:bg-purple-50/50">
+                      <td class="p-3 font-mono font-black text-purple-700">{{ z4.cell }}</td>
+                      <td class="p-3">
+                        <span
+                          class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-mono font-bold text-[10px]">{{
+                            z4.funcTag }}</span>
+                      </td>
+                      <td class="p-3 font-bold text-slate-800">{{ z4.title }}</td>
+                      <td class="p-3 font-mono text-emerald-700 text-[11px] break-all">{{ z4.formula }}</td>
+                      <td class="p-3 text-right font-mono font-black text-slate-900 whitespace-nowrap">{{ z4.answer }}
+                      </td>
+                      <td class="p-3 text-center">
+                        <button @click="copyText(z4.formula, `z4-${z4.cell}`)" type="button"
+                          class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-purple-100 text-slate-700 font-bold inline-flex items-center gap-1 cursor-pointer">
+                          <Check v-if="copiedKey === `z4-${z4.cell}`" class="w-3.5 h-3.5 text-emerald-600" />
+                          <Copy v-else class="w-3.5 h-3.5" />
+                          <span>{{ copiedKey === `z4-${z4.cell}` ? 'แล้ว' : 'Copy' }}</span>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Live Preview VIP vs General Comparison -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="p-4 rounded-2xl bg-white border border-amber-200 space-y-1">
+                  <div class="text-[11px] font-bold text-amber-800">L27 • ค่าเฉลี่ยลูกค้า VIP</div>
+                  <div class="text-2xl font-black font-mono text-amber-600">{{ dashboardSegments.vipAvg.toFixed(2) }} ฿
+                  </div>
+                  <div class="text-[11px] text-slate-500">สูงกว่าลูกค้าทั่วไป +{{
+                    dashboardSegments.vipVsGeneralDiff.toFixed(2) }} ฿/บิล</div>
+                </div>
+                <div class="p-4 rounded-2xl bg-white border border-slate-200 space-y-1">
+                  <div class="text-[11px] font-bold text-slate-600">L28 • ค่าเฉลี่ยลูกค้าทั่วไป</div>
+                  <div class="text-2xl font-black font-mono text-slate-800">{{ dashboardSegments.generalAvg.toFixed(2)
+                  }} ฿</div>
+                  <div class="text-[11px] text-slate-500">เปรียบเทียบตรงๆ ด้วย AVERAGEIF</div>
+                </div>
+                <div class="p-4 rounded-2xl bg-white border border-purple-200 space-y-1">
+                  <div class="text-[11px] font-bold text-purple-800">L25 &amp; L26 • VIP QR / บัตรเครดิต</div>
+                  <div class="text-xl font-black font-mono text-purple-700">{{ dashboardSegments.vipQrCount }} บิล / {{
+                    dashboardSegments.vipCardSum.toLocaleString() }} ฿</div>
+                  <div class="text-[11px] text-slate-500">เจาะช่องทางจ่ายเงินด้วย COUNTIFS/SUMIFS</div>
+                </div>
+                <div class="p-4 rounded-2xl bg-white border border-emerald-200 space-y-1">
+                  <div class="text-[11px] font-bold text-emerald-800">L29 &amp; L30 • บิลมูลค่าสูง &amp; ช่วงกลาง</div>
+                  <div class="text-xl font-black font-mono text-emerald-700">{{ dashboardSegments.highOrderCount }} บิล
+                    / {{ dashboardSegments.midRangeSum.toLocaleString() }} ฿</div>
+                  <div class="text-[11px] text-slate-500">บิล &gt;=200 บาท และช่วง 100–200 บาท</div>
+                </div>
+              </div>
+
+              <div v-if="!showAllWorkshopSteps" class="flex items-center justify-between pt-2">
+                <button @click="activeWorkshopStep = 4" type="button"
+                  class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer">
+                  &larr; ย้อนกลับขั้นที่ 4
+                </button>
+                <button @click="activeWorkshopStep = 6" type="button"
+                  class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer">
+                  <span>ไปขั้นที่ 6: ตกแต่งเป็นแดชบอร์ดฉบับสมบูรณ์!</span>
+                  <ArrowRight class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- STEP 6: POLISH & COMPLETE NUMERIC KPI DASHBOARD SHOWCASE      -->
+            <!-- ============================================================= -->
+            <div v-if="shouldShowStep(6)"
+              class="rounded-3xl border-2 border-teal-300 bg-gradient-to-br from-slate-900 via-sky-950 to-indigo-950 text-white p-5 sm:p-7 space-y-6 shadow-lg">
+              <div
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/15 pb-4">
+                <div>
+                  <span class="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 text-xs font-mono font-black">STEP 6
+                    of 6 • FINAL RESULT</span>
+                  <h4 class="text-lg sm:text-2xl font-black text-white mt-1.5">
+                    ขั้นที่ 6: ตกแต่งและตรวจสอบ "แดชบอร์ดตัวเลขฉบับสมบูรณ์ (Final Numeric KPI Dashboard)"
+                  </h4>
+                </div>
+                <span
+                  class="px-3 py-1 rounded-full bg-white/10 text-cyan-200 text-xs font-mono border border-white/20 shrink-0">
+                  24 Rows Verified
+                </span>
+              </div>
+
+              <!-- 4-Point Google Sheets Polish Checklist -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                <div class="p-3.5 rounded-xl bg-white/10 border border-white/15 space-y-1">
+                  <div class="font-bold text-cyan-300">1. ซ่อนเส้น Gridlines</div>
+                  <p class="text-slate-200">เมนู <code>View &rarr; Show &rarr; Gridlines</code> (เอาติ๊กถูกออก)
+                    เพื่อเปลี่ยนแผ่นงานให้ดูเหมือนหน้า Dashboard สะอาดตา</p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-white/10 border border-white/15 space-y-1">
+                  <div class="font-bold text-emerald-300">2. จัด Format ตัวเลข &amp; %</div>
+                  <p class="text-slate-200">ใส่ลูกน้ำหลักพัน <code>#,##0</code> ให้ช่องยอดขาย และตั้งค่าทศนิยม 1 ตำแหน่ง
+                    <code>0.0%</code> ให้คอลัมน์สัดส่วน
+                  </p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-white/10 border border-white/15 space-y-1">
+                  <div class="font-bold text-amber-300">3. ใส่ Color Scale (Heatmap)</div>
+                  <p class="text-slate-200">คลุม <code>L20:N22</code> &rarr;
+                    <code>Format &rarr; Conditional formatting &rarr; Color scale</code>
+                    เพื่อไฮไลต์จุดขายดีด้วยสีอัตโนมัติ
+                  </p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-white/10 border border-white/15 space-y-1">
+                  <div class="font-bold text-purple-300">4. เขียน Executive Insights</div>
+                  <p class="text-slate-200">สรุปสิ่งที่ค้นพบด้านล่างตารางด้วยตัวเลขและเปอร์เซ็นต์จริง 3 ข้อ
+                    เพื่อให้ผู้บริหารตัดสินใจได้ทันที</p>
+                </div>
+              </div>
+
+              <!-- Unified Final Complete Numeric Dashboard Preview -->
+              <div class="p-5 rounded-2xl bg-slate-950/90 border border-cyan-500/30 space-y-5">
+                <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
+                  <div class="font-black text-base text-white flex items-center gap-2">
+                    <BarChart3 class="w-5 h-5 text-cyan-400" />
+                    <span>ตัวอย่างหน้าตาแดชบอร์ดตัวเลขฉบับสมบูรณ์ (ตรวจเทียบคำตอบครบทุกโซน)</span>
+                  </div>
+                  <span class="text-xs font-mono text-emerald-300">Numeric_Dashboard (24 Orders from Master_data)</span>
+                </div>
+
+                <!-- Zone 1 Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                  <div v-for="card in zone1FormulaGuide" :key="`fin-${card.cell}`"
+                    class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                    <div class="text-[10px] text-slate-400">{{ card.label }}</div>
+                    <div class="text-sm font-black font-mono text-cyan-300 mt-0.5">{{ card.answer }}</div>
+                  </div>
+                </div>
+
+                <!-- Zone 2 & Zone 3 Side-by-Side -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
+                  <!-- Zone 2 Mini -->
+                  <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2.5">
+                    <div class="font-bold text-emerald-300">Zone 2: สรุปรายสาขา (% Share)</div>
+                    <div class="space-y-2">
+                      <div v-for="b in dashboardBranchSummary" :key="`fin-b-${b.branch}`" class="space-y-1">
+                        <div class="flex items-center justify-between">
+                          <span class="font-bold text-white">{{ b.branch }} ({{ b.count }} บิล)</span>
+                          <span class="font-mono text-emerald-300 font-bold">{{ b.sum.toLocaleString() }} ฿ ({{
+                            b.sharePercent.toFixed(1) }}%)</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-1.5">
+                          <div class="h-full bg-emerald-400 rounded-full" :style="{ width: `${b.sharePercent}%` }">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Zone 3 Mini Heatmap -->
+                  <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2.5">
+                    <div class="font-bold text-amber-300">Zone 3: Matrix สาขา &times; หมวดสินค้า (Heatmap)</div>
+                    <table class="w-full text-left font-mono text-[11px]">
+                      <thead class="text-slate-400 border-b border-slate-800 font-sans">
+                        <tr>
+                          <th class="pb-1.5">สาขา</th>
+                          <th class="pb-1.5 text-right">กาแฟ</th>
+                          <th class="pb-1.5 text-right">ชา</th>
+                          <th class="pb-1.5 text-right">เบเกอรี่</th>
+                          <th class="pb-1.5 text-right">รวม</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800">
+                        <tr v-for="row in dashboardMatrix.rows" :key="`fin-m-${row.branch}`">
+                          <td class="py-1.5 font-sans font-bold text-slate-200">{{ row.branch }}</td>
+                          <td v-for="cat in categoryList" :key="`fin-c-${cat}`" class="py-1.5 text-right"
+                            :class="row.cells[cat] === dashboardMatrix.maxCell ? 'text-amber-300 font-black' : 'text-slate-300'">
+                            {{ row.cells[cat].toLocaleString() }}
+                          </td>
+                          <td class="py-1.5 text-right text-cyan-300 font-bold">{{ row.rowTotal.toLocaleString() }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Auto-Computed Executive Insights -->
+                <div class="p-4 rounded-xl bg-emerald-950/50 border border-emerald-500/40 space-y-2">
+                  <div class="text-xs font-black text-emerald-300 flex items-center gap-1.5">
+                    <Lightbulb class="w-4 h-4 text-amber-300" />
+                    <span>ตัวอย่าง Executive Mini-Insights 3 ข้อ (สร้างจากตัวเลขจริงของแดชบอร์ด):</span>
+                  </div>
+                  <ul class="list-disc pl-5 text-xs text-slate-200 space-y-1 leading-relaxed">
+                    <li>
+                      <strong>ภาพรวม &amp; การกระจายตัว:</strong> จาก {{ dashboardKpis.count }} บิล สร้างยอดขายรวม
+                      <strong>{{ dashboardKpis.sum.toLocaleString() }} บาท</strong> ค่าเฉลี่ย <strong>{{
+                        dashboardKpis.average.toFixed(2) }} บาท</strong> ใกล้เคียงกับมัธยฐาน <strong>{{
+                          dashboardKpis.median.toFixed(2) }} บาท</strong> แสดงว่ายอดซื้อปกติกระจายตัวสมดุล
+                    </li>
+                    <li>
+                      <strong>สาขาและสินค้าทำเงิน:</strong> <strong>{{ topBranch.branch }}</strong> ทำยอดขายสูงสุด
+                      <strong>{{ topBranch.sum.toLocaleString() }} บาท ({{ topBranch.sharePercent.toFixed(1)
+                      }}%)</strong> โดยคู่ที่ทำรายได้สูงสุดในร้านคือ <strong>{{ dashboardMatrix.maxBranch }} &times;
+                        {{ dashboardMatrix.maxCategory }} ({{ dashboardMatrix.maxCell.toLocaleString() }} บาท)</strong>
+                    </li>
+                    <li>
+                      <strong>พฤติกรรมกลุ่มลูกค้า:</strong> สมาชิก <strong>VIP</strong> มียอดเฉลี่ยต่อบิล <strong>{{
+                        dashboardSegments.vipAvg.toFixed(2) }} บาท</strong> สูงกว่าลูกค้าทั่วไป ({{
+                          dashboardSegments.generalAvg.toFixed(2) }} บาท) อยู่ถึง <strong>+{{
+                        dashboardSegments.vipVsGeneralDiff.toFixed(2) }} บาทต่อบิล</strong>
+                      จึงควรจัดโปรโมชันดึงลูกค้าทั่วไปสมัครสมาชิก VIP
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div v-if="!showAllWorkshopSteps" class="flex items-center justify-between pt-2">
+                <button @click="activeWorkshopStep = 5" type="button"
+                  class="px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 cursor-pointer">
+                  &larr; ย้อนกลับขั้นที่ 5
+                </button>
+                <span class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                  <CheckCircle2 class="w-4 h-4" /> เสร็จสิ้นภาคปฏิบัติ! เลื่อนลงด้านล่างเพื่อทำมินิเกมและใบงานที่ 4
+                  ได้เลย
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- =============================================================== -->
+          <!-- TAB 2: CONDITIONAL FORMULA BUILDER                              -->
+          <!-- =============================================================== -->
+          <div v-if="activeLabTab === 'conditional'" class="space-y-5">
+            <!-- Controls Panel -->
+            <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-5">
+              <!-- Step 1: Select Function -->
+              <div class="space-y-2">
+                <div class="text-xs font-bold text-cyan-300 uppercase tracking-wider">
+                  1. เลือกฟังก์ชันที่ต้องการทดสอบ (สังเกตความต่างระหว่าง 1 เงื่อนไข กับ หลายเงื่อนไข):
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button v-for="fn in ['COUNTIF', 'SUMIF', 'AVERAGEIF', 'COUNTIFS', 'SUMIFS', 'AVERAGEIFS']" :key="fn"
+                    @click="condFunc = fn" type="button" :class="[
+                      'px-3.5 py-2 rounded-xl font-mono font-bold text-xs transition-all cursor-pointer border',
+                      condFunc === fn
+                        ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md scale-[1.02]'
+                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500'
+                    ]">
+                    ={{ fn }}(...)
                   </button>
                 </div>
-                <div class="font-mono text-sm sm:text-base font-bold text-amber-300 break-all">
-                  {{ generatedFormula }}
-                </div>
-                <p class="text-[11px] text-slate-300">{{ formulaExplanation }}</p>
               </div>
 
-              <div class="lg:col-span-4 p-4 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white space-y-1 shadow-md">
-                <div class="text-xs font-bold text-emerald-100">ผลลัพธ์จากการคำนวณ (Matched {{ matchedRows.length }}/{{ demoOrders.length }} แถว)</div>
-                <div class="text-2xl sm:text-3xl font-black font-mono">{{ computedCondResult.mainValue }}</div>
-                <div class="text-[11px] text-emerald-100 font-semibold">
-                  คิดเป็นสัดส่วน {{ shareOfTotalPercent }}% ของทั้งหมด ({{ totalDemoRevenue.toLocaleString() }} ฿)
+              <!-- Step 2: Criteria Selectors -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Criteria 1 -->
+                <div class="p-4 rounded-xl bg-slate-800/80 border border-sky-500/40 space-y-2.5">
+                  <div class="text-xs font-black text-sky-300">เงื่อนไขที่ 1 (Criteria 1)</div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label class="block text-[11px] text-slate-400 mb-1">คอลัมน์ตรวจสอบ:</label>
+                      <select v-model="cond1Field"
+                        class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
+                        <option v-for="(meta, key) in cond1FieldMeta" :key="key" :value="key">{{ meta.label }}</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[11px] text-slate-400 mb-1">ค่าเงื่อนไขที่ต้องการ:</label>
+                      <select v-model="cond1Value"
+                        class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-sky-400">
+                        <option v-for="opt in cond1FieldMeta[cond1Field].options" :key="opt" :value="opt">{{ opt }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Criteria 2 -->
+                <div class="p-4 rounded-xl border space-y-2.5 transition-all"
+                  :class="isMultiConditionFunc ? 'bg-slate-800/80 border-purple-500/40' : 'bg-slate-800/30 border-slate-800 opacity-50 pointer-events-none'">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-purple-300">เงื่อนไขที่ 2 (Criteria 2)</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-black/40 text-slate-300">
+                      {{ isMultiConditionFunc ? 'เปิดใช้งาน' : 'เลือกสูตร *IFS เพื่อใช้เงื่อนไขที่ 2' }}
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label class="block text-[11px] text-slate-400 mb-1">คอลัมน์ตรวจสอบ:</label>
+                      <select v-model="cond2Field" :disabled="!isMultiConditionFunc"
+                        class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-purple-400">
+                        <option v-for="(meta, key) in cond2FieldMeta" :key="key" :value="key">{{ meta.label }}</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[11px] text-slate-400 mb-1">ค่าเงื่อนไขที่ต้องการ:</label>
+                      <select v-model="cond2Value" :disabled="!isMultiConditionFunc"
+                        class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-purple-400">
+                        <option v-for="opt in cond2FieldMeta[cond2Field].options" :key="opt" :value="opt">
+                          {{ cond2Field === 'Total_Sales_Gte' ? `>= ${opt} บาท` : opt }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3: Generated Formula & Live Result -->
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center pt-1">
+                <div class="lg:col-span-8 p-4 rounded-xl bg-slate-950 border border-emerald-500/40 space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-[11px] font-bold text-emerald-300 uppercase">สูตรที่ระบบสร้างให้อัตโนมัติ
+                      (ช่วงข้อมูล A2:I13):</span>
+                    <button @click="copyText(generatedFormula, 'cond-gen')" type="button"
+                      class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1 cursor-pointer">
+                      <Check v-if="copiedKey === 'cond-gen'" class="w-3.5 h-3.5" />
+                      <Copy v-else class="w-3.5 h-3.5" />
+                      <span>{{ copiedKey === 'cond-gen' ? 'คัดลอกแล้ว' : 'คัดลอกสูตร' }}</span>
+                    </button>
+                  </div>
+                  <div class="font-mono text-sm sm:text-base font-bold text-amber-300 break-all">
+                    {{ generatedFormula }}
+                  </div>
+                  <p class="text-[11px] text-slate-300">{{ formulaExplanation }}</p>
+                </div>
+
+                <div
+                  class="lg:col-span-4 p-4 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white space-y-1 shadow-md">
+                  <div class="text-xs font-bold text-emerald-100">ผลลัพธ์จากการคำนวณ (Matched {{ matchedRows.length
+                  }}/{{ demoOrders.length }} แถว)</div>
+                  <div class="text-2xl sm:text-3xl font-black font-mono">{{ computedCondResult.mainValue }}</div>
+                  <div class="text-[11px] text-emerald-100 font-semibold">
+                    คิดเป็นสัดส่วน {{ shareOfTotalPercent }}% ของทั้งหมด ({{ totalDemoRevenue.toLocaleString() }} ฿)
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Highlighted 12-row Table showing which rows passed the conditions -->
-          <div class="overflow-x-auto rounded-2xl border border-slate-200">
-            <table class="w-full text-left text-xs font-mono">
-              <thead class="bg-slate-800 text-white font-sans">
-                <tr>
-                  <th class="p-3">สถานะเงื่อนไข</th>
-                  <th class="p-3">A: Order_ID</th>
-                  <th class="p-3">B: Branch</th>
-                  <th class="p-3">C: Category</th>
-                  <th class="p-3">D: Menu_Item</th>
-                  <th class="p-3">E: Payment</th>
-                  <th class="p-3">F: Tier</th>
-                  <th class="p-3 text-right">I: Total_Sales</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 bg-white">
-                <tr v-for="r in demoOrders" :key="r.orderId"
-                  :class="matchedRowIds.has(r.orderId) ? 'bg-emerald-50/90 text-emerald-950 font-bold' : 'text-slate-400 opacity-55'">
-                  <td class="p-2.5 font-sans">
-                    <span v-if="matchedRowIds.has(r.orderId)"
-                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
-                      <CheckCircle2 class="w-3 h-3" /> ตรงเงื่อนไข
-                    </span>
-                    <span v-else class="text-[10px] text-slate-400">ไม่เข้าเกณฑ์</span>
-                  </td>
-                  <td class="p-2.5">{{ r.orderId }}</td>
-                  <td class="p-2.5 font-sans">{{ r.branch }}</td>
-                  <td class="p-2.5 font-sans">{{ r.category }}</td>
-                  <td class="p-2.5 font-sans">{{ r.menuItem }}</td>
-                  <td class="p-2.5 font-sans">{{ r.payment }}</td>
-                  <td class="p-2.5 font-sans">{{ r.tier }}</td>
-                  <td class="p-2.5 text-right">{{ r.totalSales.toLocaleString() }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <!-- Highlighted 12-row Table showing which rows passed the conditions -->
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+              <table class="w-full text-left text-xs font-mono">
+                <thead class="bg-slate-800 text-white font-sans">
+                  <tr>
+                    <th class="p-3">สถานะเงื่อนไข</th>
+                    <th class="p-3">A: Order_ID</th>
+                    <th class="p-3">B: Branch</th>
+                    <th class="p-3">C: Category</th>
+                    <th class="p-3">D: Menu_Item</th>
+                    <th class="p-3">E: Payment</th>
+                    <th class="p-3">F: Tier</th>
+                    <th class="p-3 text-right">I: Total_Sales</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                  <tr v-for="r in demoOrders" :key="r.orderId"
+                    :class="matchedRowIds.has(r.orderId) ? 'bg-emerald-50/90 text-emerald-950 font-bold' : 'text-slate-400 opacity-55'">
+                    <td class="p-2.5 font-sans">
+                      <span v-if="matchedRowIds.has(r.orderId)"
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
+                        <CheckCircle2 class="w-3 h-3" /> ตรงเงื่อนไข
+                      </span>
+                      <span v-else class="text-[10px] text-slate-400">ไม่เข้าเกณฑ์</span>
+                    </td>
+                    <td class="p-2.5">{{ r.orderId }}</td>
+                    <td class="p-2.5 font-sans">{{ r.branch }}</td>
+                    <td class="p-2.5 font-sans">{{ r.category }}</td>
+                    <td class="p-2.5 font-sans">{{ r.menuItem }}</td>
+                    <td class="p-2.5 font-sans">{{ r.payment }}</td>
+                    <td class="p-2.5 font-sans">{{ r.tier }}</td>
+                    <td class="p-2.5 text-right">{{ r.totalSales.toLocaleString() }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
     </section>
 
     <!-- =================================================================== -->
@@ -3158,8 +3396,10 @@ const quizQuestions = [
           ต่อยอดจากชุดข้อมูลโปรเจกต์ <strong>{{ ROWS_PER_PROJECT }} แถว</strong> ที่นักศึกษาจัดทำและคลีนเรียบร้อยแล้ว
           โดยให้เก็บตารางต้นฉบับไว้ในชีต/Spreadsheet ชื่อ <strong><code>Master_data</code></strong> (ห้ามแก้ไขทับ)
           จากนั้น<strong>คัดลอกแยกออกมาเป็นอีกชีต</strong> ชื่อ <strong><code>Numeric_Dashboard</code></strong>
-          เพื่อคำนวณค่าสถิติพื้นฐาน (<code>COUNT/COUNTA</code>, <code>SUM</code>, <code>AVERAGE</code>, <code>MEDIAN</code>, <code>MIN</code>, <code>MAX</code>)
-          และสรุปข้อมูลแบบมีเงื่อนไข (<code>COUNTIF/IFS</code>, <code>SUMIF/IFS</code>, <code>AVERAGEIF/IFS</code>) บนชีตเดียวกัน
+          เพื่อคำนวณค่าสถิติพื้นฐาน (<code>COUNT/COUNTA</code>, <code>SUM</code>, <code>AVERAGE</code>,
+          <code>MEDIAN</code>, <code>MIN</code>, <code>MAX</code>)
+          และสรุปข้อมูลแบบมีเงื่อนไข (<code>COUNTIF/IFS</code>, <code>SUMIF/IFS</code>, <code>AVERAGEIF/IFS</code>)
+          บนชีตเดียวกัน
           <strong>แล้วจบด้วยการออกมานำเสนอหน้าห้องเรียนว่าโปรเจกต์ของตนได้ค่าสถิติอะไรออกมาบ้าง</strong>
         </p>
 
@@ -3193,7 +3433,8 @@ const quizQuestions = [
           </div>
 
           <div class="p-4 sm:p-5 rounded-2xl bg-white border border-sky-200/90 shadow-2xs space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+            <div
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
               <div class="flex items-center gap-2">
                 <div class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
                   <Sparkles class="w-4 h-4" />
@@ -3203,39 +3444,39 @@ const quizQuestions = [
                     เลือกโปรเจกต์เดิมจากสัปดาห์ที่ 3 เพื่อดูรายการสิ่งที่ต้องทำ (6 ข้อ)
                   </div>
                   <p class="text-[11px] text-slate-500">
-                    คลิกเลือกหัวข้อโปรเจกต์ของตนเอง เพื่อดูเช็กลิสต์ 6 ข้อที่ต้องวิเคราะห์จริง (ตั้งแต่สถิติภาพรวม, สูตร 1 เงื่อนไข, สูตรหลายเงื่อนไข ไปจนถึงการนำเสนอหน้าห้อง)
+                    คลิกเลือกหัวข้อโปรเจกต์ของตนเอง เพื่อดูเช็กลิสต์ 6 ข้อที่ต้องวิเคราะห์จริง (ตั้งแต่สถิติภาพรวม, สูตร
+                    1 เงื่อนไข, สูตรหลายเงื่อนไข ไปจนถึงการนำเสนอหน้าห้อง)
                   </p>
                 </div>
               </div>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-50 border border-sky-200 text-sky-800 text-[11px] font-bold shrink-0">
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-50 border border-sky-200 text-sky-800 text-[11px] font-bold shrink-0">
                 ใช้ข้อมูลโปรเจกต์เดิม ({{ ROWS_PER_PROJECT }} แถว)
               </span>
             </div>
 
             <!-- 11 Topic Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2">
-              <button v-for="p in projectTopics" :key="p.no" type="button" @click="selectedProjectNo = p.no"
-                :class="[
-                  'group text-left p-2.5 rounded-xl border transition-all duration-200 flex items-center gap-2.5 cursor-pointer',
-                  selectedProjectNo === p.no
-                    ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white border-sky-600 shadow-md ring-2 ring-sky-400/50 scale-[1.01]'
-                    : 'bg-white hover:bg-sky-50/60 text-slate-700 hover:text-sky-950 border-slate-200/90 hover:border-sky-300 shadow-2xs'
+              <button v-for="p in projectTopics" :key="p.no" type="button" @click="selectedProjectNo = p.no" :class="[
+                'group text-left p-2.5 rounded-xl border transition-all duration-200 flex items-center gap-2.5 cursor-pointer',
+                selectedProjectNo === p.no
+                  ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white border-sky-600 shadow-md ring-2 ring-sky-400/50 scale-[1.01]'
+                  : 'bg-white hover:bg-sky-50/60 text-slate-700 hover:text-sky-950 border-slate-200/90 hover:border-sky-300 shadow-2xs'
+              ]">
+                <span :class="[
+                  'w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0',
+                  selectedProjectNo === p.no ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-sky-100 group-hover:text-sky-700'
                 ]">
-                <span
-                  :class="[
-                    'w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0',
-                    selectedProjectNo === p.no ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-sky-100 group-hover:text-sky-700'
-                  ]">
                   {{ p.no }}
                 </span>
-                <div
-                  :class="[
-                    'w-7 h-7 rounded-lg flex items-center justify-center shrink-0',
-                    selectedProjectNo === p.no ? 'bg-white/20 text-white' : 'bg-sky-50 text-sky-600 group-hover:bg-sky-100'
-                  ]">
+                <div :class="[
+                  'w-7 h-7 rounded-lg flex items-center justify-center shrink-0',
+                  selectedProjectNo === p.no ? 'bg-white/20 text-white' : 'bg-sky-50 text-sky-600 group-hover:bg-sky-100'
+                ]">
                   <component :is="p.icon" class="w-4 h-4" />
                 </div>
-                <span :class="['text-xs font-bold truncate flex-1', selectedProjectNo === p.no ? 'text-white' : 'text-slate-800']">
+                <span
+                  :class="['text-xs font-bold truncate flex-1', selectedProjectNo === p.no ? 'text-white' : 'text-slate-800']">
                   {{ p.name }}
                 </span>
                 <CheckCircle2 v-if="selectedProjectNo === p.no" class="w-4 h-4 text-cyan-200 shrink-0" />
@@ -3243,18 +3484,26 @@ const quizQuestions = [
             </div>
 
             <!-- Selected Project Sample Questions Box -->
-            <div class="p-4 rounded-xl bg-gradient-to-r from-sky-50 via-indigo-50/60 to-sky-50 border border-sky-200 space-y-3">
+            <div
+              class="p-4 rounded-xl bg-gradient-to-r from-sky-50 via-indigo-50/60 to-sky-50 border border-sky-200 space-y-3">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <div
+                    class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                     <component :is="selectedProject.icon" class="w-4 h-4" />
                   </div>
                   <div>
-                    <div class="text-[11px] font-bold text-sky-700 uppercase tracking-wider">
-                      รายการสิ่งที่ต้องทำสำหรับโปรเจกต์ที่ {{ selectedProject.no }} (6 ข้อ)
+                    <div class="text-[11px] font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
+                      <span>รายการสิ่งที่ต้องทำสำหรับโปรเจกต์ที่ {{ selectedProject.no }} (6 ข้อ)</span>
+                      <span class="px-1.5 py-0.5 rounded bg-sky-100 border border-sky-300 text-sky-900 font-mono normal-case">
+                        ชีต: {{ selectedProject.sheet }}
+                      </span>
                     </div>
                     <div class="text-xs sm:text-sm font-black text-slate-900">
                       {{ selectedProject.name }} ({{ ROWS_PER_PROJECT }} แถว)
+                    </div>
+                    <div class="text-[11px] text-slate-600 mt-0.5">
+                      คอลัมน์ในชีต: <code class="font-mono font-bold text-sky-900 bg-white/80 px-1.5 py-0.5 rounded border border-sky-200">{{ selectedProject.columns }}</code>
                     </div>
                   </div>
                 </div>
@@ -3272,12 +3521,14 @@ const quizQuestions = [
                   class="p-3 rounded-xl bg-white border border-sky-200/90 space-y-2 shadow-2xs flex flex-col justify-between">
                   <div class="flex items-center justify-between gap-2 flex-wrap">
                     <div class="flex items-center gap-1.5">
-                      <span class="w-5 h-5 rounded-full bg-sky-600 text-white font-black text-[10px] flex items-center justify-center shrink-0">
+                      <span
+                        class="w-5 h-5 rounded-full bg-sky-600 text-white font-black text-[10px] flex items-center justify-center shrink-0">
                         {{ idx + 1 }}
                       </span>
                       <span class="font-black text-sky-900 text-[11px]">สิ่งที่ต้องทำที่ {{ idx + 1 }}</span>
                     </div>
-                    <span class="px-2 py-0.5 rounded-md bg-sky-50 border border-sky-200 text-sky-800 font-mono font-bold text-[10px]">
+                    <span
+                      class="px-2 py-0.5 rounded-md bg-sky-50 border border-sky-200 text-sky-800 font-mono font-bold text-[10px]">
                       {{ task.tag }}
                     </span>
                   </div>
@@ -3293,38 +3544,48 @@ const quizQuestions = [
         <ul class="space-y-5 text-sm text-gray-700">
           <!-- Step 1 -->
           <li class="flex items-start gap-3">
-            <div class="w-7 h-7 rounded-xl bg-sky-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
+            <div
+              class="w-7 h-7 rounded-xl bg-sky-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
               1
             </div>
             <div class="space-y-1 flex-1">
-              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 1: เก็บข้อมูลต้นฉบับไว้ใน <code>Master_data</code> และคัดลอกแยกชีต <code>Numeric_Dashboard</code></strong>
+              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 1: เก็บข้อมูลต้นฉบับไว้ใน <code>Master_data</code>
+                และคัดลอกแยกชีต <code>Numeric_Dashboard</code></strong>
               <p class="text-xs text-gray-600 leading-relaxed">
-                เปิดไฟล์ Google Sheets โปรเจกต์ของตนเอง (40 แถว) ตรวจสอบให้แน่ใจว่ามีชีตต้นฉบับชื่อ <strong><code>Master_data</code></strong> (เก็บไว้เป็นข้อมูลเดิม <strong>ห้ามแก้ไขทับ</strong>)
-                จากนั้นคลิกขวาเลือก <em>Duplicate (ทำสำเนา)</em> แยกออกมาเป็นชีตใหม่ชื่อ <strong><code>Numeric_Dashboard</code></strong>
-                เพื่อวางตารางข้อมูลไว้ฝั่งซ้ายและสร้างตารางสรุปค่าสถิติไว้ฝั่งขวาบนชีตเดียวกัน โดยไม่ต้องเชื่อมสูตรข้ามตาราง
+                เปิดไฟล์ Google Sheets โปรเจกต์ของตนเอง (40 แถว) ตรวจสอบให้แน่ใจว่ามีชีตต้นฉบับชื่อ
+                <strong><code>Master_data</code></strong> (เก็บไว้เป็นข้อมูลเดิม <strong>ห้ามแก้ไขทับ</strong>)
+                จากนั้นคลิกขวาเลือก <em>Duplicate (ทำสำเนา)</em> แยกออกมาเป็นชีตใหม่ชื่อ
+                <strong><code>Numeric_Dashboard</code></strong>
+                เพื่อวางตารางข้อมูลไว้ฝั่งซ้ายและสร้างตารางสรุปค่าสถิติไว้ฝั่งขวาบนชีตเดียวกัน
+                โดยไม่ต้องเชื่อมสูตรข้ามตาราง
               </p>
             </div>
           </li>
 
           <!-- Step 2 -->
           <li class="flex items-start gap-3">
-            <div class="w-7 h-7 rounded-xl bg-indigo-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
+            <div
+              class="w-7 h-7 rounded-xl bg-indigo-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
               2
             </div>
             <div class="space-y-1.5 flex-1">
-              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 2: สร้างตารางสรุปค่าสถิติในชีต <code>Numeric_Dashboard</code> (สถิติภาพรวม + 1 เงื่อนไข + หลายเงื่อนไข)</strong>
+              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 2: สร้างตารางสรุปค่าสถิติในชีต
+                <code>Numeric_Dashboard</code> (สถิติภาพรวม + 1 เงื่อนไข + หลายเงื่อนไข)</strong>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs pt-1">
                 <div class="p-3 rounded-xl bg-sky-50 border border-sky-200">
                   <strong>ส่วนที่ A • สถิติภาพรวม 6 ค่า:</strong><br />
-                  คำนวณ <code>COUNTA</code>, <code>SUM</code>, <code>AVERAGE</code>, <code>MEDIAN</code>, <code>MIN</code> และ <code>MAX</code> จากคอลัมน์ตัวเลขหลักของโปรเจกต์
+                  คำนวณ <code>COUNTA</code>, <code>SUM</code>, <code>AVERAGE</code>, <code>MEDIAN</code>,
+                  <code>MIN</code> และ <code>MAX</code> จากคอลัมน์ตัวเลขหลักของโปรเจกต์
                 </div>
                 <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
                   <strong>ส่วนที่ B • ตารางสรุปแบบ 1 เงื่อนไข:</strong><br />
-                  สรุปข้อมูลแยกตามหมวดหมู่หลักด้วย <code>COUNTIF</code>, <code>SUMIF</code> และ <code>AVERAGEIF</code> (ใช้ <code>$</code> ล็อกช่วงข้อมูล)
+                  สรุปข้อมูลแยกตามหมวดหมู่หลักด้วย <code>COUNTIF</code>, <code>SUMIF</code> และ <code>AVERAGEIF</code>
+                  (ใช้ <code>$</code> ล็อกช่วงข้อมูล)
                 </div>
                 <div class="p-3 rounded-xl bg-purple-50 border border-purple-200">
                   <strong>ส่วนที่ C • ตารางสรุปแบบหลายเงื่อนไข:</strong><br />
-                  สรุปข้อมูลเจาะลึกหลายเงื่อนไขตามโจทย์ของโปรเจกต์ด้วย <code>COUNTIFS</code>, <code>SUMIFS</code> และ <code>AVERAGEIFS</code>
+                  สรุปข้อมูลเจาะลึกหลายเงื่อนไขตามโจทย์ของโปรเจกต์ด้วย <code>COUNTIFS</code>, <code>SUMIFS</code> และ
+                  <code>AVERAGEIFS</code>
                 </div>
               </div>
             </div>
@@ -3332,13 +3593,16 @@ const quizQuestions = [
 
           <!-- Step 3 -->
           <li class="flex items-start gap-3">
-            <div class="w-7 h-7 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
+            <div
+              class="w-7 h-7 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
               3
             </div>
             <div class="space-y-1 flex-1">
-              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 3: ตั้งค่าแชร์และส่งลิงก์ Google Sheets เข้าระบบ</strong>
+              <strong class="text-slate-900 text-sm">ขั้นตอนที่ 3: ตั้งค่าแชร์และส่งลิงก์ Google Sheets
+                เข้าระบบ</strong>
               <p class="text-xs text-gray-600 leading-relaxed">
-                ตั้งค่า Share เป็น <strong>"ทุกคนที่มีลิงก์มีสิทธิ์ดู (Anyone with the link can view)"</strong> แล้วกดปุ่ม "ส่งงานด้วยลิงก์" ด้านล่าง
+                ตั้งค่า Share เป็น <strong>"ทุกคนที่มีลิงก์มีสิทธิ์ดู (Anyone with the link can view)"</strong>
+                แล้วกดปุ่ม "ส่งงานด้วยลิงก์" ด้านล่าง
                 พร้อมระบุ <strong>ชื่อโปรเจกต์ที่ทำ</strong> ในช่องหมายเหตุ
               </p>
             </div>
@@ -3346,47 +3610,61 @@ const quizQuestions = [
 
           <!-- Step 4: ออกมานำเสนอหน้าห้อง -->
           <li class="flex items-start gap-3">
-            <div class="w-7 h-7 rounded-xl bg-rose-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
+            <div
+              class="w-7 h-7 rounded-xl bg-rose-600 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-xs shadow-2xs">
               4
             </div>
             <div class="space-y-2 flex-1">
               <div class="flex flex-wrap items-center gap-2">
-                <strong class="text-slate-900 text-sm">ขั้นตอนที่ 4 (ขั้นตอนสุดท้าย): ออกมานำเสนอผลสถิติหน้าห้องเรียน (In-Class Presentation)</strong>
-                <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 text-[11px] font-black">
+                <strong class="text-slate-900 text-sm">ขั้นตอนที่ 4 (ขั้นตอนสุดท้าย): ออกมานำเสนอผลสถิติหน้าห้องเรียน
+                  (In-Class Presentation)</strong>
+                <span
+                  class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 text-[11px] font-black">
                   จบงานด้วยการนำเสนอหน้าห้อง
                 </span>
               </div>
               <p class="text-xs text-gray-600 leading-relaxed">
-                เมื่อส่งลิงก์เรียบร้อยแล้ว ให้ออกมาเปิดหน้าชีต <strong><code>Numeric_Dashboard</code></strong> ของตนเองขึ้นจอหน้าห้องเรียน
-                เพื่อเล่าให้เพื่อนและอาจารย์ฟังว่า<strong>จากข้อมูล {{ ROWS_PER_PROJECT }} แถว ได้ค่าสถิติอะไรออกมาบ้าง</strong> โดยมีประเด็นที่ต้องพูดถึงดังนี้:
+                เมื่อส่งลิงก์เรียบร้อยแล้ว ให้ออกมาเปิดหน้าชีต <strong><code>Numeric_Dashboard</code></strong>
+                ของตนเองขึ้นจอหน้าห้องเรียน
+                เพื่อเล่าให้เพื่อนและอาจารย์ฟังว่า<strong>จากข้อมูล {{ ROWS_PER_PROJECT }} แถว
+                  ได้ค่าสถิติอะไรออกมาบ้าง</strong> โดยมีประเด็นที่ต้องพูดถึงดังนี้:
               </p>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 <div class="p-3 rounded-xl bg-rose-50/80 border border-rose-200 space-y-1">
                   <div class="font-black text-rose-950">1. สถิติภาพรวม (Overall Statistics)</div>
                   <p class="text-slate-700 leading-relaxed">
-                    รายงานจำนวนข้อมูล (<code>COUNTA</code>), ยอดรวม (<code>SUM</code>), ค่าเฉลี่ย (<code>AVERAGE</code>), ค่ามัธยฐาน (<code>MEDIAN</code>), ค่าต่ำสุด (<code>MIN</code>) และค่าสูงสุด (<code>MAX</code>) ที่คำนวณได้
+                    รายงานจำนวนข้อมูล (<code>COUNTA</code>), ยอดรวม (<code>SUM</code>), ค่าเฉลี่ย
+                    (<code>AVERAGE</code>), ค่ามัธยฐาน (<code>MEDIAN</code>), ค่าต่ำสุด (<code>MIN</code>) และค่าสูงสุด
+                    (<code>MAX</code>) ที่คำนวณได้
                   </p>
                 </div>
                 <div class="p-3 rounded-xl bg-amber-50/80 border border-amber-200 space-y-1">
                   <div class="font-black text-amber-950">2. ผลลัพธ์สูตร 1 เงื่อนไข (IF)</div>
                   <p class="text-slate-700 leading-relaxed">
-                    อธิบายผลลัพธ์จากการแยกนับ (<code>COUNTIF</code>), แยกรวมยอด (<code>SUMIF</code>) และแยกหาค่าเฉลี่ย (<code>AVERAGEIF</code>) ในแต่ละหมวดหมู่ของโปรเจกต์
+                    อธิบายผลลัพธ์จากการแยกนับ (<code>COUNTIF</code>), แยกรวมยอด (<code>SUMIF</code>) และแยกหาค่าเฉลี่ย
+                    (<code>AVERAGEIF</code>) ในแต่ละหมวดหมู่ของโปรเจกต์
                   </p>
                 </div>
                 <div class="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 space-y-1">
                   <div class="font-black text-emerald-950">3. ผลลัพธ์สูตรหลายเงื่อนไข (IFS)</div>
                   <p class="text-slate-700 leading-relaxed">
-                    อธิบายผลลัพธ์จากการใช้ <code>COUNTIFS</code>, <code>SUMIFS</code> และ <code>AVERAGEIFS</code> ว่าเมื่อเจาะลึกหลายเงื่อนไขแล้วได้ตัวเลขสถิติออกมาเป็นอย่างไร
+                    อธิบายผลลัพธ์จากการใช้ <code>COUNTIFS</code>, <code>SUMIFS</code> และ <code>AVERAGEIFS</code>
+                    ว่าเมื่อเจาะลึกหลายเงื่อนไขแล้วได้ตัวเลขสถิติออกมาเป็นอย่างไร
                   </p>
                 </div>
               </div>
 
-              <div class="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs space-y-1 max-w-2xl mt-2">
+              <div
+                class="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs space-y-1 max-w-2xl mt-2">
                 <div class="font-bold text-emerald-950">เกณฑ์การให้คะแนนใบงานและการนำเสนอ (10 คะแนน):</div>
                 <ul class="list-disc pl-5 text-slate-700 space-y-0.5">
-                  <li>ตารางสถิติภาพรวมครบ 6 ค่า (<code>COUNTA</code>, <code>SUM</code>, <code>AVERAGE</code>, <code>MEDIAN</code>, <code>MIN</code>, <code>MAX</code>) (2.5 คะแนน)</li>
-                  <li>ตารางสูตร 1 เงื่อนไข (<code>COUNTIF</code>, <code>SUMIF</code>, <code>AVERAGEIF</code>) และล็อกเซลล์ <code>$</code> ถูกต้อง (2.5 คะแนน)</li>
-                  <li>ตารางสูตรหลายเงื่อนไข (<code>COUNTIFS</code>, <code>SUMIFS</code>, <code>AVERAGEIFS</code>) ถูกต้อง ไม่สลับตำแหน่ง <code>sum_range</code> (2.5 คะแนน)</li>
+                  <li>ตารางสถิติภาพรวมครบ 6 ค่า (<code>COUNTA</code>, <code>SUM</code>, <code>AVERAGE</code>,
+                    <code>MEDIAN</code>, <code>MIN</code>, <code>MAX</code>) (2.5 คะแนน)
+                  </li>
+                  <li>ตารางสูตร 1 เงื่อนไข (<code>COUNTIF</code>, <code>SUMIF</code>, <code>AVERAGEIF</code>)
+                    และล็อกเซลล์ <code>$</code> ถูกต้อง (2.5 คะแนน)</li>
+                  <li>ตารางสูตรหลายเงื่อนไข (<code>COUNTIFS</code>, <code>SUMIFS</code>, <code>AVERAGEIFS</code>)
+                    ถูกต้อง ไม่สลับตำแหน่ง <code>sum_range</code> (2.5 คะแนน)</li>
                   <li>การออกมานำเสนอผลสถิติหน้าห้องเรียนว่าได้สถิติอะไรออกมาบ้างอย่างชัดเจน (2.5 คะแนน)</li>
                 </ul>
               </div>
@@ -3407,16 +3685,23 @@ const quizQuestions = [
           <h3 class="text-lg font-bold text-sky-900">
             Cheat Sheet: สถิติภาพรวมและการสรุปข้อมูลแบบมีเงื่อนไข (Google Sheets / Excel)
           </h3>
-          <p class="text-xs text-gray-500">คู่มือสูตรคำนวณสำหรับชีต Numeric_Dashboard (คัดลอกแยกจาก Master_data • สัปดาห์ที่ 4)</p>
+          <p class="text-xs text-gray-500">คู่มือสูตรคำนวณสำหรับชีต Numeric_Dashboard (คัดลอกแยกจาก Master_data •
+            สัปดาห์ที่
+            4)</p>
         </div>
 
         <div class="space-y-1.5">
           <h4 class="font-bold text-gray-900">1. สูตรคำนวณพื้นฐาน (+, -, *, /, (), SUM และตระกูล COUNT)</h4>
           <ul class="list-disc pl-5 text-xs text-gray-700 space-y-1">
-            <li>ทุกสูตรต้องขึ้นต้นด้วย <code>=</code> เสมอ | ใช้ <code>*</code> แทนคูณ (ห้ามใช้ <code>x</code>) | ใช้ <code>/</code> แทนหาร (ห้ามหารด้วย <code>0</code>)</li>
+            <li>ทุกสูตรต้องขึ้นต้นด้วย <code>=</code> เสมอ | ใช้ <code>*</code> แทนคูณ (ห้ามใช้ <code>x</code>) | ใช้
+              <code>/</code> แทนหาร (ห้ามหารด้วย <code>0</code>)
+            </li>
             <li><code>=(B2*C2)-D2</code> ใช้วงเล็บควบคุมลำดับการทำงาน (ถ้าไม่ใส่วงเล็บจะทำคูณ/หารก่อนบวก/ลบ)</li>
-            <li><code>=SUM(I2:I25)</code> รวมผลลัพธ์ต่อเนื่องในช่วง (ใช้ <code>:</code> แปลว่า "ถึง", ใช้ <code>,</code> แปลว่า "และ")</li>
-            <li><code>=COUNT(range)</code> นับเฉพาะตัวเลข/วันที่ | <code>=COUNTA(range)</code> นับทุกช่องที่ไม่ว่าง | <code>=COUNTBLANK(range)</code> นับช่องว่าง</li>
+            <li><code>=SUM(I2:I25)</code> รวมผลลัพธ์ต่อเนื่องในช่วง (ใช้ <code>:</code> แปลว่า "ถึง", ใช้ <code>,</code>
+              แปลว่า "และ")</li>
+            <li><code>=COUNT(range)</code> นับเฉพาะตัวเลข/วันที่ | <code>=COUNTA(range)</code> นับทุกช่องที่ไม่ว่าง |
+              <code>=COUNTBLANK(range)</code> นับช่องว่าง
+            </li>
           </ul>
         </div>
 
@@ -3424,10 +3709,18 @@ const quizQuestions = [
           <h4 class="font-bold text-gray-900">2. คำศัพท์พารามิเตอร์ที่ต้องรู้ก่อนเขียนสูตร (Formula Vocabulary)</h4>
           <ul class="list-disc pl-5 text-xs text-gray-700 space-y-1">
             <li><code>range</code> = ช่วงเซลล์ข้อมูลต่อเนื่องกัน เช่น <code>I2:I41</code></li>
-            <li><code>criteria_range</code> = ช่วงคอลัมน์ที่จะเข้าไปตรวจสอบเงื่อนไข เช่น ช่วงคอลัมน์สาขา <code>$B$2:$B$41</code></li>
-            <li><code>criteria</code> = เงื่อนไข/เกณฑ์ที่ค้นหา เช่น <code>"สาขาสยาม"</code>, <code>{{ '">=150"' }}</code> หรือเซลล์ <code>A5</code></li>
-            <li><code>sum_range</code> / <code>average_range</code> = ช่วงคอลัมน์ตัวเลขที่ต้องการนำมาบวกหรือหาค่าเฉลี่ยเฉพาะแถวที่ผ่านเงื่อนไข</li>
-            <li><code>$</code> = ล็อกช่วงเซลล์ (Absolute Reference กด <code>F4</code>) ไม่ให้เลื่อนเมื่อลากสูตร | <code>"..."</code> = ครอบข้อความ/เงื่อนไข | <code>*</code> = Wildcard แทนคำใดๆ</li>
+            <li><code>criteria_range</code> = ช่วงคอลัมน์ที่จะเข้าไปตรวจสอบเงื่อนไข เช่น ช่วงคอลัมน์สาขา
+              <code>$B$2:$B$41</code>
+            </li>
+            <li><code>criteria</code> = เงื่อนไข/เกณฑ์ที่ค้นหา เช่น <code>"สาขาสยาม"</code>,
+              <code>{{ '">=150"' }}</code>
+              หรือเซลล์ <code>A5</code>
+            </li>
+            <li><code>sum_range</code> / <code>average_range</code> =
+              ช่วงคอลัมน์ตัวเลขที่ต้องการนำมาบวกหรือหาค่าเฉลี่ยเฉพาะแถวที่ผ่านเงื่อนไข</li>
+            <li><code>$</code> = ล็อกช่วงเซลล์ (Absolute Reference กด <code>F4</code>) ไม่ให้เลื่อนเมื่อลากสูตร |
+              <code>"..."</code> = ครอบข้อความ/เงื่อนไข | <code>*</code> = Wildcard แทนคำใดๆ
+            </li>
           </ul>
         </div>
 
@@ -3436,8 +3729,11 @@ const quizQuestions = [
           <ul class="list-disc pl-5 text-xs text-gray-700 space-y-1">
             <li><code>=COUNT(range)</code> นับตัวเลข/วันที่ | <code>=COUNTA(range)</code> นับทุกเซลล์ที่ไม่ว่าง</li>
             <li><code>=SUM(range)</code> ผลรวม | <code>=AVERAGE(range)</code> ค่าเฉลี่ย (ไวต่อค่าสุดโต่ง)</li>
-            <li><code>=MEDIAN(range)</code> ค่ามัธยฐาน (ค่าตรงกลางเมื่อเรียงลำดับ ใช้แทนค่าเฉลี่ยเมื่อมีตัวเลขกระโดด/Outlier) | <code>=MODE(range)</code> ฐานนิยม (ค่าที่พบบ่อยสุด)</li>
-            <li><code>=MIN(range)</code> / <code>=MAX(range)</code> ค่าต่ำสุด-สูงสุด (ดูช่วงข้อมูลและสแกนหาค่าผิดปกติ เช่น ยอดติดลบ) | <code>=STDEV.S(range)</code> ส่วนเบี่ยงเบนมาตรฐาน (วัดความนิ่ง/ความแกว่งเทียบค่าเฉลี่ย)</li>
+            <li><code>=MEDIAN(range)</code> ค่ามัธยฐาน (ค่าตรงกลางเมื่อเรียงลำดับ
+              ใช้แทนค่าเฉลี่ยเมื่อมีตัวเลขกระโดด/Outlier) | <code>=MODE(range)</code> ฐานนิยม (ค่าที่พบบ่อยสุด)</li>
+            <li><code>=MIN(range)</code> / <code>=MAX(range)</code> ค่าต่ำสุด-สูงสุด (ดูช่วงข้อมูลและสแกนหาค่าผิดปกติ
+              เช่น
+              ยอดติดลบ) | <code>=STDEV.S(range)</code> ส่วนเบี่ยงเบนมาตรฐาน (วัดความนิ่ง/ความแกว่งเทียบค่าเฉลี่ย)</li>
           </ul>
         </div>
 
@@ -3445,10 +3741,12 @@ const quizQuestions = [
           <h4 class="font-bold text-gray-900">4. สูตรแบบ 1 เงื่อนไข vs หลายเงื่อนไข (ระวังตำแหน่ง range!)</h4>
           <ul class="list-disc pl-5 text-xs text-gray-700 space-y-1 font-mono">
             <li>=COUNTIF(criteria_range, criteria)</li>
-            <li>=SUMIF(criteria_range, criteria, sum_range)  &larr; sum_range อยู่ท้ายสุด</li>
+            <li>=SUMIF(criteria_range, criteria, sum_range) &larr; sum_range อยู่ท้ายสุด</li>
             <li>=AVERAGEIF(criteria_range, criteria, average_range)</li>
             <li>=COUNTIFS(criteria_range1, criteria1, criteria_range2, criteria2, ...)</li>
-            <li>=SUMIFS(sum_range, criteria_range1, criteria1, criteria_range2, criteria2) &larr; sum_range ย้ายมาตัวแรก!</li>
+            <li>=SUMIFS(sum_range, criteria_range1, criteria1, criteria_range2, criteria2) &larr; sum_range
+              ย้ายมาตัวแรก!
+            </li>
             <li>=AVERAGEIFS(average_range, criteria_range1, criteria1, criteria_range2, criteria2)</li>
           </ul>
         </div>
@@ -3456,8 +3754,12 @@ const quizQuestions = [
         <div class="space-y-1.5">
           <h4 class="font-bold text-gray-900">5. กฎทอง 3 ข้อก่อนส่งงาน Numeric_Dashboard</h4>
           <ol class="list-decimal pl-5 text-xs text-gray-700 space-y-1">
-            <li>เก็บข้อมูลต้นฉบับไว้ในชีต <code>Master_data</code> ห้ามแก้ทับ — แยกคัดลอกเป็นชีต <code>Numeric_Dashboard</code> และล็อกช่วงเซลล์ด้วย <code>$</code> (เช่น <code>$B$2:$B$41</code>) ก่อนลากสูตรเสมอ</li>
-            <li>เครื่องหมายเปรียบเทียบต้องครอบด้วยฟันหนู เช่น <code>{{ '">=150"' }}</code> หรือเชื่อมเซลล์ด้วย <code>{{ '">=" & G2' }}</code></li>
+            <li>เก็บข้อมูลต้นฉบับไว้ในชีต <code>Master_data</code> ห้ามแก้ทับ — แยกคัดลอกเป็นชีต
+              <code>Numeric_Dashboard</code> และล็อกช่วงเซลล์ด้วย <code>$</code> (เช่น <code>$B$2:$B$41</code>)
+              ก่อนลากสูตรเสมอ
+            </li>
+            <li>เครื่องหมายเปรียบเทียบต้องครอบด้วยฟันหนู เช่น <code>{{ '">=150"' }}</code> หรือเชื่อมเซลล์ด้วย <code>{{
+              '">=" & G2' }}</code></li>
             <li>เขียนสรุป Insight พร้อมตัวเลขและเปอร์เซ็นต์กำกับทุกครั้ง (Chart/Number &ne; Insight)</li>
           </ol>
         </div>
@@ -3467,13 +3769,8 @@ const quizQuestions = [
     <!-- =================================================================== -->
     <!-- PRE-TEST MODAL                                                      -->
     <!-- =================================================================== -->
-    <PreTestModal
-      :is-open="showPreTestModal"
-      :course-id="currentCourseId"
-      :week="currentWeek"
-      :questions="quizQuestions"
-      topic-title="แบบทดสอบก่อนเรียน: สถิติพื้นฐานและการสรุปข้อมูลแบบมีเงื่อนไข"
-      @close="showPreTestModal = false"
-    />
+    <PreTestModal :is-open="showPreTestModal" :course-id="currentCourseId" :week="currentWeek"
+      :questions="quizQuestions" topic-title="แบบทดสอบก่อนเรียน: สถิติพื้นฐานและการสรุปข้อมูลแบบมีเงื่อนไข"
+      @close="showPreTestModal = false" />
   </div>
 </template>
