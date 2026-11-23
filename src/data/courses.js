@@ -236,9 +236,9 @@ export const courses = [
         id: "สัปดาห์ที่ 4",
         weekNumber: 4,
         name: "การเก็บข้อมูลและการเรียกดูประวัติของแฟ้มข้อมูล",
-        isOpen: false,
+        isOpen: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "เปิดให้เรียน",
         image: "bg-indigo-700",
       },
       {

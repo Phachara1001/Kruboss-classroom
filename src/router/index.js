@@ -72,6 +72,11 @@ const router = createRouter({
           component: () => import('../views/platform/Week3View.vue')
         },
         {
+          path: 'course/21901-2012/week/4',
+          name: 'platform-week4',
+          component: () => import('../views/platform/Week4View.vue')
+        },
+        {
           path: 'course/31901-2012/week/1',
           name: 'data-analysis-week1',
           component: () => import('../views/analysis/Week1View.vue')

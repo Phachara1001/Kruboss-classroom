@@ -111,8 +111,8 @@ export const courseAssignments = {
     },
     {
       id: "asm-4",
-      week: 5,
-      title: "ใบงานที่ 4: การทำงานแบบ Branching และ Pull Request",
+      week: 4,
+      title: "ใบงานที่ 4: วิเคราะห์กรณีศึกษาการติดตามความเปลี่ยนแปลง สืบค้นประวัติโค้ด และกู้คืนไฟล์ในระบบ Git (Google Docs)",
       maxScore: 10,
     },
     {
