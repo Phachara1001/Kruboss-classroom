@@ -179,6 +179,12 @@ export const courseAssignments = {
       title: "ใบงานที่ 4: การนำ State มารวมกับ For Loop ควบคุมไฟวิ่ง LED 6 ดวง ด้วยปุ่มกด 2 ปุ่ม บน Tinkercad",
       maxScore: 10,
     },
+    {
+      id: "asm-5",
+      week: 5,
+      title: "ใบงานที่ 5: ระบบเตือนเข้าใกล้พื้นที่หวงห้ามด้วยปุ่มเปิด-ปิด (Button State), While Loop และ Ultrasonic Sensor (HC-SR04) บน Tinkercad",
+      maxScore: 10,
+    },
   ],
 };
 

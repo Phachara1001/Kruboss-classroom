@@ -656,10 +656,10 @@ export const courses = [
       {
         id: "สัปดาห์ที่ 5",
         weekNumber: 5,
-        name: "การอ่านสัญญาณแอนะล็อกและการควบคุม PWM (Analog ADC & Pulse Width Modulation)",
-        isOpen: false,
+        name: "คำสั่งวนซ้ำแบบมีเงื่อนไข (While Loop) และการวัดระยะทางด้วย Ultrasonic Sensor (HC-SR04)",
+        isOpen: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "เปิดให้เรียน",
         image: "bg-orange-700",
       },
       {
