@@ -15,7 +15,6 @@ import {
 
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 import PreTestModal from '@/components/PreTestModal.vue'
 
@@ -519,7 +518,6 @@ const quizQuestions = [
     <!-- CHECK-IN SYSTEM & TEACHER SCOREBOARD BUTTON                    -->
     <!-- ============================================================== -->
     <div class="space-y-4">
-      <CheckInSystem :course-id="currentCourseId" :week="currentWeek" />
 
       <div class="flex items-center justify-end gap-3 flex-wrap">
         <button

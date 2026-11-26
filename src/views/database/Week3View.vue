@@ -13,7 +13,6 @@ import {
 } from '@lucide/vue'
 
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 
@@ -373,7 +372,6 @@ VALUES
     </div>
 
     <!-- Check-In System Component -->
-    <CheckInSystem :course-id="currentCourseId" :week-number="currentWeek" />
 
     <!-- Chapter Objectives & Competencies Section -->
     <section>

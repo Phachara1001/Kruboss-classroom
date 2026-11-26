@@ -15,7 +15,6 @@ import {
 
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 
 import { authUser } from '@/data/authStore'
@@ -890,7 +889,6 @@ onUnmounted(() => {
     </div>
 
     <!-- Check-in System Bar -->
-    <CheckInSystem :course-id="currentCourseId" :week="currentWeek" />
 
     <!-- ============================================================== -->
     <!-- SECTION 1: SERIAL COMMUNICATION & SERIAL MONITOR DEBUGGING -->

@@ -15,7 +15,6 @@ import {
 
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 
 import { authUser } from '@/data/authStore'
@@ -351,7 +350,6 @@ INSERT INTO enrollments (student_id, course_id, semester, grade) VALUES
     </div>
 
     <!-- Check-In System Component -->
-    <CheckInSystem :course-id="currentCourseId" :week-number="currentWeek" />
 
     <!-- Chapter Objectives & Competencies Section -->
     <section>

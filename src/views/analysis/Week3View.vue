@@ -15,7 +15,6 @@ import {
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 
 import { authUser } from '@/data/authStore'
 import { isTeacherUser } from '@/data/studentsStore'
@@ -585,7 +584,6 @@ const quizQuestions = [
     </div>
 
     <!-- Check-in System Bar -->
-    <CheckInSystem :course-id="currentCourseId" :week="currentWeek" />
 
     <!-- Bridge from Week 2 Banner (Garbage In, Garbage Out Case Study) -->
     <div

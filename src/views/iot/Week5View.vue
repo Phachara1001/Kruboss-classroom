@@ -10,7 +10,6 @@ import {
 
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import TeacherScoreboardModal from '@/components/games/TeacherScoreboardModal.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 import TinkercadLed from '@/components/iot/TinkercadLed.vue'
 import TinkercadBuzzer from '@/components/iot/TinkercadBuzzer.vue'
@@ -1499,7 +1498,6 @@ const quizQuestions = [
     </div>
 
     <!-- Check-In System -->
-    <CheckInSystem :course-id="currentCourseId" :week-number="currentWeek" />
 
     <!-- ============================================================== -->
     <!-- SECTION 1: ANATOMY OF WHILE LOOP                               -->

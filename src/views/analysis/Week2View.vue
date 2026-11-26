@@ -17,7 +17,6 @@ import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 import SlidePreviewModal from '@/components/SlidePreviewModal.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 
 import { authUser } from '@/data/authStore'
 import { isStudent, isTeacherUser } from '@/data/studentsStore'
@@ -243,7 +242,6 @@ const quizQuestions = [
     </div>
 
     <!-- Check-In System Component -->
-    <CheckInSystem :courseId="currentCourseId" :weekNumber="currentWeek" />
 
     <!-- Unit Plan & Learning Objectives -->
     <section>

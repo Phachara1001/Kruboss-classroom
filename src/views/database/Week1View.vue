@@ -10,7 +10,6 @@ import {
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 
 import { authUser } from '@/data/authStore'
 import { isStudent, isTeacherUser } from '@/data/studentsStore'
@@ -241,7 +240,6 @@ const matchRightDefs = [
     </div>
 
     <!-- Check-In System Component -->
-    <CheckInSystem :courseId="currentCourseId" :weekNumber="currentWeek" />
 
     <!-- Course Syllabus Section (New) -->
     <section>

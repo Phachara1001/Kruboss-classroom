@@ -10,7 +10,6 @@ import {
 } from '@lucide/vue'
 
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 
@@ -222,7 +221,6 @@ const matchRightDefs = [
     </div>
 
     <!-- Check-In System Component -->
-    <CheckInSystem :courseId="currentCourseId" :weekNumber="currentWeek" />
 
     <!-- Course Syllabus Section -->
     <section>

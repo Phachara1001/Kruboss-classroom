@@ -79,11 +79,12 @@ export const courses = [
       {
         id: "สัปดาห์ที่ 6",
         weekNumber: 6,
-        name: "การสร้างและการใช้งาน Routine (Stored Procedure & Function ด้วย PL/pgSQL)",
-        desc: "การสร้าง Routine ใน PostgreSQL ด้วย PL/pgSQL, การเขียน Stored Function, Stored Procedure, Parameter Mode และ Control Structures (IF-THEN, LOOP)",
-        isOpen: false,
+        name: "ทบทวนพื้นฐานและสอบย่อยปฏิบัติก่อนกลางภาค (Pre-Midterm SQL Practical Exam)",
+        desc: "ทบทวนพื้นฐานสัปดาห์ที่ 1-5 (Data Types, Constraints, CRUD, Cardinality, Foreign Keys, SQL JOIN) และสอบย่อยปฏิบัติสร้างฐานข้อมูลห้องสมุดบน Supabase PostgreSQL (10 คะแนน)",
+        isOpen: true,
+        noPrePostTest: true,
         progress: 0,
-        status: "ยังไม่เริ่ม",
+        status: "เปิดให้เรียน",
         image: "bg-teal-700",
       },
       {

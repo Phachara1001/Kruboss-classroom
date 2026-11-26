@@ -13,7 +13,6 @@ import {
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 import PreTestModal from '@/components/PreTestModal.vue'
 
 // Current Course & Week context
@@ -1009,7 +1008,6 @@ const quizQuestions = [
     <!-- CHECK-IN BAR & QUICK ACTION BUTTONS                                 -->
     <!-- =================================================================== -->
     <div class="space-y-4">
-      <CheckInSystem :course-id="currentCourseId" :week-number="currentWeek" />
 
       <div class="flex items-center justify-end gap-3 flex-wrap">
         <button @click="showPreTestModal = true" type="button"

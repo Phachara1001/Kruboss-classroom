@@ -5,7 +5,6 @@
  * ==============================================================================
  * ออกแบบตามโครงสร้างมาตรฐานของห้องเรียน:
  * 1. ข้อมูลประจำบทเรียน & คำอธิบายรายบท (Chapter Overview) - [ไม่มีสัดส่วนคะแนน 20-40-20-20]
- * 2. ระบบเช็คชื่อเข้าเรียน (CheckInSystem)
  * 3. เนื้อหาบทเรียนประจำสัปดาห์ (Lecture Content)
  * 4. Game Center: มินิเกม 1 + มินิเกม 2 + แบบทดสอบหลังเรียน 10 ข้อ (เล่นได้ครั้งเดียว หารเต็ม 10)
  * 5. ตารางคะแนนสำหรับคุณครู (TeacherScoreboardModal - Read-only)
@@ -35,7 +34,6 @@ import {
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 
 // Store & Context
 import { authUser } from '@/data/authStore'
@@ -287,7 +285,6 @@ const quizQuestions = [
     <!-- ========================================================================= -->
     <!-- 2. ระบบเช็คชื่อเข้าชั้นเรียน (Check-In System)                                -->
     <!-- ========================================================================= -->
-    <CheckInSystem :courseId="currentCourseId" :weekNumber="currentWeek" />
 
     <!-- ========================================================================= -->
     <!-- 3. ข้อมูลประจำบทเรียน & คำอธิบายรายบท (Chapter Overview)                     -->

@@ -89,6 +89,12 @@ export const courseAssignments = {
       title: "ใบงานที่ 5: ปฏิบัติการสร้างฐานข้อมูลเชิงสัมพันธ์ (Relational Database) และสืบค้นข้ามตารางใน Supabase",
       maxScore: 10,
     },
+    {
+      id: "asm-6",
+      week: 6,
+      title: "สอบย่อยปฏิบัติก่อนกลางภาค: ระบบฐานข้อมูลยืม-คืนหนังสือห้องสมุดบน Supabase (SQL Practical Exam)",
+      maxScore: 10,
+    },
   ],
   "21901-2012": [
     {

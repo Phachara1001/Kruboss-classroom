@@ -27,7 +27,6 @@ import {
 import GameCenterSection from '@/components/games/GameCenterSection.vue'
 import AssignmentSection from '@/components/AssignmentSection.vue'
 import AssignmentPdfModal from '@/components/AssignmentPdfModal.vue'
-import CheckInSystem from '@/components/CheckInSystem.vue'
 
 // Store & Context
 import { authUser } from '@/data/authStore'
@@ -270,7 +269,6 @@ const quizQuestions = [
     <!-- ========================================================================= -->
     <!-- 2. ระบบเช็คชื่อเข้าชั้นเรียน (Check-In System)                                -->
     <!-- ========================================================================= -->
-    <CheckInSystem :courseId="currentCourseId" :weekNumber="currentWeek" />
 
     <!-- ========================================================================= -->
     <!-- 3. ข้อมูลประจำบทเรียน & คำอธิบายรายบท (Chapter Overview)                     -->

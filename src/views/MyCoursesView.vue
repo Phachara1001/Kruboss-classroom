@@ -163,7 +163,7 @@ onUnmounted(() => {
 const handleTopicClick = (topic) => {
   if (topic.isOpen) {
     // If student user, check if pre-test has been completed
-    if (!effectiveIsTeacher.value) {
+    if (!effectiveIsTeacher.value && !topic.noPrePostTest) {
       const studentId = effectiveStudentId.value
       const preRec = getStudentTestRecord(course.value.id, topic.weekNumber, studentId, 'pre')
       if (!preRec) {
@@ -420,7 +420,7 @@ const closeModal = () => {
                   <Clock class="w-4 h-4" /> 3 ชม.
                 </span>
                 <button
-                  v-if="topic.isOpen"
+                  v-if="topic.isOpen && !topic.noPrePostTest"
                   type="button"
                   @click.stop="openPreTestModal(topic, $event)"
                   class="px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 transition-colors flex items-center gap-1 cursor-pointer"

@@ -1002,7 +1002,7 @@ const currentCourse = computed(() => {
 })
 
 const currentCourseTopics = computed(() => {
-  return currentCourse.value?.topics || []
+  return (currentCourse.value?.topics || []).filter(t => !t.noPrePostTest)
 })
 
 const currentDateThai = computed(() => {
