@@ -102,6 +102,11 @@ const router = createRouter({
           component: () => import('../views/analysis/Week4View.vue')
         },
         {
+          path: 'course/31901-2012/week/5',
+          name: 'data-analysis-week5',
+          component: () => import('../views/analysis/Week5View.vue')
+        },
+        {
           path: 'course/21901-2007/week/1',
           name: 'iot-week1',
           component: () => import('../views/iot/Week1View.vue')

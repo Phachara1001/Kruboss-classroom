@@ -155,8 +155,17 @@ export const courseAssignments = {
     },
     {
       id: "asm-5",
+      week: 5,
+      title: "Mini-Project (งานกลุ่ม): วิเคราะห์ชุดข้อมูลจริงจาก Kaggle และสไลด์เล่าเรื่อง Data Storytelling",
+      maxScore: 10,
+      workType: "group",
+      minMembers: 3,
+      maxMembers: 4,
+    },
+    {
+      id: "asm-10",
       week: 10,
-      title: "ใบงานที่ 5: ออกแบบ Sales Performance Dashboard",
+      title: "ใบงานที่ 10: ออกแบบ Sales Performance Dashboard",
       maxScore: 10,
     },
   ],
